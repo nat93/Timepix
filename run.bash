@@ -498,7 +498,8 @@
 ##
 ##---------------------------------------------------------##
 data_dir=/home/anatochi/Medipix/H8_DATA/2018_04_11_pions;
-#data_dir=/home/anatochi/Medipix/SPS_DATA/MD_2018_06_18
+#data_dir=/home/anatochi/Medipix/SPS_DATA/MD_2018_06_18;
+
 for runrunID in $(seq 3 1 3)
 do
 
