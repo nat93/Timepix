@@ -56,34 +56,20 @@ int main(int argc, char *argv[])
     //------------------------------------------------------------------------------//
     //---------------------- Parameters for track reconstructions ------------------//
     //------------------------------------------------------------------------------//
+
+    Int_t   nIterations                     = 10;
+    Double_t offset_x_ChipID[N_MAX_CHIP], offset_errx_ChipID[N_MAX_CHIP], offset_y_ChipID[N_MAX_CHIP], offset_erry_ChipID[N_MAX_CHIP];
+    Double_t offset_xres_Plane[N_MAX_CHIP], offset_errxres_Plane[N_MAX_CHIP], offset_yres_Plane[N_MAX_CHIP], offset_erryres_Plane[N_MAX_CHIP];
+
     Short_t clock_jitter                    = 2;                                            // [clocks]
     Double_t plane_position[]               = {0.0,305.0,305.0+600.0,305.0+600.0+270.0};    // [mm]
     Double_t plane_position_err[]           = {10.0,10.0,10.0,10.0};                        // [mm]
     Double_t timecut                        = 10000.0;                                      // [ns]
     Double_t projection_plane_position      = 310.0;                                        // [mm]
     Double_t projection_plane_position_err  = 10.0;                                         // [mm]
-    Int_t   nIterations                     = 1;
+    Double_t chi2_x_max                     = 1000;                                         // [chi2/NDF]
+    Double_t chi2_y_max                     = 1000;                                         // [chi2/NDF]
 
-//    RUN_1 -- RUN_5
-//    Double_t offset_x_ChipID[]      = {173.9,-258.0,87.85,-267.4};                  // [pixels]
-//    Double_t offset_errx_ChipID[]   = {0.50,0.30,0.38,0.30};                        // [pixels]
-//    Double_t offset_y_ChipID[]      = {114.9,207.4,99.5,206.2};                     // [pixels]
-//    Double_t offset_erry_ChipID[]   = {0.40,0.30,0.50,0.30};                        // [pixels]
-//    Double_t offset_xres_Plane[]    = {0.089535,-0.125467,-0.000209,-0.052322};     // [mm]
-//    Double_t offset_errxres_Plane[] = {0.003881,0.023431,0.025527,0.046810};        // [mm]
-//    Double_t offset_yres_Plane[]    = {0.036318,-0.053352,0.045932,-0.031546};      // [mm]
-//    Double_t offset_erryres_Plane[] = {0.004234,0.002710,0.002475,0.003911};        // [mm]
-
-//    RUN_6 -- RUN_8
-    Double_t offset_x_ChipID[]      = {173.9,-258.0,87.85,-267.4};                  // [pixels]
-    Double_t offset_errx_ChipID[]   = {0.50,0.30,0.38,0.30};                        // [pixels]
-    Double_t offset_y_ChipID[]      = {114.9,207.4,99.5,206.2};                     // [pixels]
-    Double_t offset_erry_ChipID[]   = {0.40,0.30,0.50,0.30};                        // [pixels]
-
-    Double_t offset_xres_Plane[]    = {0.0,0.0,0.0,0.0};     // [mm]
-    Double_t offset_errxres_Plane[] = {0.0,0.0,0.0,0.0};     // [mm]
-    Double_t offset_yres_Plane[]    = {0.0,0.0,0.0,0.0};     // [mm]
-    Double_t offset_erryres_Plane[] = {0.0,0.0,0.0,0.0};     // [mm]
 
     //------------------------------------------------------------------------------//
     //--------------------------- Input parameters/variables -----------------------//
@@ -192,6 +178,7 @@ int main(int argc, char *argv[])
     TH1D* h9 = new TH1D("h9","X position with appl. offset Chip_2",2000,-1000,1000);
     TH1D* h10 = new TH1D("h10","X position without appl. offset Chip_3",2000,-1000,1000);
     TH1D* h11 = new TH1D("h11","X position with appl. offset Chip_3",2000,-1000,1000);
+
     TH1D* h12 = new TH1D("h12","Y position without appl. offset Chip_0",2000,-1000,1000);
     TH1D* h13 = new TH1D("h13","Y position with appl. offset Chip_0",2000,-1000,1000);
     TH1D* h14 = new TH1D("h14","Y position without appl. offset Chip_1",2000,-1000,1000);
@@ -200,6 +187,7 @@ int main(int argc, char *argv[])
     TH1D* h17 = new TH1D("h17","Y position with appl. offset Chip_2",2000,-1000,1000);
     TH1D* h18 = new TH1D("h18","Y position without appl. offset Chip_3",2000,-1000,1000);
     TH1D* h19 = new TH1D("h19","Y position with appl. offset Chip_3",2000,-1000,1000);
+
     TH2D* h21 = new TH2D("h21","X position vs Z position",160,-100,1500,2000,-1000*PIXEL_SIZE,1000*PIXEL_SIZE);
     TH2D* h22 = new TH2D("h22","Y position vs Z position",160,-100,1500,2000,-1000*PIXEL_SIZE,1000*PIXEL_SIZE);
 
@@ -207,19 +195,21 @@ int main(int argc, char *argv[])
     // Reco 1
     //---------//
 
-    TH2D* h25 = new TH2D("h25","#Chi^{2} in X direction vs Iteration",100000,0,10000,nIterations+1,0,nIterations+1);
-    TH2D* h26 = new TH2D("h26","#Chi^{2}/NDF in X direction vs Iteration",100000,0,10000,nIterations+1,0,nIterations+1);
-    TH2D* h27 = new TH2D("h27","#Chi^{2} in Y direction vs Iteration",100000,0,10000,nIterations+1,0,nIterations+1);
-    TH2D* h28 = new TH2D("h28","#Chi^{2}/NDF in Y direction vs Iteration",100000,0,10000,nIterations+1,0,nIterations+1);
+    TH2D* h25 = new TH2D("h25","#Chi^{2} in X direction vs Iteration",nIterations+1,0,nIterations+1,100000,0,10000);
+    TH2D* h26 = new TH2D("h26","#Chi^{2}/NDF in X direction vs Iteration",nIterations+1,0,nIterations+1,100000,0,10000);
+    TH2D* h27 = new TH2D("h27","#Chi^{2} in Y direction vs Iteration",nIterations+1,0,nIterations+1,100000,0,10000);
+    TH2D* h28 = new TH2D("h28","#Chi^{2}/NDF in Y direction vs Iteration",nIterations+1,0,nIterations+1,100000,0,10000);
 
-    TH1D* h29 = new TH1D("h29","Residual in X for Plane 0",200000,-1000,1000);
-    TH1D* h30 = new TH1D("h30","Residual in X for Plane 1",200000,-1000,1000);
-    TH1D* h31 = new TH1D("h31","Residual in X for Plane 2",200000,-1000,1000);
-    TH1D* h32 = new TH1D("h32","Residual in X for Plane 3",200000,-1000,1000);
-    TH1D* h33 = new TH1D("h33","Residual in Y for Plane 0",200000,-1000,1000);
-    TH1D* h34 = new TH1D("h34","Residual in Y for Plane 1",200000,-1000,1000);
-    TH1D* h35 = new TH1D("h35","Residual in Y for Plane 2",200000,-1000,1000);
-    TH1D* h36 = new TH1D("h36","Residual in Y for Plane 3",200000,-1000,1000);
+    TH1D* h29 = new TH1D("h29","Residual in X for Plane 0",10000,-10,10);
+    TH1D* h30 = new TH1D("h30","Residual in X for Plane 1",10000,-10,10);
+    TH1D* h31 = new TH1D("h31","Residual in X for Plane 2",10000,-10,10);
+    TH1D* h32 = new TH1D("h32","Residual in X for Plane 3",10000,-10,10);
+
+    TH1D* h33 = new TH1D("h33","Residual in Y for Plane 0",10000,-10,10);
+    TH1D* h34 = new TH1D("h34","Residual in Y for Plane 1",10000,-10,10);
+    TH1D* h35 = new TH1D("h35","Residual in Y for Plane 2",10000,-10,10);
+    TH1D* h36 = new TH1D("h36","Residual in Y for Plane 3",10000,-10,10);
+
     TH1D* h37 = new TH1D("h37","#Chi^{2} in X direction (with Residual corrections)",100000,0,10000);
     TH1D* h38 = new TH1D("h38","#Chi^{2}/NDF in X direction (with Residual corrections)",100000,0,10000);
     TH1D* h39 = new TH1D("h39","#Chi^{2} in Y direction (with Residual corrections)",100000,0,10000);
@@ -232,10 +222,16 @@ int main(int argc, char *argv[])
     TH1D* h46 = new TH1D("h46","Size of clusters for Chip_1",1000,0,100);
     TH1D* h47 = new TH1D("h47","Size of clusters for Chip_2",1000,0,100);
     TH1D* h48 = new TH1D("h48","Size of clusters for Chip_3",1000,0,100);
-    TH1D* h49 = new TH1D("h49","Track Angle in X (I)",100000,-1,1);
-    TH1D* h50 = new TH1D("h50","Track Offset in X (I)",10000,-100,100);
-    TH1D* h51 = new TH1D("h51","Track Angle in Y (I)",100000,-1,1);
-    TH1D* h52 = new TH1D("h52","Track Offset in Y (I)",10000,-100,100);
+
+    TH2D* h49 = new TH2D("h49","Residual in X vs Iteraction for Plane 0",nIterations+1,0,nIterations+1,10000,-10,10);
+    TH2D* h50 = new TH2D("h50","Residual in X vs Iteraction for Plane 1",nIterations+1,0,nIterations+1,10000,-10,10);
+    TH2D* h51 = new TH2D("h51","Residual in X vs Iteraction for Plane 2",nIterations+1,0,nIterations+1,10000,-10,10);
+    TH2D* h52 = new TH2D("h52","Residual in X vs Iteraction for Plane 3",nIterations+1,0,nIterations+1,10000,-10,10);
+
+    TH2D* h120 = new TH2D("h120","Residual in Y vs Iteraction for Plane 0",nIterations+1,0,nIterations+1,10000,-10,10);
+    TH2D* h121 = new TH2D("h121","Residual in Y vs Iteraction for Plane 1",nIterations+1,0,nIterations+1,10000,-10,10);
+    TH2D* h122 = new TH2D("h122","Residual in Y vs Iteraction for Plane 2",nIterations+1,0,nIterations+1,10000,-10,10);
+    TH2D* h123 = new TH2D("h123","Residual in Y vs Iteraction for Plane 3",nIterations+1,0,nIterations+1,10000,-10,10);
 
     //---------//
     // Reco 2
@@ -381,12 +377,12 @@ int main(int argc, char *argv[])
     //------------------------ INTEGRATED IMAGE OF THE BEAM ------------------------------------------//
     //------------------------------------------------------------------------------------------------//
 
-    cout<<endl<<"--> Integrating image of the beam <--"<<endl;
+    cout<<endl<<"--> Integrating image of the beam <--"<<endl<<endl;
     for(Int_t i = 0; i < nEntries[0]; i++)
     {
         if(i%100 == 0)
         {
-            printf("\r--> Working: %3.1f %%",100*(Double_t)i/nEntries[0]);
+            printf("\r--> Working(1.1): %3.1f %%",100*(Double_t)i/nEntries[0]);
             fflush(stdout);
         }
 
@@ -399,8 +395,34 @@ int main(int argc, char *argv[])
         //-------------------//
 
         h4->Fill(x_pos);
+        h12->Fill(y_pos);
+
+        h41->Fill(clocks_clinfo);
+        h45->Fill(size_clinfo);
+    }
+    cout<<endl;
+    for(Int_t i = 0; i < nEntries[0]; i++)
+    {
+        if(i%100 == 0)
+        {
+            printf("\r--> Working(1.2): %3.1f %%",100*(Double_t)i/nEntries[0]);
+            fflush(stdout);
+        }
+
+        fChain[0]->GetEntry(i);
+        if(clocks_clinfo*1.0e3/_Clock < timecut) continue;
+
+        //--- Orientation ---//
+        Double_t x_pos = pos_x_clinfo;
+        Double_t y_pos = pos_y_clinfo;
+        //-------------------//
+
+        offset_x_ChipID[0]      = h4->GetMean();
+        offset_errx_ChipID[0]   = h4->GetMeanError();
+        offset_y_ChipID[0]      = h12->GetMean();
+        offset_erry_ChipID[0]   = h12->GetMeanError();
+
         h5->Fill(x_pos-offset_x_ChipID[0]);
-        h12->Fill(pos_y_clinfo);
         h13->Fill(y_pos-offset_y_ChipID[0]);
 
         h21->Fill(plane_position[GetPlaneID(0)],(x_pos-offset_x_ChipID[0])*PIXEL_SIZE);
@@ -414,7 +436,7 @@ int main(int argc, char *argv[])
     {
         if(i%100 == 0)
         {
-            printf("\r--> Working: %3.1f %%",100*(Double_t)i/nEntries[1]);
+            printf("\r--> Working(2.1): %3.1f %%",100*(Double_t)i/nEntries[1]);
             fflush(stdout);
         }
 
@@ -427,8 +449,34 @@ int main(int argc, char *argv[])
         //-------------------//
 
         h6->Fill(x_pos);
-        h7->Fill(x_pos-offset_x_ChipID[1]);
         h14->Fill(y_pos);
+
+        h42->Fill(clocks_clinfo);
+        h46->Fill(size_clinfo);
+    }
+    cout<<endl;
+    for(Int_t i = 0; i < nEntries[1]; i++)
+    {
+        if(i%100 == 0)
+        {
+            printf("\r--> Working(2.2): %3.1f %%",100*(Double_t)i/nEntries[1]);
+            fflush(stdout);
+        }
+
+        fChain[1]->GetEntry(i);
+        if(clocks_clinfo*1.0e3/_Clock < timecut) continue;
+
+        //--- Orientation ---//
+        Double_t x_pos = (-1.0)*pos_y_clinfo;
+        Double_t y_pos = pos_x_clinfo;
+        //-------------------//
+
+        offset_x_ChipID[1]      = h6->GetMean();
+        offset_errx_ChipID[1]   = h6->GetMeanError();
+        offset_y_ChipID[1]      = h14->GetMean();
+        offset_erry_ChipID[1]   = h14->GetMeanError();
+
+        h7->Fill(x_pos-offset_x_ChipID[1]);
         h15->Fill(y_pos-offset_y_ChipID[1]);
 
         h21->Fill(plane_position[GetPlaneID(1)],(x_pos-offset_x_ChipID[1])*PIXEL_SIZE);
@@ -442,7 +490,7 @@ int main(int argc, char *argv[])
     {
         if(i%100 == 0)
         {
-            printf("\r--> Working: %3.1f %%",100*(Double_t)i/nEntries[2]);
+            printf("\r--> Working(3.1): %3.1f %%",100*(Double_t)i/nEntries[2]);
             fflush(stdout);
         }
 
@@ -455,8 +503,34 @@ int main(int argc, char *argv[])
         //-------------------//
 
         h8->Fill(x_pos);
-        h9->Fill(x_pos-offset_x_ChipID[2]);
         h16->Fill(y_pos);
+
+        h43->Fill(clocks_clinfo);
+        h47->Fill(size_clinfo);
+    }
+    cout<<endl;
+    for(Int_t i = 0; i < nEntries[2]; i++)
+    {
+        if(i%100 == 0)
+        {
+            printf("\r--> Working(3.2): %3.1f %%",100*(Double_t)i/nEntries[2]);
+            fflush(stdout);
+        }
+
+        fChain[2]->GetEntry(i);
+        if(clocks_clinfo*1.0e3/_Clock < timecut) continue;
+
+        //--- Orientation ---//
+        Double_t x_pos = pos_x_clinfo;
+        Double_t y_pos = pos_y_clinfo;
+        //-------------------//
+
+        offset_x_ChipID[2]      = h8->GetMean();
+        offset_errx_ChipID[2]   = h8->GetMeanError();
+        offset_y_ChipID[2]      = h16->GetMean();
+        offset_erry_ChipID[2]   = h16->GetMeanError();
+
+        h9->Fill(x_pos-offset_x_ChipID[2]);
         h17->Fill(y_pos-offset_y_ChipID[2]);
 
         h21->Fill(plane_position[GetPlaneID(2)],(x_pos-offset_x_ChipID[2])*PIXEL_SIZE);
@@ -470,7 +544,7 @@ int main(int argc, char *argv[])
     {
         if(i%100 == 0)
         {
-            printf("\r--> Working: %3.1f %%",100*(Double_t)i/nEntries[3]);
+            printf("\r--> Working(4.1): %3.1f %%",100*(Double_t)i/nEntries[3]);
             fflush(stdout);
         }
 
@@ -483,8 +557,34 @@ int main(int argc, char *argv[])
         //-------------------//
 
         h10->Fill(x_pos);
-        h11->Fill(x_pos-offset_x_ChipID[3]);
         h18->Fill(y_pos);
+
+        h44->Fill(clocks_clinfo);
+        h48->Fill(size_clinfo);
+    }
+    cout<<endl;
+    for(Int_t i = 0; i < nEntries[3]; i++)
+    {
+        if(i%100 == 0)
+        {
+            printf("\r--> Working(4.2): %3.1f %%",100*(Double_t)i/nEntries[3]);
+            fflush(stdout);
+        }
+
+        fChain[3]->GetEntry(i);
+        if(clocks_clinfo*1.0e3/_Clock < timecut) continue;
+
+        //--- Orientation ---//
+        Double_t x_pos = (-1.0)*pos_y_clinfo;
+        Double_t y_pos = pos_x_clinfo;
+        //-------------------//
+
+        offset_x_ChipID[3]      = h10->GetMean();
+        offset_errx_ChipID[3]   = h10->GetMeanError();
+        offset_y_ChipID[3]      = h18->GetMean();
+        offset_erry_ChipID[3]   = h18->GetMeanError();
+
+        h11->Fill(x_pos-offset_x_ChipID[3]);
         h19->Fill(y_pos-offset_y_ChipID[3]);
 
         h21->Fill(plane_position[GetPlaneID(3)],(x_pos-offset_x_ChipID[3])*PIXEL_SIZE);
@@ -499,11 +599,16 @@ int main(int argc, char *argv[])
     //--------------------------------- TRACKING SECTION ---------------------------------------------//
     //------------------------------------------------------------------------------------------------//
 
-    TF1* fit_function = new TF1("fit_function","[1] * x + [0]");
-    Double_t p0_x, p1_x, p0_y, p1_y, chi2_x, chi2_y;
+    TF1* fit_function = new TF1("fit_function","pol1");
     Double_t slope_arm1_x, slope_arm2_x, slope_arm1_y, slope_arm2_y;
-    Double_t slope_arm1_x_err, slope_arm2_x_err, slope_arm1_y_err, slope_arm2_y_err, offset_arm1_x_err, offset_arm2_x_err, offset_arm1_y_err, offset_arm2_y_err;
+    Double_t slope_arm1_x_err, slope_arm2_x_err, slope_arm1_y_err, slope_arm2_y_err/*, offset_arm1_x_err, offset_arm2_x_err, offset_arm1_y_err, offset_arm2_y_err*/;
     Double_t x_arm1, x_arm2, y_arm1, y_arm2, x_arm1_err, x_arm2_err, y_arm1_err, y_arm2_err;
+
+    Double_t chi2_x, chi2_y;
+    Double_t fit_slope_x  = 1.0e-3;
+    Double_t fit_offset_x = 0.0;
+    Double_t fit_slope_y  = 1.0e-3;
+    Double_t fit_offset_y = 0.0;
 
     TGraphErrors* gr_x = new TGraphErrors();
     TGraphErrors* gr_y = new TGraphErrors();
@@ -516,17 +621,34 @@ int main(int argc, char *argv[])
         // Iteration //
         //-----------//
 
-        for(Int_t iteratorID = 0; iteratorID < nIterations; iteratorID++)
+        for(Int_t iteratorID = 1; iteratorID <= nIterations; iteratorID++)
         {
             //----------------//
             // Loop by frames //
             //----------------//
             cout<<endl;
+
+            TH1D* h_res_plane0_x = new TH1D("h_res_plane0_x","Residual in X for Plane 0",10000,-10,10);
+            TH1D* h_res_plane1_x = new TH1D("h_res_plane1_x","Residual in X for Plane 1",10000,-10,10);
+            TH1D* h_res_plane2_x = new TH1D("h_res_plane2_x","Residual in X for Plane 2",10000,-10,10);
+            TH1D* h_res_plane3_x = new TH1D("h_res_plane3_x","Residual in X for Plane 3",10000,-10,10);
+
+            TH1D* h_res_plane0_y = new TH1D("h_res_plane0_y","Residual in Y for Plane 0",10000,-10,10);
+            TH1D* h_res_plane1_y = new TH1D("h_res_plane1_y","Residual in Y for Plane 1",10000,-10,10);
+            TH1D* h_res_plane2_y = new TH1D("h_res_plane2_y","Residual in Y for Plane 2",10000,-10,10);
+            TH1D* h_res_plane3_y = new TH1D("h_res_plane3_y","Residual in Y for Plane 3",10000,-10,10);
+
+
+            TH1D* h_fit_offset_x = new TH1D("h_fit_offset_x","Fit Offset in X",100000,-100,100);
+            TH1D* h_fit_slope_x = new TH1D("h_fit_slope_x","Fit Slope in X",10000000,-10,10);
+            TH1D* h_fit_offset_y = new TH1D("h_fit_offset_y","Fit Offset in Y",100000,-100,100);
+            TH1D* h_fit_slope_y = new TH1D("h_fit_slope_y","Fit Slope in Y",10000000,-10,10);
+
             for(Int_t i = 0; i < nEntriesClock; i++)
             {
                 if(i%10 == 0)
                 {
-                    printf("\r--> IterationID: %d | Working: %3.1f %%",iteratorID,100*(Double_t)i/nEntriesClock);
+                    printf("\r--> Iteration: %5d/%5d | Working: %3.1f %%",iteratorID,nIterations,100*(Double_t)i/nEntriesClock);
                     fflush(stdout);
                 }
 
@@ -599,16 +721,16 @@ int main(int argc, char *argv[])
                                         //-----------//
                                         // In X dir. //
                                         //-----------//
-                                        gr_x->SetPoint(gr_point,plane_position[GetPlaneID(chipID)],(x_pos-offset_x_ChipID[chipID])*PIXEL_SIZE-offset_xres_Plane[GetPlaneID(chipID)]);
-                                        gr_x->SetPointError(gr_point,plane_position_err[GetPlaneID(chipID)],
+                                        gr_x->SetPoint(GetPlaneID(chipID),plane_position[GetPlaneID(chipID)],(x_pos-offset_x_ChipID[chipID])*PIXEL_SIZE-offset_xres_Plane[GetPlaneID(chipID)]);
+                                        gr_x->SetPointError(GetPlaneID(chipID),plane_position_err[GetPlaneID(chipID)],
                                                 TMath::Sqrt(TMath::Power(pos_x_err_clinfo*PIXEL_SIZE,2) + TMath::Power(offset_errx_ChipID[chipID]*PIXEL_SIZE,2) +
                                                             TMath::Power(offset_errxres_Plane[GetPlaneID(chipID)],2)));
 
                                         //-----------//
                                         // In Y dir. //
                                         //-----------//
-                                        gr_y->SetPoint(gr_point,plane_position[GetPlaneID(chipID)],(y_pos-offset_y_ChipID[chipID])*PIXEL_SIZE-offset_yres_Plane[GetPlaneID(chipID)]);
-                                        gr_y->SetPointError(gr_point,plane_position_err[GetPlaneID(chipID)],
+                                        gr_y->SetPoint(GetPlaneID(chipID),plane_position[GetPlaneID(chipID)],(y_pos-offset_y_ChipID[chipID])*PIXEL_SIZE-offset_yres_Plane[GetPlaneID(chipID)]);
+                                        gr_y->SetPointError(GetPlaneID(chipID),plane_position_err[GetPlaneID(chipID)],
                                                 TMath::Sqrt(TMath::Power(pos_y_err_clinfo*PIXEL_SIZE,2) + TMath::Power(offset_erry_ChipID[chipID]*PIXEL_SIZE,2) +
                                                             TMath::Power(offset_erryres_Plane[GetPlaneID(chipID)],2)));
 
@@ -632,59 +754,108 @@ int main(int argc, char *argv[])
                         //-----------//
                         // In X dir. //
                         //-----------//
-                        fit_function->SetParameter(0,0);
-                        fit_function->SetParameter(1,1e-3);
+                        Double_t fit_offset_x_temp  = fit_offset_x;
+                        Double_t fit_slope_x_temp   = fit_slope_x;
+
+                        fit_function->SetParameter(0,fit_offset_x_temp);
+                        fit_function->SetParameter(1,fit_slope_x_temp);
 
                         gr_x->Fit(fit_function,"Q");
-                        p0_x = fit_function->GetParameter(0);
-                        p1_x = fit_function->GetParameter(1);
+                        fit_offset_x_temp = fit_function->GetParameter(0);
+                        fit_slope_x_temp = fit_function->GetParameter(1);
                         chi2_x = fit_function->GetChisquare()/fit_function->GetNDF();
 
-                        h25->Fill(iteratorID,chi2_x*fit_function->GetNDF());
-                        h26->Fill(iteratorID,chi2_x);
-
-                        for(Int_t gr_point_id = 0; gr_point_id < gr_x->GetN(); gr_point_id++)
+                        if(chi2_x < chi2_x_max)
                         {
-                            Double_t xxx, zzz;
-                            gr_x->GetPoint(gr_point_id,zzz,xxx);
+                            h_fit_offset_x->Fill(fit_offset_x_temp);
+                            h_fit_slope_x->Fill(fit_slope_x_temp);
 
-                            if(round(zzz) == round(plane_position[0]))
-                                h29->Fill(xxx-(p0_x + p1_x*zzz));
-                            if(round(zzz) == round(plane_position[1]))
-                                h30->Fill(xxx-(p0_x + p1_x*zzz));
-                            if(round(zzz) == round(plane_position[2]))
-                                h31->Fill(xxx-(p0_x + p1_x*zzz));
-                            if(round(zzz) == round(plane_position[3]))
-                                h32->Fill(xxx-(p0_x + p1_x*zzz));
+                            h25->Fill(iteratorID,chi2_x*fit_function->GetNDF());
+                            h26->Fill(iteratorID,chi2_x);
+
+                            for(Int_t gr_point_id = 0; gr_point_id < gr_x->GetN(); gr_point_id++)
+                            {
+                                Double_t xxx, zzz;
+                                gr_x->GetPoint(gr_point_id,zzz,xxx);
+
+                                if(round(zzz) == round(plane_position[0]))
+                                {
+                                    h_res_plane0_x->Fill(xxx-(fit_offset_x_temp + fit_slope_x_temp*zzz));
+                                    if(iteratorID == nIterations) {h29->Fill(xxx-(fit_offset_x_temp + fit_slope_x_temp*zzz));}
+                                    h49->Fill(iteratorID,xxx-(fit_offset_x_temp + fit_slope_x_temp*zzz));
+                                }
+                                if(round(zzz) == round(plane_position[1]))
+                                {
+                                    h_res_plane1_x->Fill(xxx-(fit_offset_x_temp + fit_slope_x_temp*zzz));
+                                    if(iteratorID == nIterations) {h30->Fill(xxx-(fit_offset_x_temp + fit_slope_x_temp*zzz));}
+                                    h50->Fill(iteratorID,xxx-(fit_offset_x_temp + fit_slope_x_temp*zzz));
+                                }
+                                if(round(zzz) == round(plane_position[2]))
+                                {
+                                    h_res_plane2_x->Fill(xxx-(fit_offset_x_temp + fit_slope_x_temp*zzz));
+                                    if(iteratorID == nIterations) {h31->Fill(xxx-(fit_offset_x_temp + fit_slope_x_temp*zzz));}
+                                    h51->Fill(iteratorID,xxx-(fit_offset_x_temp + fit_slope_x_temp*zzz));
+                                }
+                                if(round(zzz) == round(plane_position[3]))
+                                {
+                                    h_res_plane3_x->Fill(xxx-(fit_offset_x_temp + fit_slope_x_temp*zzz));
+                                    if(iteratorID == nIterations) {h32->Fill(xxx-(fit_offset_x_temp + fit_slope_x_temp*zzz));}
+                                    h52->Fill(iteratorID,xxx-(fit_offset_x_temp + fit_slope_x_temp*zzz));
+                                }
+                            }
                         }
-
                         //-----------//
                         // In Y dir. //
                         //-----------//
-                        fit_function->SetParameter(0,0);
-                        fit_function->SetParameter(1,1e-3);
+                        Double_t fit_offset_y_temp = fit_offset_y;
+                        Double_t fit_slope_y_temp = fit_slope_y;
+
+                        fit_function->SetParameter(0,fit_offset_y_temp);
+                        fit_function->SetParameter(1,fit_slope_y_temp);
 
                         gr_y->Fit(fit_function,"Q");
-                        p0_y = fit_function->GetParameter(0);
-                        p1_y = fit_function->GetParameter(1);
+                        fit_offset_y_temp = fit_function->GetParameter(0);
+                        fit_slope_y_temp = fit_function->GetParameter(1);
                         chi2_y = fit_function->GetChisquare()/fit_function->GetNDF();
 
-                        h27->Fill(iteratorID,chi2_y*fit_function->GetNDF());
-                        h28->Fill(iteratorID,fchi2_y);
-
-                        for(Int_t gr_point_id = 0; gr_point_id < gr_y->GetN(); gr_point_id++)
+                        if(chi2_y < chi2_y_max)
                         {
-                            Double_t yyy, zzz;
-                            gr_y->GetPoint(gr_point_id,zzz,yyy);
+                            h_fit_offset_y->Fill(fit_offset_y_temp);
+                            h_fit_slope_y->Fill(fit_slope_y_temp);
 
-                            if(round(zzz) == round(plane_position[0]))
-                                h33->Fill(yyy-(p0_y + p1_y*zzz));
-                            if(round(zzz) == round(plane_position[1]))
-                                h34->Fill(yyy-(p0_y + p1_y*zzz));
-                            if(round(zzz) == round(plane_position[2]))
-                                h35->Fill(yyy-(p0_y + p1_y*zzz));
-                            if(round(zzz) == round(plane_position[3]))
-                                h36->Fill(yyy-(p0_y + p1_y*zzz));
+                            h27->Fill(iteratorID,chi2_y*fit_function->GetNDF());
+                            h28->Fill(iteratorID,chi2_y);
+
+                            for(Int_t gr_point_id = 0; gr_point_id < gr_y->GetN(); gr_point_id++)
+                            {
+                                Double_t yyy, zzz;
+                                gr_y->GetPoint(gr_point_id,zzz,yyy);
+
+                                if(round(zzz) == round(plane_position[0]))
+                                {
+                                    h_res_plane0_y->Fill(yyy-(fit_offset_y_temp + fit_slope_y_temp*zzz));
+                                    if(iteratorID == nIterations) {h33->Fill(yyy-(fit_offset_y_temp + fit_slope_y_temp*zzz));}
+                                    h120->Fill(iteratorID,yyy-(fit_offset_y_temp + fit_slope_y_temp*zzz));
+                                }
+                                if(round(zzz) == round(plane_position[1]))
+                                {
+                                    h_res_plane1_y->Fill(yyy-(fit_offset_y_temp + fit_slope_y_temp*zzz));
+                                    if(iteratorID == nIterations) {h34->Fill(yyy-(fit_offset_y_temp + fit_slope_y_temp*zzz));}
+                                    h121->Fill(iteratorID,yyy-(fit_offset_y_temp + fit_slope_y_temp*zzz));
+                                }
+                                if(round(zzz) == round(plane_position[2]))
+                                {
+                                    h_res_plane2_y->Fill(yyy-(fit_offset_y_temp + fit_slope_y_temp*zzz));
+                                    if(iteratorID == nIterations) {h35->Fill(yyy-(fit_offset_y_temp + fit_slope_y_temp*zzz));}
+                                    h122->Fill(iteratorID,yyy-(fit_offset_y_temp + fit_slope_y_temp*zzz));
+                                }
+                                if(round(zzz) == round(plane_position[3]))
+                                {
+                                    h_res_plane3_y->Fill(yyy-(fit_offset_y_temp + fit_slope_y_temp*zzz));
+                                    if(iteratorID == nIterations) {h36->Fill(yyy-(fit_offset_y_temp + fit_slope_y_temp*zzz));}
+                                    h123->Fill(iteratorID,yyy-(fit_offset_y_temp + fit_slope_y_temp*zzz));
+                                }
+                            }
                         }
                     }
                 }
@@ -693,26 +864,44 @@ int main(int argc, char *argv[])
             //-----------//
             // In X dir. //
             //-----------//
-            offset_xres_Plane[0]    = h29->GetMean();
-            offset_errxres_Plane[0] = h29->GetMeanError();
-            offset_xres_Plane[1]    = h30->GetMean();
-            offset_errxres_Plane[1] = h30->GetMeanError();
-            offset_xres_Plane[2]    = h31->GetMean();
-            offset_errxres_Plane[2] = h31->GetMeanError();
-            offset_xres_Plane[3]    = h32->GetMean();
-            offset_errxres_Plane[3] = h32->GetMeanError();
+            offset_xres_Plane[0]    += h_res_plane0_x->GetMean();
+            offset_errxres_Plane[0] = TMath::Sqrt(TMath::Power(offset_errxres_Plane[0],2) + TMath::Power(h_res_plane0_x->GetMeanError(),2));
+            offset_xres_Plane[1]    += h_res_plane1_x->GetMean();
+            offset_errxres_Plane[1] = TMath::Sqrt(TMath::Power(offset_errxres_Plane[1],2) + TMath::Power(h_res_plane1_x->GetMeanError(),2));
+            offset_xres_Plane[2]    += h_res_plane2_x->GetMean();
+            offset_errxres_Plane[2] = TMath::Sqrt(TMath::Power(offset_errxres_Plane[2],2) + TMath::Power(h_res_plane2_x->GetMeanError(),2));
+            offset_xres_Plane[3]    += h_res_plane3_x->GetMean();
+            offset_errxres_Plane[3] = TMath::Sqrt(TMath::Power(offset_errxres_Plane[3],2) + TMath::Power(h_res_plane3_x->GetMeanError(),2));
+            fit_offset_x            = h_fit_offset_x->GetMean();
+            fit_slope_x             = h_fit_slope_x->GetMean();
 
             //-----------//
             // In Y dir. //
             //-----------//
-            offset_yres_Plane[0]    = h33->GetMean();
-            offset_erryres_Plane[0] = h33->GetMeanError();
-            offset_yres_Plane[1]    = h34->GetMean();
-            offset_erryres_Plane[1] = h34->GetMeanError();
-            offset_yres_Plane[2]    = h35->GetMean();
-            offset_erryres_Plane[2] = h35->GetMeanError();
-            offset_yres_Plane[3]    = h36->GetMean();
-            offset_erryres_Plane[3] = h36->GetMeanError();
+            offset_yres_Plane[0]    += h_res_plane0_y->GetMean();
+            offset_erryres_Plane[0] = TMath::Sqrt(TMath::Power(offset_erryres_Plane[0],2) + TMath::Power(h_res_plane0_y->GetMeanError(),2));
+            offset_yres_Plane[1]    += h_res_plane1_y->GetMean();
+            offset_erryres_Plane[1] = TMath::Sqrt(TMath::Power(offset_erryres_Plane[1],2) + TMath::Power(h_res_plane1_y->GetMeanError(),2));
+            offset_yres_Plane[2]    += h_res_plane2_y->GetMean();
+            offset_erryres_Plane[2] = TMath::Sqrt(TMath::Power(offset_erryres_Plane[2],2) + TMath::Power(h_res_plane2_y->GetMeanError(),2));
+            offset_yres_Plane[3]    += h_res_plane3_y->GetMean();
+            offset_erryres_Plane[3] = TMath::Sqrt(TMath::Power(offset_erryres_Plane[3],2) + TMath::Power(h_res_plane3_y->GetMeanError(),2));
+            fit_offset_y            = h_fit_offset_y->GetMean();
+            fit_slope_y             = h_fit_slope_y->GetMean();
+
+            // Clean histos
+            h_res_plane0_x->Delete();
+            h_res_plane1_x->Delete();
+            h_res_plane2_x->Delete();
+            h_res_plane3_x->Delete();
+            h_res_plane0_y->Delete();
+            h_res_plane1_y->Delete();
+            h_res_plane2_y->Delete();
+            h_res_plane3_y->Delete();
+            h_fit_offset_x->Delete();
+            h_fit_slope_x->Delete();
+            h_fit_offset_y->Delete();
+            h_fit_slope_y->Delete();
         }
 
         cout<<endl<<"--> Residual corrections: "<<endl;
@@ -808,20 +997,16 @@ int main(int argc, char *argv[])
                                     //-----------//
                                     // In X dir. //
                                     //-----------//
-                                    pos_errx_clinfo = TMath::Sqrt(size_clinfo)/TMath::Sqrt(12.0);
-                                    // With residual corrections
                                     x_coord[GetPlaneID(chipID)] = (x_pos-offset_x_ChipID[chipID])*PIXEL_SIZE-offset_xres_Plane[GetPlaneID(chipID)];
-                                    errx_coord[GetPlaneID(chipID)] = TMath::Sqrt(TMath::Power(pos_errx_clinfo*PIXEL_SIZE,2) +
+                                    errx_coord[GetPlaneID(chipID)] = TMath::Sqrt(TMath::Power(pos_x_err_clinfo*PIXEL_SIZE,2) +
                                                                                  TMath::Power(offset_errx_ChipID[chipID]*PIXEL_SIZE,2) +
                                                                                  TMath::Power(offset_errxres_Plane[GetPlaneID(chipID)],2));
 
                                     //-----------//
                                     // In Y dir. //
                                     //-----------//
-                                    pos_erry_clinfo = TMath::Sqrt(size_clinfo)/TMath::Sqrt(12.0);
-                                    // With residual corrections
                                     y_coord[GetPlaneID(chipID)] = (y_pos-offset_y_ChipID[chipID])*PIXEL_SIZE-offset_yres_Plane[GetPlaneID(chipID)];
-                                    erry_coord[GetPlaneID(chipID)] = TMath::Sqrt(TMath::Power(pos_erry_clinfo*PIXEL_SIZE,2) +
+                                    erry_coord[GetPlaneID(chipID)] = TMath::Sqrt(TMath::Power(pos_y_err_clinfo*PIXEL_SIZE,2) +
                                                                                  TMath::Power(offset_erry_ChipID[chipID]*PIXEL_SIZE,2) +
                                                                                  TMath::Power(offset_erryres_Plane[GetPlaneID(chipID)],2));
 
@@ -871,11 +1056,11 @@ int main(int argc, char *argv[])
                     x_arm1 = TMath::Tan(slope_arm1_x)*projection_plane_position;
                     x_arm2 = TMath::Tan(slope_arm2_x)*projection_plane_position;
                     x_arm1_err = TMath::Sqrt(TMath::Power(slope_arm1_x_err*projection_plane_position/(TMath::Cos(slope_arm1_x)*TMath::Cos(slope_arm1_x)),2) +
-                                             TMath::Power(slope_arm1_x*projection_plane_position_err,2) +
-                                             TMath::Power(offset_arm1_x_err,2));
+                                             TMath::Power(slope_arm1_x*projection_plane_position_err,2) /*+
+                                             TMath::Power(offset_arm1_x_err,2)*/);
                     x_arm2_err = TMath::Sqrt(TMath::Power(slope_arm2_x_err*projection_plane_position/(TMath::Cos(slope_arm2_x)*TMath::Cos(slope_arm2_x)),2) +
-                                             TMath::Power(slope_arm2_x*projection_plane_position_err,2) +
-                                             TMath::Power(offset_arm2_x_err,2));
+                                             TMath::Power(slope_arm2_x*projection_plane_position_err,2) /*+
+                                             TMath::Power(offset_arm2_x_err,2)*/);
                     chi2_x = TMath::Power(x_arm1-x_arm2,2)/(x_arm1_err*x_arm1_err + x_arm2_err*x_arm2_err);
 
                     h53->Fill(slope_arm1_x);
@@ -912,11 +1097,11 @@ int main(int argc, char *argv[])
                     y_arm1 = TMath::Tan(slope_arm1_y)*projection_plane_position;
                     y_arm2 = TMath::Tan(slope_arm2_y)*projection_plane_position;
                     y_arm1_err = TMath::Sqrt(TMath::Power(slope_arm1_y_err*projection_plane_position/(TMath::Cos(slope_arm1_y)*TMath::Cos(slope_arm1_y)),2) +
-                                             TMath::Power(slope_arm1_y*projection_plane_position_err,2) +
-                                             TMath::Power(offset_arm1_y_err,2));
+                                             TMath::Power(slope_arm1_y*projection_plane_position_err,2) /*+
+                                             TMath::Power(offset_arm1_y_err,2)*/);
                     y_arm2_err = TMath::Sqrt(TMath::Power(slope_arm2_y_err*projection_plane_position/(TMath::Cos(slope_arm2_y)*TMath::Cos(slope_arm2_y)),2) +
-                                             TMath::Power(slope_arm2_y*projection_plane_position_err,2) +
-                                             TMath::Power(offset_arm2_y_err,2));
+                                             TMath::Power(slope_arm2_y*projection_plane_position_err,2) /*+
+                                             TMath::Power(offset_arm2_y_err,2)*/);
                     chi2_y = TMath::Power(y_arm1-y_arm2,2)/(y_arm1_err*y_arm1_err + y_arm2_err*y_arm2_err);
 
                     h54->Fill(slope_arm1_y);
@@ -1021,14 +1206,16 @@ int main(int argc, char *argv[])
     h21->GetXaxis()->SetTitle("Z position [mm]");
     h22->GetYaxis()->SetTitle("Y position [mm]");
     h22->GetXaxis()->SetTitle("Z position [mm]");
-    h29->GetXaxis()->SetTitle("[mm]");
-    h30->GetXaxis()->SetTitle("[mm]");
-    h31->GetXaxis()->SetTitle("[mm]");
-    h32->GetXaxis()->SetTitle("[mm]");
-    h33->GetXaxis()->SetTitle("[mm]");
-    h34->GetXaxis()->SetTitle("[mm]");
-    h35->GetXaxis()->SetTitle("[mm]");
-    h36->GetXaxis()->SetTitle("[mm]");
+
+    h29->GetXaxis()->SetTitle("Residual X [mm]");
+    h30->GetXaxis()->SetTitle("Residual X [mm]");
+    h31->GetXaxis()->SetTitle("Residual X [mm]");
+    h32->GetXaxis()->SetTitle("Residual X [mm]");
+    h33->GetXaxis()->SetTitle("Residual Y [mm]");
+    h34->GetXaxis()->SetTitle("Residual Y [mm]");
+    h35->GetXaxis()->SetTitle("Residual Y [mm]");
+    h36->GetXaxis()->SetTitle("Residual Y [mm]");
+
     h41->GetXaxis()->SetTitle("[clocks]");
     h42->GetXaxis()->SetTitle("[clocks]");
     h43->GetXaxis()->SetTitle("[clocks]");
@@ -1037,10 +1224,16 @@ int main(int argc, char *argv[])
     h46->GetXaxis()->SetTitle("[pixels]");
     h47->GetXaxis()->SetTitle("[pixels]");
     h48->GetXaxis()->SetTitle("[pixels]");
-    h49->GetXaxis()->SetTitle("[rad]");
-    h50->GetXaxis()->SetTitle("[mm]");
-    h51->GetXaxis()->SetTitle("[rad]");
-    h52->GetXaxis()->SetTitle("[mm]");
+
+    h49->GetXaxis()->SetTitle("IteratorID");
+    h49->GetYaxis()->SetTitle("Residual X [mm]");
+    h50->GetXaxis()->SetTitle("IteratorID");
+    h50->GetYaxis()->SetTitle("Residual X [mm]");
+    h51->GetXaxis()->SetTitle("IteratorID");
+    h51->GetYaxis()->SetTitle("Residual X [mm]");
+    h52->GetXaxis()->SetTitle("IteratorID");
+    h52->GetYaxis()->SetTitle("Residual X [mm]");
+
     h53->GetXaxis()->SetTitle("[rad]");
     h54->GetXaxis()->SetTitle("[rad]");
     h55->GetXaxis()->SetTitle("[rad]");
@@ -1138,7 +1331,14 @@ int main(int argc, char *argv[])
     h118->GetYaxis()->SetTitle("[mm]");
     h119->GetXaxis()->SetTitle("[mm]");
     h119->GetYaxis()->SetTitle("[mm]");
-
+    h120->GetXaxis()->SetTitle("IteratorID");
+    h120->GetYaxis()->SetTitle("Residual Y [mm]");
+    h121->GetXaxis()->SetTitle("IteratorID");
+    h121->GetYaxis()->SetTitle("Residual Y [mm]");
+    h122->GetXaxis()->SetTitle("IteratorID");
+    h122->GetYaxis()->SetTitle("Residual Y [mm]");
+    h123->GetXaxis()->SetTitle("IteratorID");
+    h123->GetYaxis()->SetTitle("Residual Y [mm]");
 
     cout<<endl<<"--> Writing a histograms to the output file ..."<<endl;
     h1->Write();
@@ -1258,6 +1458,10 @@ int main(int argc, char *argv[])
     h117->Write();
     h118->Write();
     h119->Write();
+    h120->Write();
+    h121->Write();
+    h122->Write();
+    h123->Write();
 
     outputfile->Close();
     cout<<"--> The output file '"<<outputfile->GetName()<<"' is closed."<<endl;

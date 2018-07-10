@@ -535,13 +535,13 @@ do
 
     #4
 
-    make clean; make analysis_trk;
-    ./analysis_trk /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_CLUSTERINFO_RUN_TEMP_$runrunID.root
+    #make clean; make analysis_trk;
+    #./analysis_trk /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_CLUSTERINFO_RUN_TEMP_$runrunID.root
 
     #5
 
-    #make clean; make trackreco_trk;
-    #./trackreco_trk /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_CLUSTERINFO_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_TRACKINFO_RUN_MODE_2_RUN_$runrunID.root 2
+    make clean; make trackreco_trk;
+    ./trackreco_trk /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_CLUSTERINFO_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_TRACKINFO_RUN_MODE_1_RUN_$runrunID.root 1
 
 done
 
@@ -551,3 +551,7 @@ done
 #   devRP3E=2 #C08-W0255    FITpix 0399
 #   devRP1I=3 #F04-W0108    FITpix 0409
 #   devRP0I=4 #I02-W0108    FITpix 0415
+
+
+# git commit -am "third commit"
+# git push origin develop
