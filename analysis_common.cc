@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
     TH2D* h_8   = new TH2D("h_8","Y vs Time",(UT_max-UT_min)/1000.0,UT_min/1000.0,UT_max/1000.0,N_PIXELS,0,N_PIXELS);
     TH2D* h_9   = new TH2D("h_9","X vs Time",(UT_max-UT_min)/1000.0,UT_min/1000.0,UT_max/1000.0,N_PIXELS,0,N_PIXELS);
     TH1D* h_10  = new TH1D("h_10","Hits vs Time",(UT_max-UT_min)/1000.0,UT_min/1000.0,UT_max/1000.0);
-    TH1D* h_12  = new TH1D("h_12","TOA (only one frame)",N_MAX_CLOCKS,0,_Gate);
+    TH1D* h_12  = new TH1D("h_12","TOA (only one frame)",N_MAX_CLOCKS,0,_Gate*1e6);
     TH1D* h_13  = new TH1D("h_13","Clusters number per frame",200,0,200);
     TH1D* h_14  = new TH1D("h_14","Hits vs EventID",nEntries,0,nEntries);
     TH1D* h_15  = new TH1D("h_15","Hits per frame",1e6,0,1e6);
@@ -179,9 +179,9 @@ int main(int argc, char *argv[])
     TH2D* h_22  = new TH2D("h_22","Y vs X vs C (outside the beam spot)",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
     TH1D* h_23  = new TH1D("h_23","#Delta Time between frames",10000,0,10000);
 
-    h_com_1     = new TH1D("h_com_1","#Delta Time inside cluster",2*N_MAX_CLOCKS-1,-_Gate,_Gate);
-    h_com_2     = new TH2D("h_com_2","#Delta Time inside cluster VS Cluster size",50,0,50,2*N_MAX_CLOCKS-1,-_Gate,_Gate);
-    h_com_3     = new TH1D("h_com_3","#Delta Time inside cluster (cluster size <= 2 pixels)",2*N_MAX_CLOCKS-1,-_Gate,_Gate);
+    h_com_1     = new TH1D("h_com_1","#Delta Time inside cluster",2*N_MAX_CLOCKS-1,-_Gate*1e6,_Gate*1e6);
+    h_com_2     = new TH2D("h_com_2","#Delta Time inside cluster VS Cluster size",50,0,50,2*N_MAX_CLOCKS-1,-_Gate*1e6,_Gate*1e6);
+    h_com_3     = new TH1D("h_com_3","#Delta Time inside cluster (cluster size <= 2 pixels)",2*N_MAX_CLOCKS-1,-_Gate*1e6,_Gate*1e6);
 
     //------------------------------------------------------------------------------//
     Double_t zero_time = -999.999, event_time = -999.999, last_time = -999.999, previous_time = _Timems;
@@ -275,7 +275,7 @@ int main(int argc, char *argv[])
 
                         h_8->Fill(event_time/1000.0,yi,1);
                         h_9->Fill(event_time/1000.0,xi,1);
-                        if(i == 0) h_12->Fill(TOA);
+                        if(i == 190) h_12->Fill(TOA*1e6);
                     }
                     else
                     {
@@ -394,7 +394,7 @@ int main(int argc, char *argv[])
     h_9->GetYaxis()->SetTitle("X [pixels]");
     h_10->GetXaxis()->SetTitle("Time [sec]");
     h_10->GetYaxis()->SetTitle("Hits");
-    h_12->GetXaxis()->SetTitle("ToA [s]");
+    h_12->GetXaxis()->SetTitle("ToA [#mus]");
     h_12->GetYaxis()->SetTitle("Number of fired pixels");
     h_13->GetXaxis()->SetTitle("Clusters number per frame");
     h_13->GetYaxis()->SetTitle("Numer of frames");
@@ -419,13 +419,13 @@ int main(int argc, char *argv[])
     h_23->GetXaxis()->SetTitle("#Delta Time [ms]");
     h_23->GetYaxis()->SetTitle("Number of frames");
 
-    h_com_1->GetXaxis()->SetTitle("#Delta Time [s]");
+    h_com_1->GetXaxis()->SetTitle("#Delta Time [#mus]");
     h_com_1->GetYaxis()->SetTitle("Pixels in a cluster");
 
     h_com_2->GetXaxis()->SetTitle("Cluster size [pixels]");
-    h_com_2->GetYaxis()->SetTitle("#Delta Time [s]");
+    h_com_2->GetYaxis()->SetTitle("#Delta Time [#mus]");
 
-    h_com_3->GetXaxis()->SetTitle("#Delta Time [s]");
+    h_com_3->GetXaxis()->SetTitle("#Delta Time [#mus]");
     h_com_3->GetYaxis()->SetTitle("Pixels in a cluster");
 
     for(Int_t i = 1; i <= N_PIXELS; i++)
@@ -579,9 +579,9 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
                                 {;}
                                 else
                                 {
-                                    h_com_1->Fill((ref_clock-_matrix[xj][yj])*1.0e-6/Clock);
-                                    h_com_2->Fill(cluster_size[cluster_num],(ref_clock-_matrix[xj][yj])*1.0e-6/Clock);
-                                    if(cluster_size[cluster_num] <= 2) h_com_3->Fill((ref_clock-_matrix[xj][yj])*1.0e-6/Clock);
+                                    h_com_1->Fill((ref_clock-_matrix[xj][yj])/Clock);
+                                    h_com_2->Fill(cluster_size[cluster_num],(ref_clock-_matrix[xj][yj])/Clock);
+                                    if(cluster_size[cluster_num] <= 2) h_com_3->Fill((ref_clock-_matrix[xj][yj])/Clock);
                                 }
                             }
                         }

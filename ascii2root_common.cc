@@ -106,7 +106,6 @@ int main(int argc, char *argv[])
                 if(word == "TOA") {AcquisType = 3;}
                 if(word == "TOT") {AcquisType = 1;}
                 if(word == "MPX") {AcquisType = 0;}
-
             }
             if(word == "=DeltaTHR")
             {

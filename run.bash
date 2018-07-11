@@ -528,8 +528,8 @@ do
 
     #3
 
-    #make clean; make analysis_common;
-    #./analysis_common /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_HISTO_Chip2_RUN_$runrunID.root 2
+    make clean; make analysis_common;
+    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_HISTO_Chip2_RUN_$runrunID.root 2
     #./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_HISTO_RP1I_RUN_$runrunID.root 3
     #./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_HISTO_RP0I_RUN_$runrunID.root 4
 
@@ -540,8 +540,8 @@ do
 
     #5
 
-    make clean; make trackreco_trk;
-    ./trackreco_trk /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_CLUSTERINFO_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_TRACKINFO_RUN_MODE_2_RUN_$runrunID.root 2
+    #make clean; make trackreco_trk;
+    #./trackreco_trk /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_CLUSTERINFO_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_TRACKINFO_RUN_MODE_2_RUN_$runrunID.root 2
 
 done
 
