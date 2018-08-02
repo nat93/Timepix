@@ -500,7 +500,7 @@
 data_dir=/home/anatochi/Medipix/H8_DATA/2018_04_11_pions;
 #data_dir=/home/anatochi/Medipix/SPS_DATA/MD_2018_06_18;
 
-for runrunID in $(seq 3 1 3)
+for runrunID in $(seq 2 1 2)
 do
 
     #1
@@ -528,15 +528,15 @@ do
 
     #3
 
-    make clean; make analysis_common;
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_HISTO_Chip2_RUN_$runrunID.root 2
+    #make clean; make analysis_common;
+    #./analysis_common /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_HISTO_Chip2_RUN_$runrunID.root 2
     #./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_HISTO_RP1I_RUN_$runrunID.root 3
     #./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_HISTO_RP0I_RUN_$runrunID.root 4
 
     #4
 
     #make clean; make analysis_trk;
-    #./analysis_trk /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_CLUSTERINFO_RUN_TEMP_$runrunID.root
+    #./analysis_trk /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_CLUSTERINFO_RUN_$runrunID.root
 
     #5
 
