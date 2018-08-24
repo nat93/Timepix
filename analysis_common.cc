@@ -240,42 +240,45 @@ int main(int argc, char *argv[])
                         Double_t TOA = (N_MAX_CLOCKS-_COUNTS[xi][yi])*1e-6/_Clock;  // [sec]
                         frame_size++;
 
-                        h_1->Fill(xi,yi,1);
-                        h_2->Fill(xi,1);
-                        h_3->Fill(yi,1);
-                        h_4->Fill(_event,xi,1);
-                        h_5->Fill(_event,yi,1);
-
-                        for(Int_t fff = 1; fff <= h_7->GetNbinsX(); fff++)
+                        if(TOA <= 0.000246)
                         {
-                            if(TOA*1000 < h_7->GetBinCenter(fff))
+                            h_1->Fill(xi,yi,1);
+                            h_2->Fill(xi,1);
+                            h_3->Fill(yi,1);
+                            h_4->Fill(_event,xi,1);
+                            h_5->Fill(_event,yi,1);
+
+                            for(Int_t fff = 1; fff <= h_7->GetNbinsX(); fff++)
                             {
-                                h_7->SetBinContent(fff,h_7->GetBinContent(fff)+1);
+                                if(TOA*1000 < h_7->GetBinCenter(fff))
+                                {
+                                    h_7->SetBinContent(fff,h_7->GetBinContent(fff)+1);
 
-                                //------------------------------------------------------//
-                                // For SPS RP0I Timepix
-                                if(xi >= 100 && yi >= 20 && yi <= 150) // inside CH
-                                {
-                                    h_17->SetBinContent(fff,h_17->GetBinContent(fff)+1);
-                                    h_20->Fill(xi,yi,1);
+                                    //------------------------------------------------------//
+                                    // For SPS RP0I Timepix
+                                    if(xi >= 100 && yi >= 20 && yi <= 150) // inside CH
+                                    {
+                                        h_17->SetBinContent(fff,h_17->GetBinContent(fff)+1);
+                                        h_20->Fill(xi,yi,1);
+                                    }
+                                    else if(xi >= 150 && yi > 150)   // inside DCH
+                                    {
+                                        h_18->SetBinContent(fff,h_18->GetBinContent(fff)+1);
+                                        h_21->Fill(xi,yi,1);
+                                    }
+                                    else    // outside the beam spot
+                                    {
+                                        h_19->SetBinContent(fff,h_19->GetBinContent(fff)+1);
+                                        h_22->Fill(xi,yi,1);
+                                    }
+                                    //------------------------------------------------------//
                                 }
-                                else if(xi >= 150 && yi > 150)   // inside DCH
-                                {
-                                    h_18->SetBinContent(fff,h_18->GetBinContent(fff)+1);
-                                    h_21->Fill(xi,yi,1);
-                                }
-                                else    // outside the beam spot
-                                {
-                                    h_19->SetBinContent(fff,h_19->GetBinContent(fff)+1);
-                                    h_22->Fill(xi,yi,1);
-                                }
-                                //------------------------------------------------------//
                             }
-                        }
 
-                        h_8->Fill(event_time/1000.0,yi,1);
-                        h_9->Fill(event_time/1000.0,xi,1);
-                        if(i == 190) h_12->Fill(TOA*1e6);
+                            h_8->Fill(event_time/1000.0,yi,1);
+                            h_9->Fill(event_time/1000.0,xi,1);
+                            if(i == 190) h_12->Fill(TOA*1e6);
+                        }
                     }
                     else
                     {

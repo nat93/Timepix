@@ -29,11 +29,12 @@ OUTLIB	      = ./obj/
 
 #----------------------------------------------------#
 
-all: ascii2root_common convert_common analysis_common analysis_trk trackreco_trk
+all: ascii2root_common csv2root_common convert_common analysis_common analysis_trk trackreco_trk
 
 clean:
 	rm -f *~
 	rm -f ascii2root_common
+	rm -f csv2root_common
 	rm -f convert_common
 	rm -f analysis_common
 	rm -f analysis_trk
