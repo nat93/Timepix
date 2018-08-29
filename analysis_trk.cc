@@ -469,6 +469,8 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
     }
 
     cluster_num = 0;
+    Double_t mean_x, mean_y;
+
     for(Int_t yi = 0; yi < N_PIXELS; yi++)
     {
         for(Int_t xi = 0; xi < N_PIXELS; xi++)
@@ -488,9 +490,9 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
                     assert(0);
                 }
 
-                // Projections of the cluster
-                TH1D* h_x = new TH1D("h_x","h_x",N_PIXELS,0,N_PIXELS);
-                TH1D* h_y = new TH1D("h_y","h_y",N_PIXELS,0,N_PIXELS);
+                // mean value
+                mean_x = 0;
+                mean_y = 0;
 
                 for(Int_t yj = 0; yj < N_PIXELS; yj++)
                 {
@@ -500,8 +502,8 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
                         {
                             cluster_size[cluster_num]++;
 
-                            h_x->Fill(xj);
-                            h_y->Fill(yj);
+                            mean_x += xj;
+                            mean_y += yj;
 
                             fired_matrix_full[xj][yj] = 1;
                             cluster_clocks[cluster_num] += _matrix[xj][yj];
@@ -511,18 +513,10 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
                 }
 
                 cluster_clocks[cluster_num]     = (Double_t)cluster_clocks[cluster_num]/cluster_size[cluster_num];
-                cluster_pos_x[cluster_num]      = h_x->GetMean();
-                cluster_pos_x_err[cluster_num]  = h_x->GetRMS();
-                cluster_pos_y[cluster_num]      = h_y->GetMean();
-                cluster_pos_y_err[cluster_num]  = h_y->GetRMS();
-
-                ///------------------------------///
-                sigma_mean = sigma/sqrt(N);
-                cout<<h_x->GetMean()<<"  "<<h_x->GetMeanError()<<"   "<<h_x->GetStdDev()<<" | "<<cluster_size[cluster_num]<<endl;
-                ///------------------------------///
-
-                h_x->Delete();
-                h_y->Delete();
+                cluster_pos_x[cluster_num]      = (Double_t)mean_x/cluster_size[cluster_num];
+                cluster_pos_x_err[cluster_num]  = (Double_t)(1.0/TMath::Sqrt(12.0))/cluster_size[cluster_num];
+                cluster_pos_y[cluster_num]      = (Double_t)mean_y/cluster_size[cluster_num];
+                cluster_pos_y_err[cluster_num]  = (Double_t)(1.0/TMath::Sqrt(12.0))/cluster_size[cluster_num];
 
                 cluster_num++;
             }

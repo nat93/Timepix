@@ -35,7 +35,7 @@ using namespace std;
 const Int_t N_PIXELS                = 512;      // The maximum number of pixels per axis per chip
 const Int_t N_MAX_CLUSTERS          = 10000;    // The maximum number of clusters per frame
 const Int_t N_MAX_CLOCKS            = 11810;    // The maximum number of counts in the pixel
-const Bool_t _cluster_analysis      = true;
+const Bool_t _cluster_analysis      = false;
 const Double_t PIXEL_SIZE           = 0.055;    // Pixel size [mm]
 const Double_t cluster_time_jitter  = 200.0;    // Time difference between fired pixels inside cluster [ns]
 
@@ -162,26 +162,26 @@ int main(int argc, char *argv[])
     TH2D* h_4   = new TH2D("h_4","X vs EventID",nEntries,0,nEntries,N_PIXELS,0,N_PIXELS);
     TH2D* h_5   = new TH2D("h_5","Y vs EventID",nEntries,0,nEntries,N_PIXELS,0,N_PIXELS);
     TH2D* h_6   = new TH2D("h_6","Y vs X vs C (in mm)",N_PIXELS,0,N_PIXELS*PIXEL_SIZE,N_PIXELS,0,N_PIXELS*PIXEL_SIZE);
-    TH1D* h_7   = new TH1D("h_7","Int.FrameSize vs ToA",N_MAX_CLOCKS,0,_Gate);
+    TH1D* h_7   = new TH1D("h_7","Int.FrameSize vs ToA",N_MAX_CLOCKS,0,_Gate*1000);
     TH2D* h_8   = new TH2D("h_8","Y vs Time",(UT_max-UT_min)/1000.0,UT_min/1000.0,UT_max/1000.0,N_PIXELS,0,N_PIXELS);
     TH2D* h_9   = new TH2D("h_9","X vs Time",(UT_max-UT_min)/1000.0,UT_min/1000.0,UT_max/1000.0,N_PIXELS,0,N_PIXELS);
     TH1D* h_10  = new TH1D("h_10","Hits vs Time",(UT_max-UT_min)/1000.0,UT_min/1000.0,UT_max/1000.0);
-    TH1D* h_12  = new TH1D("h_12","TOA (only one frame)",N_MAX_CLOCKS,0,_Gate);
+    TH1D* h_12  = new TH1D("h_12","TOA (only one frame)",N_MAX_CLOCKS,0,_Gate*1e6);
     TH1D* h_13  = new TH1D("h_13","Clusters number per frame",200,0,200);
     TH1D* h_14  = new TH1D("h_14","Hits vs EventID",nEntries,0,nEntries);
     TH1D* h_15  = new TH1D("h_15","Hits per frame",1e6,0,1e6);
     TH1D* h_16  = new TH1D("h_16","Cluster size",50,0,50);
-    TH1D* h_17  = new TH1D("h_17","Int.FrameSize vs ToA (inside the ch beam spot)",N_MAX_CLOCKS,0,_Gate);
-    TH1D* h_18  = new TH1D("h_18","Int.FrameSize vs ToA (inside the dch beam spot)",N_MAX_CLOCKS,0,_Gate);
-    TH1D* h_19  = new TH1D("h_19","Int.FrameSize vs ToA (outside the beam spot)",N_MAX_CLOCKS,0,_Gate);
+    TH1D* h_17  = new TH1D("h_17","Int.FrameSize vs ToA (inside the ch beam spot)",N_MAX_CLOCKS,0,_Gate*1000);
+    TH1D* h_18  = new TH1D("h_18","Int.FrameSize vs ToA (inside the dch beam spot)",N_MAX_CLOCKS,0,_Gate*1000);
+    TH1D* h_19  = new TH1D("h_19","Int.FrameSize vs ToA (outside the beam spot)",N_MAX_CLOCKS,0,_Gate*1000);
     TH2D* h_20  = new TH2D("h_20","Y vs X vs C (inside the ch beam spot)",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
     TH2D* h_21  = new TH2D("h_21","Y vs X vs C (inside the dch beam spot)",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
     TH2D* h_22  = new TH2D("h_22","Y vs X vs C (outside the beam spot)",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
     TH1D* h_23  = new TH1D("h_23","#Delta Time between frames",10000,0,10000);
 
-    h_com_1     = new TH1D("h_com_1","#Delta Time inside cluster",2*N_MAX_CLOCKS-1,-_Gate,_Gate);
-    h_com_2     = new TH2D("h_com_2","#Delta Time inside cluster VS Cluster size",50,0,50,2*N_MAX_CLOCKS-1,-_Gate,_Gate);
-    h_com_3     = new TH1D("h_com_3","#Delta Time inside cluster (cluster size <= 2 pixels)",2*N_MAX_CLOCKS-1,-_Gate,_Gate);
+    h_com_1     = new TH1D("h_com_1","#Delta Time inside cluster",2*N_MAX_CLOCKS-1,-_Gate*1e6,_Gate*1e6);
+    h_com_2     = new TH2D("h_com_2","#Delta Time inside cluster VS Cluster size",50,0,50,2*N_MAX_CLOCKS-1,-_Gate*1e6,_Gate*1e6);
+    h_com_3     = new TH1D("h_com_3","#Delta Time inside cluster (cluster size <= 2 pixels)",2*N_MAX_CLOCKS-1,-_Gate*1e6,_Gate*1e6);
 
     //------------------------------------------------------------------------------//
     Double_t zero_time = -999.999, event_time = -999.999, last_time = -999.999, previous_time = _Timems;
@@ -240,42 +240,45 @@ int main(int argc, char *argv[])
                         Double_t TOA = (N_MAX_CLOCKS-_COUNTS[xi][yi])*1e-6/_Clock;  // [sec]
                         frame_size++;
 
-                        h_1->Fill(xi,yi,1);
-                        h_2->Fill(xi,1);
-                        h_3->Fill(yi,1);
-                        h_4->Fill(_event,xi,1);
-                        h_5->Fill(_event,yi,1);
-
-                        for(Int_t fff = 1; fff <= h_7->GetNbinsX(); fff++)
+                        if(TOA <= 0.000246)
                         {
-                            if(TOA < h_7->GetBinCenter(fff))
+                            h_1->Fill(xi,yi,1);
+                            h_2->Fill(xi,1);
+                            h_3->Fill(yi,1);
+                            h_4->Fill(_event,xi,1);
+                            h_5->Fill(_event,yi,1);
+
+                            for(Int_t fff = 1; fff <= h_7->GetNbinsX(); fff++)
                             {
-                                h_7->SetBinContent(fff,h_7->GetBinContent(fff)+1);
+                                if(TOA*1000 < h_7->GetBinCenter(fff))
+                                {
+                                    h_7->SetBinContent(fff,h_7->GetBinContent(fff)+1);
 
-                                //------------------------------------------------------//
-                                // For SPS RP0I Timepix
-                                if(xi >= 190 && yi >= 50 && yi <= 150) // inside CH
-                                {
-                                    h_17->SetBinContent(fff,h_17->GetBinContent(fff)+1);
-                                    h_20->Fill(xi,yi,1);
+                                    //------------------------------------------------------//
+                                    // For SPS RP0I Timepix
+                                    if(xi >= 100 && yi >= 20 && yi <= 150) // inside CH
+                                    {
+                                        h_17->SetBinContent(fff,h_17->GetBinContent(fff)+1);
+                                        h_20->Fill(xi,yi,1);
+                                    }
+                                    else if(xi >= 150 && yi > 150)   // inside DCH
+                                    {
+                                        h_18->SetBinContent(fff,h_18->GetBinContent(fff)+1);
+                                        h_21->Fill(xi,yi,1);
+                                    }
+                                    else    // outside the beam spot
+                                    {
+                                        h_19->SetBinContent(fff,h_19->GetBinContent(fff)+1);
+                                        h_22->Fill(xi,yi,1);
+                                    }
+                                    //------------------------------------------------------//
                                 }
-                                else if(xi >= 220 && yi > 150)   // inside DCH
-                                {
-                                    h_18->SetBinContent(fff,h_18->GetBinContent(fff)+1);
-                                    h_21->Fill(xi,yi,1);
-                                }
-                                else    // outside the beam spot
-                                {
-                                    h_19->SetBinContent(fff,h_19->GetBinContent(fff)+1);
-                                    h_22->Fill(xi,yi,1);
-                                }
-                                //------------------------------------------------------//
                             }
-                        }
 
-                        h_8->Fill(event_time/1000.0,yi,1);
-                        h_9->Fill(event_time/1000.0,xi,1);
-                        if(i == 0) h_12->Fill(TOA);
+                            h_8->Fill(event_time/1000.0,yi,1);
+                            h_9->Fill(event_time/1000.0,xi,1);
+                            if(i == 190) h_12->Fill(TOA*1e6);
+                        }
                     }
                     else
                     {
@@ -386,7 +389,7 @@ int main(int argc, char *argv[])
     h_5->GetYaxis()->SetTitle("Y [pixels]");
     h_6->GetXaxis()->SetTitle("X [mm]");
     h_6->GetYaxis()->SetTitle("Y [mm]");
-    h_7->GetXaxis()->SetTitle("ToA [sec]");
+    h_7->GetXaxis()->SetTitle("ToA [ms]");
     h_7->GetYaxis()->SetTitle("Integrated Frame Size [counts]");
     h_8->GetXaxis()->SetTitle("Time [sec]");
     h_8->GetYaxis()->SetTitle("Y [pixels]");
@@ -394,7 +397,7 @@ int main(int argc, char *argv[])
     h_9->GetYaxis()->SetTitle("X [pixels]");
     h_10->GetXaxis()->SetTitle("Time [sec]");
     h_10->GetYaxis()->SetTitle("Hits");
-    h_12->GetXaxis()->SetTitle("ToA [s]");
+    h_12->GetXaxis()->SetTitle("ToA [#mus]");
     h_12->GetYaxis()->SetTitle("Number of fired pixels");
     h_13->GetXaxis()->SetTitle("Clusters number per frame");
     h_13->GetYaxis()->SetTitle("Numer of frames");
@@ -404,11 +407,11 @@ int main(int argc, char *argv[])
     h_15->GetYaxis()->SetTitle("Frames");
     h_16->GetXaxis()->SetTitle("Cluster size [pixels/cluster]");
     h_16->GetYaxis()->SetTitle("Number of clusters");
-    h_17->GetXaxis()->SetTitle("ToA [sec]");
+    h_17->GetXaxis()->SetTitle("ToA [ms]");
     h_17->GetYaxis()->SetTitle("Integrated Frame Size [counts]");
-    h_18->GetXaxis()->SetTitle("ToA [sec]");
+    h_18->GetXaxis()->SetTitle("ToA [ms]");
     h_18->GetYaxis()->SetTitle("Integrated Frame Size [counts]");
-    h_19->GetXaxis()->SetTitle("ToA [sec]");
+    h_19->GetXaxis()->SetTitle("ToA [ms]");
     h_19->GetYaxis()->SetTitle("Integrated Frame Size [counts]");
     h_20->GetXaxis()->SetTitle("X [pixels]");
     h_20->GetYaxis()->SetTitle("Y [pixels]");
@@ -419,21 +422,21 @@ int main(int argc, char *argv[])
     h_23->GetXaxis()->SetTitle("#Delta Time [ms]");
     h_23->GetYaxis()->SetTitle("Number of frames");
 
-    h_com_1->GetXaxis()->SetTitle("#Delta Time [s]");
+    h_com_1->GetXaxis()->SetTitle("#Delta Time [#mus]");
     h_com_1->GetYaxis()->SetTitle("Pixels in a cluster");
 
     h_com_2->GetXaxis()->SetTitle("Cluster size [pixels]");
-    h_com_2->GetYaxis()->SetTitle("#Delta Time [s]");
+    h_com_2->GetYaxis()->SetTitle("#Delta Time [#mus]");
 
-    h_com_3->GetXaxis()->SetTitle("#Delta Time [s]");
+    h_com_3->GetXaxis()->SetTitle("#Delta Time [#mus]");
     h_com_3->GetYaxis()->SetTitle("Pixels in a cluster");
 
     for(Int_t i = 1; i <= N_PIXELS; i++)
     {
         for(Int_t j = 1; j <= N_PIXELS; j++)
         {
-//            h_6->SetBinContent(N_PIXELS/2-j+1,i,h_1->GetBinContent(i,j));//SPS
-            h_6->SetBinContent(i,j,h_1->GetBinContent(i,j));//H8
+            h_6->SetBinContent(N_PIXELS/2-j+1,i,h_1->GetBinContent(i,j));//SPS
+//            h_6->SetBinContent(i,j,h_1->GetBinContent(i,j));//H8
         }
     }
 
@@ -579,9 +582,9 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
                                 {;}
                                 else
                                 {
-                                    h_com_1->Fill((ref_clock-_matrix[xj][yj])*1.0e-6/Clock);
-                                    h_com_2->Fill(cluster_size[cluster_num],(ref_clock-_matrix[xj][yj])*1.0e-6/Clock);
-                                    if(cluster_size[cluster_num] <= 2) h_com_3->Fill((ref_clock-_matrix[xj][yj])*1.0e-6/Clock);
+                                    h_com_1->Fill((ref_clock-_matrix[xj][yj])/Clock);
+                                    h_com_2->Fill(cluster_size[cluster_num],(ref_clock-_matrix[xj][yj])/Clock);
+                                    if(cluster_size[cluster_num] <= 2) h_com_3->Fill((ref_clock-_matrix[xj][yj])/Clock);
                                 }
                             }
                         }
