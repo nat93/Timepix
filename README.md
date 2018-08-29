@@ -65,20 +65,35 @@ MPX mode, 0.1/1.0 sec, 48 MHz, new CSV format
 SPS MD 15/08/2018
 
 13:15 Medipix_288.dat, dTHL = 100, Bias (RP1I) = 0 V
+
 13:15 Medipix_289.dat, dTHL = 100, Bias (RP1I) = 10 V
+
 13:20 Medipix_290.dat, dTHL = 100, Bias (RP1I) = 20 V
+
 13:22 Medipix_291.dat, dTHL = 100, Bias (RP1I) = 40 V
+
 13:23 Medipix_292.dat, dTHL = 100, Bias (RP1I) = 60 V
+
 13:25 Medipix_293.dat, dTHL = 100, Bias (RP1I) = 80 V
+
 13:26 Medipix_294.dat, dTHL = 100, Bias (RP1I) = 100 V
+
 13:28 Medipix_295.dat, dTHL = 100, Bias (RP1I) = 40 V, Bias (all the rest) = 0 V
+
 13:30 Medipix_296.dat, dTHL = 100, Bias (RP1I) = 40 V, Bias (all the rest) = 10 V
+
 13:31 Medipix_297.dat, dTHL = 100, Bias (RP1I) = 40 V, Bias (all the rest) = 20 V
+
 13:33 Medipix_298.dat, dTHL = 100, Bias (RP1I) = 40 V, Bias (all the rest) = 40 V
+
 13:35 Medipix_299.dat, dTHL = 100, Bias (RP1I) = 40 V, Bias (all the rest) = 60 V
+
 13:36 Medipix_300.dat, dTHL = 100, Bias (RP1I) = 40 V, Bias (all the rest) = 80 V
+
 13:38 Medipix_301.dat, dTHL = 100, Bias (RP1I) = 40 V, Bias (all the rest) = 100 V
+
 13:41 Medipix_302.dat, dTHL (RP1I) = 100, dTHL (all the rest) = 40, Bias = 40 V
+
 13:46 Medipix_303.dat, dTHL (RP1I) = 40, dTHL (all the rest) = 100, Bias = 40 V
 
 
