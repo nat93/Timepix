@@ -36,234 +36,318 @@ using namespace std;
 const Int_t N_PIXELS                = 512;
 const Double_t PIXEL_SIZE           = 0.055;
 
-int sps_md_analysis_1()
+int sps_md_analysis_1_double_channeling()
 {
 
     //----------------------------------------------//
     //---------------- 17.10.2017 ------------------//
     //----------------------------------------------//
-    /*TString file_name = "MD_2017_10_17_HISTO_RP1I_RUN_1.root";
-    TString fit_bkg_func_formula = "expo";
-    Int_t min_x_bkg_fit = 10;
-    Int_t max_x_bkg_fit = 120;
+    TString file_name_am = "MD_2017_10_17_CRY2CHCRY4AMP1_HISTO_RP1I_RUN_1.root";
+    TString file_name_bk = "MD_2017_10_17_CRY2CH_HISTO_RP1I_RUN_1.root";
+    TString file_name_ch = "MD_2017_10_17_CRY2CHCRY4CHP1_HISTO_RP1I_RUN_1.root";
     TString fit_ch_func_name = "gaus";
-    Int_t min_x_ch_fit = 180;
-    Int_t max_x_ch_fit = 200;
-    Int_t min_x_dch_ln = 230;
-    Int_t max_x_dch_ln = 250;
+    Int_t min_x_ch_fit = 50;
+    Int_t max_x_ch_fit = 150;
+    Int_t min_x_dch_ln = 120;
+    Int_t max_x_dch_ln = 145;
     Int_t num_sigma_x_fit_ch = 3;
-    Float_t factor_bad_pixels = 100;
-    TString crystal_info = "CRYSTAL2 (165 urad) [17.10.2017]";*/
+    Float_t factor_bad_pixels = 10000.0;
+    TString crystal_info = "CRYSTAL2 & CRYSTAL4 [17.10.2017]";
     //----------------------------------------------//
-    //---------------- 17.10.2017 ------------------//
-    //----------------------------------------------//
-    TString file_name = "MD_2017_10_17_CRY2CH_HISTO_RP1I_RUN_1.root";
-    TString fit_bkg_func_formula = "expo";
-    Int_t min_x_bkg_fit = 10;
-    Int_t max_x_bkg_fit = 120;
-    TString fit_ch_func_name = "gaus";
-    Int_t min_x_ch_fit = 180;
-    Int_t max_x_ch_fit = 200;
-    Int_t min_x_dch_ln = 230;
-    Int_t max_x_dch_ln = 250;
-    Int_t num_sigma_x_fit_ch = 3;
-    Float_t factor_bad_pixels = 100;
-    TString crystal_info = "CRYSTAL2 (165 urad) [17.10.2017]";
+    TFile *_file_am = TFile::Open(file_name_am.Data());
+    TFile *_file_bk = TFile::Open(file_name_bk.Data());
+    TFile *_file_ch = TFile::Open(file_name_ch.Data());
 
+    TH2D* h_evn_am = (TH2D*)_file_am->Get("h_10");
+    TH2D* h_evn_bk = (TH2D*)_file_bk->Get("h_10");
+    TH2D* h_evn_ch = (TH2D*)_file_ch->Get("h_10");
 
+    Double_t time_am = h_evn_am->GetEntries()*0.000246; // interated time
+    Double_t time_bk = h_evn_bk->GetEntries()*0.000246; // interated time
+    Double_t time_ch = h_evn_ch->GetEntries()*0.000246; // interated time
 
+    cout<<"--> time_am = "<<time_am<<" [sec]"<<endl;
+    cout<<"--> time_bk = "<<time_bk<<" [sec]"<<endl;
+    cout<<"--> time_ch = "<<time_ch<<" [sec]"<<endl;
 
+    TH2D* h_ch_am = (TH2D*)_file_am->Get("h_1");
+    TH2D* h_ch_bk = (TH2D*)_file_bk->Get("h_1");
+    TH2D* h_ch_ch = (TH2D*)_file_ch->Get("h_1");
 
+    TH2D* h_ch_clone_am = new TH2D("h_ch_clone_am","h_ch_clone_am",N_PIXELS/2,1,N_PIXELS/2,N_PIXELS/2,1,N_PIXELS/2);
+    TH2D* h_ch_clone_bk = new TH2D("h_ch_clone_bk","h_ch_clone_bk",N_PIXELS/2,1,N_PIXELS/2,N_PIXELS/2,1,N_PIXELS/2);
+    TH2D* h_ch_clone_ch = new TH2D("h_ch_clone_ch","h_ch_clone_ch",N_PIXELS/2,1,N_PIXELS/2,N_PIXELS/2,1,N_PIXELS/2);
 
-
-
-
-    //----------------------------------------------//
-    //---------------- 18.06.2018 ------------------//
-    //----------------------------------------------//
-    /*TString file_name = "MD_2018_06_18_HISTO_RP1I_RUN_7.root";
-    TString fit_bkg_func_formula = "expo";
-    Int_t min_x_bkg_fit = 10;
-    Int_t max_x_bkg_fit = 70;
-    TString fit_ch_func_name = "gaus";
-    Int_t min_x_ch_fit = 120;
-    Int_t max_x_ch_fit = 140;
-    Int_t min_x_dch_ln = 190;
-    Int_t max_x_dch_ln = 230;
-    Int_t num_sigma_x_fit_ch = 3;
-    Float_t factor_bad_pixels = 1.4;
-    TString crystal_info = "CRYSTAL2 (TCP78 301 urad) [18.06.2018]";*/
-    //----------------------------------------------//
-    //---------------- 18.06.2018 ------------------//
-    //----------------------------------------------//
-    /*TString file_name = "MD_2018_06_18_HISTO_RP1I_RUN_8.root";
-    TString fit_bkg_func_formula = "expo";
-    Int_t min_x_bkg_fit = 20;
-    Int_t max_x_bkg_fit = 100;
-    TString fit_ch_func_name = "gaus";
-    Int_t min_x_ch_fit = 205;
-    Int_t max_x_ch_fit = 225;
-    Int_t min_x_dch_ln = 240;
-    Int_t max_x_dch_ln = 250;
-    Int_t num_sigma_x_fit_ch = 3;
-    Float_t factor_bad_pixels = 7;
-    TString crystal_info = "CRYSTAL3 (TCP75 197 urad) [18.06.2018]";*/
-    //----------------------------------------------//
-    //---------------- 15.08.2018 ------------------//
-    //----------------------------------------------//
-    /*TString file_name = "MD_2018_08_15_HISTO_RP1I_RUN_1.root";
-    TString fit_bkg_func_formula = "pol3";
-    Int_t min_x_bkg_fit = 10;
-    Int_t max_x_bkg_fit = 90;
-    TString fit_ch_func_name = "gaus";
-    Int_t min_x_ch_fit = 150;
-    Int_t max_x_ch_fit = 170;
-    Int_t min_x_dch_ln = 209;
-    Int_t max_x_dch_ln = 217;
-    Int_t num_sigma_x_fit_ch = 3;
-    Float_t factor_bad_pixels = 10;
-    TString crystal_info = "CRYSTAL1 [15.08.2018]";*/
-    //----------------------------------------------//
-
-    TFile *_file = TFile::Open(file_name.Data());
-    TH2D* h_ch = (TH2D*)_file->Get("h_1");
-    TH2D* h_ch_clone = new TH2D("h_ch_clone","h_ch_clone",N_PIXELS/2,1,N_PIXELS/2,N_PIXELS/2,1,N_PIXELS/2);
-
-    for(Int_t xi = 3; xi < N_PIXELS/2-3; xi++)
+    for(Int_t xi = 1; xi <= N_PIXELS/2; xi++)
     {
-        for(Int_t yi = 3; yi < N_PIXELS/2-3; yi++)
+        for(Int_t yi = 1; yi <= N_PIXELS/2; yi++)
         {
-            if(h_ch->GetBinContent(xi,yi) - factor_bad_pixels*h_ch->GetBinError(xi,yi) < factor_bad_pixels*h_ch->GetBinError(xi,yi+1) + h_ch->GetBinContent(xi,yi+1))
+            if(h_ch_am->GetBinContent(xi,yi) - factor_bad_pixels*h_ch_am->GetBinError(xi,yi)
+                    < factor_bad_pixels*h_ch_am->GetBinError(xi,yi+1) + h_ch_am->GetBinContent(xi,yi+1))
             {
-                h_ch_clone->SetBinContent(xi,yi,h_ch->GetBinContent(xi,yi));
-                h_ch_clone->SetBinError(xi,yi,h_ch->GetBinError(xi,yi));
+                h_ch_clone_am->SetBinContent(xi,yi,h_ch_am->GetBinContent(xi,yi)/time_am);
+                h_ch_clone_am->SetBinError(xi,yi,h_ch_am->GetBinError(xi,yi)/time_am);
+            }
+
+            if(h_ch_bk->GetBinContent(xi,yi) - factor_bad_pixels*h_ch_bk->GetBinError(xi,yi)
+                    < factor_bad_pixels*h_ch_bk->GetBinError(xi,yi+1) + h_ch_bk->GetBinContent(xi,yi+1))
+            {
+                h_ch_clone_bk->SetBinContent(xi,yi,h_ch_bk->GetBinContent(xi,yi)/time_bk);
+                h_ch_clone_bk->SetBinError(xi,yi,h_ch_bk->GetBinError(xi,yi)/time_bk);
+            }
+
+            if(h_ch_ch->GetBinContent(xi,yi) - factor_bad_pixels*h_ch_ch->GetBinError(xi,yi)
+                    < factor_bad_pixels*h_ch_ch->GetBinError(xi,yi+1) + h_ch_ch->GetBinContent(xi,yi+1))
+            {
+                h_ch_clone_ch->SetBinContent(xi,yi,h_ch_ch->GetBinContent(xi,yi)/time_ch);
+                h_ch_clone_ch->SetBinError(xi,yi,h_ch_ch->GetBinError(xi,yi)/time_ch);
             }
         }
     }
 
-    TH1D* h_ch_clone_projectionY = h_ch_clone->ProjectionY("h_ch_clone_projectionY");
+    TH1D* h_ch_clone_projectionY_am = h_ch_clone_am->ProjectionY("h_ch_clone_projectionY_am");
+    TH1D* h_ch_clone_projectionY_bk = h_ch_clone_bk->ProjectionY("h_ch_clone_projectionY_bk");
+    TH1D* h_ch_clone_projectionY_ch = h_ch_clone_ch->ProjectionY("h_ch_clone_projectionY_ch");
 
-    TCanvas *c1 = new TCanvas("c1","h_ch",1000,1000);
     gStyle->SetOptStat(0);
-    c1->cd();
-    h_ch->GetXaxis()->SetRange(1,N_PIXELS/2);
-    h_ch->GetYaxis()->SetRange(1,N_PIXELS/2);
-    h_ch->Draw("colz");
 
-    TCanvas *c2 = new TCanvas("c2","h_ch_clone",1000,1000);
-    gStyle->SetOptStat(0);
+    TCanvas *c1 = new TCanvas("c1","h_ch_clone",1500,500);
+    c1->Divide(3,1);
+
+    c1->cd(1);
+    h_ch_clone_bk->SetTitle("2D interated image, norm. on 1 sec. CRY2 in CH");
+    h_ch_clone_bk->SetMaximum(1000);
+    h_ch_clone_bk->GetXaxis()->SetRange(1,N_PIXELS/2);
+    h_ch_clone_bk->GetYaxis()->SetRange(1,N_PIXELS/2);
+    h_ch_clone_bk->Draw("colz");
+
+    c1->cd(2);
+    h_ch_clone_am->SetTitle("2D interated image, norm. on 1 sec. CRY2 in CH & CRY4 in AM");
+    h_ch_clone_am->SetMaximum(1000);
+    h_ch_clone_am->GetXaxis()->SetRange(1,N_PIXELS/2);
+    h_ch_clone_am->GetYaxis()->SetRange(1,N_PIXELS/2);
+    h_ch_clone_am->Draw("colz");
+
+    c1->cd(3);
+    h_ch_clone_ch->SetTitle("2D interated image, norm. on 1 sec. CRY2 in CH & CRY4 in CH");
+    h_ch_clone_ch->SetMaximum(1000);
+    h_ch_clone_ch->GetXaxis()->SetRange(1,N_PIXELS/2);
+    h_ch_clone_ch->GetYaxis()->SetRange(1,N_PIXELS/2);
+    h_ch_clone_ch->Draw("colz");
+
+    Double_t integral_am, integral_err_am;
+    Double_t integral_bk, integral_err_bk;
+    Double_t integral_ch, integral_err_ch;
+
+    integral_am = h_ch_clone_projectionY_am->IntegralAndError(1,N_PIXELS/2,integral_err_am);
+    integral_bk = h_ch_clone_projectionY_bk->IntegralAndError(1,N_PIXELS/2,integral_err_bk);
+    integral_ch = h_ch_clone_projectionY_ch->IntegralAndError(1,N_PIXELS/2,integral_err_ch);
+
+    cout<<"--> integral_am = "<<integral_am<<" +/- "<<integral_err_am<<endl;
+    cout<<"--> integral_bk = "<<integral_bk<<" +/- "<<integral_err_bk<<endl;
+    cout<<"--> integral_ch = "<<integral_ch<<" +/- "<<integral_err_ch<<endl;
+
+    for(Int_t i = 1; i <= N_PIXELS/2; i++)
+    {
+        h_ch_clone_projectionY_am->SetBinError(i,TMath::Sqrt(TMath::Power(h_ch_clone_projectionY_am->GetBinError(i)/integral_am,2) +
+                                                          TMath::Power(h_ch_clone_projectionY_am->GetBinContent(i)*integral_err_am/(integral_am*integral_am),2)));
+        h_ch_clone_projectionY_am->SetBinContent(i,h_ch_clone_projectionY_am->GetBinContent(i)/integral_am);
+
+        h_ch_clone_projectionY_bk->SetBinError(i,TMath::Sqrt(TMath::Power(h_ch_clone_projectionY_bk->GetBinError(i)/integral_bk,2) +
+                                                          TMath::Power(h_ch_clone_projectionY_bk->GetBinContent(i)*integral_err_bk/(integral_bk*integral_bk),2)));
+        h_ch_clone_projectionY_bk->SetBinContent(i,h_ch_clone_projectionY_bk->GetBinContent(i)/integral_bk);
+
+        h_ch_clone_projectionY_ch->SetBinError(i,TMath::Sqrt(TMath::Power(h_ch_clone_projectionY_ch->GetBinError(i)/integral_ch,2) +
+                                                          TMath::Power(h_ch_clone_projectionY_ch->GetBinContent(i)*integral_err_ch/(integral_ch*integral_ch),2)));
+        h_ch_clone_projectionY_ch->SetBinContent(i,h_ch_clone_projectionY_ch->GetBinContent(i)/integral_ch);
+    }
+
+    TCanvas *c2 = new TCanvas("c2","h_ch_clone_projectionY",1500,1000);
     c2->cd();
-    h_ch_clone->GetXaxis()->SetRange(1,N_PIXELS/2);
-    h_ch_clone->GetYaxis()->SetRange(1,N_PIXELS/2);
-    h_ch_clone->Draw("colz");
+    gPad->SetGrid();
+    h_ch_clone_projectionY_ch->GetXaxis()->SetRange(1,N_PIXELS/2);
 
-    TCanvas *c3 = new TCanvas("c3","h_ch_clone_projectionY",1000,500);
-    gStyle->SetOptStat(0);
+    h_ch_clone_projectionY_am->SetLineWidth(2);
+    h_ch_clone_projectionY_bk->SetLineWidth(2);
+    h_ch_clone_projectionY_ch->SetLineWidth(2);
+
+    h_ch_clone_projectionY_am->SetLineColor(kRed);
+    h_ch_clone_projectionY_bk->SetLineColor(kBlack);
+    h_ch_clone_projectionY_ch->SetLineColor(kBlue);
+
+    h_ch_clone_projectionY_am->SetMaximum(0.04);
+    h_ch_clone_projectionY_bk->SetMaximum(0.04);
+    h_ch_clone_projectionY_ch->SetMaximum(0.04);
+
+    h_ch_clone_projectionY_ch->Draw();
+    h_ch_clone_projectionY_bk->Draw("same");
+    h_ch_clone_projectionY_am->Draw("same");
+
+
+    TH1D* h_signal_bk = new TH1D("h_signal_bk","h_signal_bk",N_PIXELS/2,1,N_PIXELS/2);
+    TH1D* h_signal_am = new TH1D("h_signal_am","h_signal_am",N_PIXELS/2,1,N_PIXELS/2);
+
+    Double_t val, val_err;
+    for(Int_t i = 1; i <= N_PIXELS/2; i++)
+    {
+        val = h_ch_clone_projectionY_ch->GetBinContent(i) - h_ch_clone_projectionY_bk->GetBinContent(i);
+        val_err = TMath::Sqrt(TMath::Power(h_ch_clone_projectionY_ch->GetBinError(i),2) + TMath::Power(h_ch_clone_projectionY_bk->GetBinError(i),2));
+
+//                if(val < 0) val = 0;
+        h_signal_bk->SetBinContent(i,val);
+        h_signal_bk->SetBinError(i,val_err);
+
+        val = h_ch_clone_projectionY_ch->GetBinContent(i) - h_ch_clone_projectionY_am->GetBinContent(i);
+        val_err = TMath::Sqrt(TMath::Power(h_ch_clone_projectionY_ch->GetBinError(i),2) + TMath::Power(h_ch_clone_projectionY_am->GetBinError(i),2));
+
+//                if(val < 0) val = 0;
+        h_signal_am->SetBinContent(i,val);
+        h_signal_am->SetBinError(i,val_err);
+    }
+
+    TCanvas *c3 = new TCanvas("c3","h_ch_clone_projectionY_bk_am",1500,1000);
     c3->cd();
-    h_ch_clone_projectionY->GetXaxis()->SetRange(1,N_PIXELS/2);
-//    h_ch_clone_projectionY->SetMaximum(0.015);
-//    h_ch_clone_projectionY->SetMinimum(-0.001);
-    Double_t integral, integral_err;
-    integral = h_ch_clone_projectionY->IntegralAndError(1,N_PIXELS/2,integral_err);
-    for(Int_t i = 1; i <= N_PIXELS/2; i++)
+    gPad->SetGrid();
+    h_signal_bk->SetLineColor(kBlack);
+    h_signal_am->SetLineColor(kRed);
+    h_signal_bk->SetMaximum(0.006);
+    h_signal_am->SetMaximum(0.006);
+    h_signal_bk->SetMinimum(-0.017);
+    h_signal_am->SetMinimum(-0.017);
+    h_signal_bk->Draw();
+    h_signal_am->Draw("same");
+
+    TH1D* h_signal_am_clone = (TH1D*)h_signal_am->Clone("h_signal_am_clone");
+    TH1D* h_signal_bk_clone = (TH1D*)h_signal_bk->Clone("h_signal_bk_clone");
+
+    TF1* fit_func_am = new TF1("fit_func_am",fit_ch_func_name,min_x_ch_fit,max_x_ch_fit);
+    h_signal_am_clone->Fit(fit_func_am,"RQ0+");
+    cout<<"--> Chi2/NDF AM = "<<fit_func_am->GetChisquare()/fit_func_am->GetNDF()<<endl;
+
+    TF1* fit_func_bk = new TF1("fit_func_bk",fit_ch_func_name,min_x_ch_fit,max_x_ch_fit);
+    h_signal_bk_clone->Fit(fit_func_bk,"RQ0+");
+    cout<<"--> Chi2/NDF BK = "<<fit_func_bk->GetChisquare()/fit_func_bk->GetNDF()<<endl;
+
+
+    TCanvas *c4 = new TCanvas("c4","h_ch_clone_projectionY_final",1000,1000);
+    c4->Divide(1,2);
+
+    h_signal_am_clone->GetXaxis()->SetRange(50,150);
+    h_signal_am_clone->SetMaximum(0.003);
+    h_signal_am_clone->SetMinimum(-0.0005);
+    h_signal_bk_clone->GetXaxis()->SetRange(50,150);
+    h_signal_bk_clone->SetMaximum(0.003);
+    h_signal_bk_clone->SetMinimum(-0.0005);
+    h_signal_am_clone->SetLineWidth(2);
+    h_signal_bk_clone->SetLineWidth(2);
+    h_signal_am_clone->SetLineColor(kRed);
+    h_signal_bk_clone->SetLineColor(kBlack);
+
+    c4->cd(1);
+    gPad->SetGrid();
+    h_signal_bk_clone->Draw();
+
+    Int_t min_x_bk = fit_func_bk->GetParameter(1) - num_sigma_x_fit_ch*fit_func_bk->GetParameter(2);
+    Int_t max_x_bk = fit_func_bk->GetParameter(1) + num_sigma_x_fit_ch*fit_func_bk->GetParameter(2);
+
+    TLine* line_1_bk = new TLine(min_x_bk,0,min_x_bk,h_signal_bk_clone->GetMaximum());
+    TLine* line_2_bk = new TLine(max_x_bk,0,max_x_bk,h_signal_bk_clone->GetMaximum());
+
+    line_1_bk->SetLineColor(kGreen+2);
+    line_2_bk->SetLineColor(kGreen+2);
+    line_1_bk->SetLineWidth(4);
+    line_2_bk->SetLineWidth(4);
+    line_1_bk->Draw("same");
+    line_2_bk->Draw("same");
+
+    min_x_dch_ln = max_x_bk + 5;
+    TLine* line_3_bk = new TLine(min_x_dch_ln,0,min_x_dch_ln,h_signal_bk_clone->GetMaximum());
+    TLine* line_4_bk = new TLine(max_x_dch_ln,0,max_x_dch_ln,h_signal_bk_clone->GetMaximum());
+
+    line_3_bk->SetLineColor(kRed+2);
+    line_4_bk->SetLineColor(kRed+2);
+    line_3_bk->SetLineWidth(4);
+    line_4_bk->SetLineWidth(4);
+    line_3_bk->Draw("same");
+    line_4_bk->Draw("same");
+
+    Double_t counts_ch_bk = 0.0, counts_ch_err_bk = 0.0, counts_dch_bk = 0.0, counts_dch_err_bk = 0.0;
+    for(Int_t i = min_x_bk; i <= max_x_bk; i++)
     {
-        h_ch_clone_projectionY->SetBinError(i,TMath::Sqrt(TMath::Power(h_ch_clone_projectionY->GetBinError(i)/integral,2) +
-                                                          TMath::Power(h_ch_clone_projectionY->GetBinContent(i)*integral_err/(integral*integral),2)));
-        h_ch_clone_projectionY->SetBinContent(i,h_ch_clone_projectionY->GetBinContent(i)/integral);
+        counts_ch_bk += h_signal_bk->GetBinContent(i);
+        counts_ch_err_bk += TMath::Power(h_signal_bk->GetBinError(i),2);
     }
-    h_ch_clone_projectionY->SetLineWidth(2);
-    h_ch_clone_projectionY->Draw();
-
-    TF1* fit_func = new TF1("fit_func",fit_bkg_func_formula,min_x_bkg_fit,max_x_bkg_fit);
-    fit_func->SetLineColor(kMagenta);
-    fit_func->SetLineWidth(4);
-    h_ch_clone_projectionY->Fit(fit_func,"R+");
-    cout<<"--> Chi2/NDF I = "<<fit_func->GetChisquare()/fit_func->GetNDF()<<endl;
-
-    TH1D* h_bkg = new TH1D("h_bkg","h_bkg",N_PIXELS/2,1,N_PIXELS/2);
-    TH1D* h_signal = new TH1D("h_signal","h_signal",N_PIXELS/2,1,N_PIXELS/2);
-    for(Int_t i = 1; i <= N_PIXELS/2; i++)
-    {
-        h_bkg->SetBinContent(i,fit_func->Eval(i));
-
-        Double_t val = h_ch_clone_projectionY->GetBinContent(i) - fit_func->Eval(i);
-        Double_t val_err = h_ch_clone_projectionY->GetBinError(i);
-        if(val < 0) val = 0;
-        h_signal->SetBinContent(i,val);
-        h_signal->SetBinError(i,val_err);
-    }
-    h_bkg->SetLineColor(kBlack);
-    h_bkg->Draw("same");
-
-    TCanvas *c4 = new TCanvas("c4","h_ch_clone_projectionY_final",1000,500);
-    gStyle->SetOptStat(0);
-    c4->cd();
-    h_signal->GetXaxis()->SetRange(1,N_PIXELS/2);
-//    h_signal->SetMaximum(0.015);
-//    h_signal->SetMinimum(-0.001);
-    h_signal->SetLineWidth(2);
-    h_signal->Draw();
-
-    TF1* fit_func_2 = new TF1("fit_func_2",fit_ch_func_name,min_x_ch_fit,max_x_ch_fit);
-    fit_func_2->SetLineColor(kRed);
-    fit_func_2->SetLineWidth(4);
-    h_signal->Fit(fit_func_2,"R+");
-    cout<<"--> Chi2/NDF II = "<<fit_func_2->GetChisquare()/fit_func_2->GetNDF()<<endl;
-
-    TH1D* h_signal_2 = new TH1D("h_signal_2","h_signal_2",N_PIXELS/2,1,N_PIXELS/2);
-    for(Int_t i = 1; i <= N_PIXELS/2; i++)
-    {
-        h_signal_2->SetBinContent(i,fit_func_2->Eval(i));
-    }
-    h_signal_2->SetLineColor(kBlack);
-    h_signal_2->Draw("same");
-
-    Int_t min_x = fit_func_2->GetParameter(1) - num_sigma_x_fit_ch*fit_func_2->GetParameter(2);
-    Int_t max_x = fit_func_2->GetParameter(1) + num_sigma_x_fit_ch*fit_func_2->GetParameter(2);
-
-    TLine* line_1 = new TLine(min_x,0,min_x,h_signal->GetMaximum());
-    TLine* line_2 = new TLine(max_x,0,max_x,h_signal->GetMaximum());
-
-    line_1->SetLineColor(kGreen+2);
-    line_2->SetLineColor(kGreen+2);
-    line_1->SetLineWidth(4);
-    line_2->SetLineWidth(4);
-    line_1->Draw("same");
-    line_2->Draw("same");
-
-    TLine* line_3 = new TLine(min_x_dch_ln,0,min_x_dch_ln,h_signal->GetMaximum());
-    TLine* line_4 = new TLine(max_x_dch_ln,0,max_x_dch_ln,h_signal->GetMaximum());
-
-    line_3->SetLineColor(kRed+2);
-    line_4->SetLineColor(kRed+2);
-    line_3->SetLineWidth(4);
-    line_4->SetLineWidth(4);
-    line_3->Draw("same");
-    line_4->Draw("same");
-
-    Double_t counts_ch = 0.0, counts_ch_err = 0.0, counts_dch = 0.0, counts_dch_err = 0.0;
-    for(Int_t i = min_x; i <= max_x; i++)
-    {
-        counts_ch += h_signal->GetBinContent(i);
-        counts_ch_err += TMath::Power(h_signal->GetBinError(i),2);
-    }
-    Double_t dch_length = 0.0;
+    Double_t dch_length_bk = 0.0;
     for(Int_t i = min_x_dch_ln; i <= max_x_dch_ln; i++)
     {
-        counts_dch += h_signal->GetBinContent(i);
-        counts_dch_err += TMath::Power(h_signal->GetBinError(i),2);
-        dch_length += PIXEL_SIZE; // [mm]
+        counts_dch_bk += h_signal_bk->GetBinContent(i);
+        counts_dch_err_bk += TMath::Power(h_signal_bk->GetBinError(i),2);
+        dch_length_bk += PIXEL_SIZE; // [mm]
     }
+    counts_ch_err_bk = TMath::Sqrt(counts_ch_err_bk);
+    counts_dch_err_bk = TMath::Sqrt(counts_dch_err_bk)/dch_length_bk;
+    counts_dch_bk = counts_dch_bk/dch_length_bk;
 
-    counts_ch_err = TMath::Sqrt(counts_ch_err);
-    counts_dch_err = TMath::Sqrt(counts_dch_err)/dch_length;
-    counts_dch = counts_dch/dch_length;
-    cout<<"--> Crystal info: "<<crystal_info<<endl;
-    cout<<"--> Counts CH: "<<counts_ch<<" +/- "<<counts_ch_err<<endl;
-    cout<<"--> Counts DCH: "<<counts_dch<<" +/- "<<counts_dch_err<<" [mm-1]"<<endl;
-    cout<<"--> DCH length: "<<dch_length<<" [mm]"<<endl;
-    cout<<"--> Ratio CH/DCH: "<<counts_ch/counts_dch<<" +/- "<<TMath::Sqrt(TMath::Power(counts_ch_err/counts_dch,2) +
-                                                                           TMath::Power(counts_ch*counts_dch_err/(counts_dch*counts_dch),2))<<endl;
+
+    cout<<endl<<"--> Crystal info: "<<crystal_info<<endl<<endl;
+
+    cout<<"--> Counts CH(BKG): "<<counts_ch_bk<<" +/- "<<counts_ch_err_bk<<endl;
+    cout<<"--> Counts DCH(BKG): "<<counts_dch_bk<<" +/- "<<counts_dch_err_bk<<" [mm-1]"<<endl;
+    cout<<"--> DCH length(BKG): "<<dch_length_bk<<" [mm]"<<endl;
+    cout<<"--> Ratio CH/DCH(BKG): "<<counts_ch_bk/counts_dch_bk<<" +/- "<<TMath::Sqrt(TMath::Power(counts_ch_err_bk/counts_dch_bk,2) +
+                                                                           TMath::Power(counts_ch_bk*counts_dch_err_bk/(counts_dch_bk*counts_dch_bk),2))<<endl;
+
+    c4->cd(2);
+    gPad->SetGrid();
+    h_signal_am_clone->Draw();
+
+    Int_t min_x_am = fit_func_am->GetParameter(1) - num_sigma_x_fit_ch*fit_func_am->GetParameter(2);
+    Int_t max_x_am = fit_func_am->GetParameter(1) + num_sigma_x_fit_ch*fit_func_am->GetParameter(2);
+
+    TLine* line_1_am = new TLine(min_x_am,0,min_x_am,h_signal_am_clone->GetMaximum());
+    TLine* line_2_am = new TLine(max_x_am,0,max_x_am,h_signal_am_clone->GetMaximum());
+
+    line_1_am->SetLineColor(kGreen+2);
+    line_2_am->SetLineColor(kGreen+2);
+    line_1_am->SetLineWidth(4);
+    line_2_am->SetLineWidth(4);
+    line_1_am->Draw("same");
+    line_2_am->Draw("same");
+
+    min_x_dch_ln = max_x_am + 5;
+    TLine* line_3_am = new TLine(min_x_dch_ln,0,min_x_dch_ln,h_signal_am_clone->GetMaximum());
+    TLine* line_4_am = new TLine(max_x_dch_ln,0,max_x_dch_ln,h_signal_am_clone->GetMaximum());
+
+    line_3_am->SetLineColor(kRed+2);
+    line_4_am->SetLineColor(kRed+2);
+    line_3_am->SetLineWidth(4);
+    line_4_am->SetLineWidth(4);
+    line_3_am->Draw("same");
+    line_4_am->Draw("same");
+
+    Double_t counts_ch_am = 0.0, counts_ch_err_am = 0.0, counts_dch_am = 0.0, counts_dch_err_am = 0.0;
+    for(Int_t i = min_x_am; i <= max_x_am; i++)
+    {
+        counts_ch_am += h_signal_am->GetBinContent(i);
+        counts_ch_err_am += TMath::Power(h_signal_am->GetBinError(i),2);
+    }
+    Double_t dch_length_am = 0.0;
+    for(Int_t i = min_x_dch_ln; i <= max_x_dch_ln; i++)
+    {
+        counts_dch_am += h_signal_am->GetBinContent(i);
+        counts_dch_err_am += TMath::Power(h_signal_am->GetBinError(i),2);
+        dch_length_am += PIXEL_SIZE; // [mm]
+    }
+    counts_ch_err_am = TMath::Sqrt(counts_ch_err_am);
+    counts_dch_err_am = TMath::Sqrt(counts_dch_err_am)/dch_length_am;
+    counts_dch_am = counts_dch_am/dch_length_am;
+
+
+    cout<<"--> Counts CH(AM): "<<counts_ch_am<<" +/- "<<counts_ch_err_am<<endl;
+    cout<<"--> Counts DCH(AM): "<<counts_dch_am<<" +/- "<<counts_dch_err_am<<" [mm-1]"<<endl;
+    cout<<"--> DCH length(AM): "<<dch_length_am<<" [mm]"<<endl;
+    cout<<"--> Ratio CH/DCH(AM): "<<counts_ch_am/counts_dch_am<<" +/- "<<TMath::Sqrt(TMath::Power(counts_ch_err_am/counts_dch_am,2) +
+                                                                           TMath::Power(counts_ch_am*counts_dch_err_am/(counts_dch_am*counts_dch_am),2))<<endl;
 
     return 0;
 }

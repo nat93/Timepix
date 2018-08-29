@@ -36,35 +36,20 @@ using namespace std;
 const Int_t N_PIXELS                = 512;
 const Double_t PIXEL_SIZE           = 0.055;
 
-int sps_md_analysis_2()
+int sps_md_analysis_4()
 {
     //----------------------------------------------//
-    //---------------- 15.08.2018 ------------------//
+    //---------------- 18.06.2018 ------------------//
     //----------------------------------------------//
-    const Int_t nFiles = 8;
+    const Int_t nFiles = 1;
     gStyle->SetOptStat(0);
 
     TString file_name_rp1i[] = {
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_288_RUN_1.root",    // dTHL = 100
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_289_RUN_1.root",    // dTHL = 100
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_290_RUN_1.root",    // dTHL = 100
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_291_RUN_1.root",    // dTHL = 100
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_292_RUN_1.root",    // dTHL = 100
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_293_RUN_1.root",    // dTHL = 100
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_294_RUN_1.root",    // dTHL = 100
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_303_RUN_1.root"     // dTHL = 40
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_RUN_1.root"
     };
     TString file_name_rp0i[] = {
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_288_RUN_1.root",    // dTHL = 100
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_289_RUN_1.root",    // dTHL = 100
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_290_RUN_1.root",    // dTHL = 100
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_291_RUN_1.root",    // dTHL = 100
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_292_RUN_1.root",    // dTHL = 100
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_293_RUN_1.root",    // dTHL = 100
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_294_RUN_1.root",    // dTHL = 100
-        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_303_RUN_1.root"     // dTHL = 100
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_RUN_1.root"
     };
-    Double_t bias[] = {0.0,10.0,20.0,40.0,60.0,80.0,100.0,40};
 
     Float_t factor_bad_pixels_rp0i = 10;
     Float_t factor_bad_pixels_rp1i = 10;
@@ -75,11 +60,8 @@ int sps_md_analysis_2()
     TH2D* h_rp0i_clone[nFiles];
     TH2D* h_rp1i_clone[nFiles];
 
-    TCanvas* c1_rp0i = new TCanvas("c1_rp0i","c1_rp0i",1000,500);
-    TCanvas* c1_rp1i = new TCanvas("c1_rp1i","c1_rp1i",1000,500);
-
-    c1_rp0i->Divide(4,2);
-    c1_rp1i->Divide(4,2);
+    TCanvas* c1_rp0i = new TCanvas("c1_rp0i","c1_rp0i",500,500);
+    TCanvas* c1_rp1i = new TCanvas("c1_rp1i","c1_rp1i",500,500);
 
     for(Int_t ifl = 0; ifl < nFiles; ifl++)
     {
@@ -126,37 +108,19 @@ int sps_md_analysis_2()
                                              + TMath::Power(integral_rp1i[ifl]*integral_err_rp0i[ifl]/(integral_rp0i[ifl]*integral_rp0i[ifl]),2));
 
 
-        c1_rp0i->cd(ifl+1);
-        h_rp0i_clone[ifl]->SetMaximum(5000);
+        c1_rp0i->cd();
+//        h_rp0i_clone[ifl]->SetMaximum(5000);
         h_rp0i_clone[ifl]->Draw("colz");
 
-        c1_rp1i->cd(ifl+1);
-        h_rp1i_clone[ifl]->SetMaximum(500);
+        c1_rp1i->cd();
+//        h_rp1i_clone[ifl]->SetMaximum(500);
         h_rp1i_clone[ifl]->Draw("colz");
     }
 
-    TGraphErrors* gr_rp0i = new TGraphErrors(nFiles,bias,integral_rp0i,0,integral_err_rp0i);
-    TGraphErrors* gr_rp1i = new TGraphErrors(nFiles,bias,integral_rp1i,0,integral_err_rp1i);
-    TGraphErrors* gr_norm = new TGraphErrors(nFiles,bias,integral_norm,0,integral_err_norm);
-
-    gr_rp0i->SetName("RP0I");   gr_rp0i->SetTitle("RP0I");
-    gr_rp1i->SetName("RP1I");   gr_rp1i->SetTitle("RP1I");
-    gr_norm->SetName("RP1I/RP0I");   gr_norm->SetTitle("RP1I/RP0I");
-
-    gr_rp0i->SetLineColor(kRed);    gr_rp0i->SetLineWidth(2);
-    gr_rp1i->SetLineColor(kBlue);    gr_rp1i->SetLineWidth(2);
-    gr_norm->SetLineColor(kBlack);    gr_norm->SetLineWidth(2);
-
-    TCanvas* c_comm = new TCanvas("c_comm","c_comm",1000,500);
-    c_comm->Divide(2,1);
-    c_comm->cd(1);
-    gr_rp0i->Draw("APL");
-    c_comm->cd(2);
-    gr_rp1i->Draw("APL");
-
-    TCanvas* c_norm = new TCanvas("c_norm","c_norm",500,500);
-    c_norm->cd();
-    gr_norm->Draw("APL");
+    cout<<endl<<endl;
+    cout<<"--> integral_rp0i[0] = "<<integral_rp0i[0]<<" +/- "<<integral_err_rp0i[0]<<endl;
+    cout<<"--> integral_rp1i[0] = "<<integral_rp1i[0]<<" +/- "<<integral_err_rp1i[0]<<endl;
+    cout<<"--> integral_norm[0] = "<<integral_norm[0]<<" +/- "<<integral_err_norm[0]<<endl;
 
     return 0;
 }
