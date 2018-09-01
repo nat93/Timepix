@@ -11,6 +11,8 @@
 
     4.2 To performe a track reconstruction:                                 trackreco_trk
 
+Medipix Collaboration Picture:
+![alt text](https://github.com/nat93/Timepix/blob/master/logo2.png)
 
 To run the acquisition and data analysis scripts during SPS MD:
 
