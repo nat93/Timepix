@@ -29,7 +29,7 @@ For SPS MD data analysis use sps_md_analysis.C to calculate the ration between C
 
 The beam profile:
 
-![alt text](https://github.com/nat93/Timepix/blob/master/nTOF_UPSTREAM_QUADPIX_2018_08_30.PNG)
+![alt text](https://github.com/nat93/Timepix/blob/master/picture_beam_profile.PNG)
 
 SPS MD 18-19/06/2018
 
