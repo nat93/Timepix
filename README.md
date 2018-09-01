@@ -27,7 +27,7 @@ Launch data analysis scripts: (1) autorun_1.bash (continuously) (2) autorun_2.ba
 
 For SPS MD data analysis use sps_md_analysis.C to calculate the ration between CH and DCH particles.
 
-The neutron beam profile from nTOF experiment:
+The beam profile:
 
 ![alt text](https://github.com/nat93/Timepix/blob/master/nTOF_UPSTREAM_QUADPIX_2018_08_30.PNG)
 
