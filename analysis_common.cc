@@ -199,6 +199,18 @@ int main(int argc, char *argv[])
             fflush(stdout);
         }
 
+//--------------------------------------------------------------//
+//        To remove the first frame during the spill at H8
+//        if(i > 0)
+//        {
+//            fChain->GetEntry(i);
+//            Double_t t_now = _Timems;
+//            fChain->GetEntry(i-1);
+//            Double_t t_before = _Timems;
+//            if(t_now - t_before > 5000) continue;
+//        }
+//--------------------------------------------------------------//
+
         fChain->GetEntry(i);
 
         if (_Timems > 0)
@@ -214,7 +226,7 @@ int main(int argc, char *argv[])
         {
             zero_time = _Timems;
         }
-        last_time = _Timems;
+        last_time = _Timems;        
 
         frame_size = 0;
         for(Int_t xi = 0; xi < N_PIXELS; xi++)
@@ -237,10 +249,12 @@ int main(int argc, char *argv[])
                     }
                     else if(_AcquisType == 3)
                     {
+//                        _Clock = 4.8;
                         Double_t TOA = (N_MAX_CLOCKS-_COUNTS[xi][yi])*1e-6/_Clock;  // [sec]
                         frame_size++;
 
-                        if(TOA <= 0.000246)
+//                        if(TOA <= 0.000246)
+                        if(1)
                         {
                             h_1->Fill(xi,yi,1);
                             h_2->Fill(xi,1);
@@ -435,8 +449,8 @@ int main(int argc, char *argv[])
     {
         for(Int_t j = 1; j <= N_PIXELS; j++)
         {
-            h_6->SetBinContent(N_PIXELS/2-j+1,i,h_1->GetBinContent(i,j));//SPS
-//            h_6->SetBinContent(i,j,h_1->GetBinContent(i,j));//H8
+//            h_6->SetBinContent(N_PIXELS/2-j+1,i,h_1->GetBinContent(i,j));//SPS
+            h_6->SetBinContent(i,j,h_1->GetBinContent(i,j));//H8
         }
     }
 

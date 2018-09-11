@@ -7,9 +7,9 @@
 #data_dir=/home/anatochi/Medipix/SPS_DATA/TEST_2018_08_07;
 #data_dir=/home/anatochi/Medipix/SPS_DATA/MD_2018_08_15;
 #data_dir=/home/anatochi/Medipix/SPS_DATA/MD_2017_10_17/TIMEPIX;
-data_dir=/home/anatochi/Medipix/SPS_DATA/MD_2018_06_18;
+#data_dir=/home/anatochi/Medipix/SPS_DATA/MD_2018_06_18;
 
-for runrunID in $(seq 1 1 1)
+for runrunID in $(seq 3 1 3)
 do
 
     #1
@@ -23,13 +23,13 @@ do
     echo "Number of files in the directory: "$nFiles;
     echo "";
 
-    #cd -;
+    cd -;
 
-    make clean; make ascii2root_common;
-    for runid in $(seq 1 1 $nFiles)
-    do
-            ./ascii2root_common $data_dir/RUN_$runrunID/Medipix_$runid.dat $data_dir/RUN_$runrunID/Medipix_$runid.root
-    done
+    #make clean; make ascii2root_common;
+    #for runid in $(seq 1 1 $nFiles)
+    #do
+    #        ./ascii2root_common $data_dir/RUN_$runrunID/Medipix_$runid.dat $data_dir/RUN_$runrunID/Medipix_$runid.root
+    #done
 
     ## CSV FORMAT ##
 
@@ -54,61 +54,22 @@ do
     #2
 
     #make clean; make convert_common;
-    #./convert_common $data_dir/RUN_$runrunID/Medipix_ 1 $nFiles /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_RUN_$runrunID.root
+    #./convert_common $data_dir/RUN_$runrunID/Medipix_ 10 48 /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_RUN_$runrunID.root
     #./convert_common $data_dir/RUN_$runrunID/Medipix_ 1 $nFiles /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_RUN_$runrunID.root
-    #./convert_common $data_dir/RUN_$runrunID/Medipix_ 1 $nFiles /home/anatochi/Medipix/ROOT_FILES/TEST_2018_08_07_RUN_$runrunID.root    
-    #./convert_common $data_dir/RUN_$runrunID/Medipix_ 939 944 /home/anatochi/Medipix/ROOT_FILES/MD_2017_10_17_RUN_$runrunID.root
+    #./convert_common $data_dir/RUN_$runrunID/Medipix_ 1 $nFiles /home/anatochi/Medipix/ROOT_FILES/TEST_2018_08_07_RUN_$runrunID.root        
     #./convert_common $data_dir/RUN_$runrunID/Medipix_ 507 508 /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_RUN_$runrunID.root
-    #./convert_common $data_dir/RUN_$runrunID/Medipix_ 282 290 /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_RUN_$runrunID.root
+    #./convert_common $data_dir/RUN_$runrunID/Medipix_ 232 261 /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_TACW_SCAN_RUN_$runrunID.root
+    #./convert_common $data_dir/RUN_$runrunID/Medipix_ 970 973 /home/anatochi/Medipix/ROOT_FILES/MD_2017_10_17_CRY2CHCRY4AMP1_RUN_$runrunID.root
 
     #3
 
-    #make clean; make analysis_common;
-    #./analysis_common /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_HISTO_Chip2_RUN_$runrunID.root 2
-    #./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_HISTO_RP1I_RUN_$runrunID.root 3
-    #./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_HISTO_RP0I_RUN_$runrunID.root 4
-
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_295_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0E_295_RUN_$runrunID.root 0
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_295_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP3E_295_RUN_$runrunID.root 2
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_295_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_295_RUN_$runrunID.root 3
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_295_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_295_RUN_$runrunID.root 4
-
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_296_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0E_296_RUN_$runrunID.root 0
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_296_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP3E_296_RUN_$runrunID.root 2
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_296_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_296_RUN_$runrunID.root 3
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_296_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_296_RUN_$runrunID.root 4
-
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_297_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0E_297_RUN_$runrunID.root 0
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_297_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP3E_297_RUN_$runrunID.root 2
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_297_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_297_RUN_$runrunID.root 3
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_297_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_297_RUN_$runrunID.root 4
-
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_298_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0E_298_RUN_$runrunID.root 0
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_298_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP3E_298_RUN_$runrunID.root 2
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_298_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_298_RUN_$runrunID.root 3
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_298_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_298_RUN_$runrunID.root 4
-
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_299_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0E_299_RUN_$runrunID.root 0
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_299_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP3E_299_RUN_$runrunID.root 2
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_299_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_299_RUN_$runrunID.root 3
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_299_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_299_RUN_$runrunID.root 4
-
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_300_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0E_300_RUN_$runrunID.root 0
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_300_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP3E_300_RUN_$runrunID.root 2
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_300_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_300_RUN_$runrunID.root 3
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_300_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_300_RUN_$runrunID.root 4
-
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_301_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0E_301_RUN_$runrunID.root 0
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_301_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP3E_301_RUN_$runrunID.root 2
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_301_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_301_RUN_$runrunID.root 3
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_301_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_301_RUN_$runrunID.root 4
-
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_302_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0E_302_RUN_$runrunID.root 0
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_302_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP3E_302_RUN_$runrunID.root 2
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_302_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP1I_302_RUN_$runrunID.root 3
-    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_302_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_HISTO_RP0I_302_RUN_$runrunID.root 4
-
-
+    make clean; make analysis_common;
+    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_04_11_pions_HISTO_Chip2_RUN_$runrunID.root 2
+    #./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_TACW_SCAN_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_TACW_SCAN_HISTO_RP1I_RUN_$runrunID.root 3
+    #./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_TACW_SCAN_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_TACW_SCAN_HISTO_RP0I_RUN_$runrunID.root 4
+    #./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2017_10_17_CRY2CH_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2017_10_17_CRY2CH_HISTO_RP1I_RUN_$runrunID.root 2
+    #./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2017_10_17_CRY2CHCRY4CHP7_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2017_10_17_CRY2CHCRY4CHP7_HISTO_RP1I_RUN_$runrunID.root 2
+    #./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2017_10_17_CRY2CHCRY4AMP1_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2017_10_17_CRY2CHCRY4AMP1_HISTO_RP1I_RUN_$runrunID.root 2
 
     #4
 
