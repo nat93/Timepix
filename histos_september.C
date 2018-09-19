@@ -33,6 +33,9 @@ void removenoizypixelsY(TH1D* h_1);
 void removenoizypixelsXY(TH2D* histo, Float_t factor_bad_pixels);
 int findcenter(TH1D* h_profile);
 int getMinPositionWithinRangeTH1(Int_t min_x, Int_t max_x, TH1* histo);
+void scale2Dhisto(TH2D* histo, Double_t integral, Double_t interal_err);
+void shifthisto2D(TH2D* h_in, TH2D* h_out, Double_t x_shift, Double_t y_shift);
+void chi2calc2Dhisto(TH2D* h1, TH2D* h2, Int_t &bin_shift_x, Int_t &bin_shift_y);
 
 int histos_september()
 {
@@ -48,13 +51,15 @@ int histos_september()
     cout<<"--> histos_9() -- to calculate specified areas for the defined runs with some obstacles on the beam"<<endl;
     cout<<"--> histos_10() -- "<<endl;
     cout<<"--> histos_11() -- to plot the beam movement"<<endl;
+    cout<<"--> histos_12() -- to plot the difference between runs in 3D (aligned)"<<endl;
+    cout<<"--> histos_13() -- to find the offset"<<endl;
 
     return 0;
 }
 
 int histos_0()//to plot beam profiles and image for all runs
 {
-    for(Int_t j = 1; j <= 26; j++)
+    for(Int_t j = 1; j <= 1; j++)
     {
         if(j == 18 || j == 19) continue;
         TString filename = "/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip0_RUN_";
@@ -242,7 +247,8 @@ int histos_1()//to plot all alignment runs on the same plots
 
 int histos_2()//to plot all runs with a septum runs and with a align run
 {
-    for(Int_t j = 1; j <= 23; j++)
+    Int_t diffuser_position[] = {999999,999999,0,999999,0,25,-25,50,-50,100,-100,200,-200,500,-500,1000,-1000,999999,999999,999999,2000,-2000,350,-350,10,-10,-350};
+    for(Int_t j = 1; j <= 26; j++)
     {
         if(j == 18 || j == 19) continue;
         TString filename = "/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip0_RUN_";
@@ -260,20 +266,20 @@ int histos_2()//to plot all runs with a septum runs and with a align run
         TFile *_file2 = TFile::Open("/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip1_RUN_1.root");
         TFile *_file_norm2 = TFile::Open("/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip0_RUN_1.root");
 
-        TH2D* h_norm_0 = (TH2D*)_file_norm0->Get("h_1");
-        TH2D* h_norm_1 = (TH2D*)_file_norm1->Get("h_1");
-        TH2D* h_norm_2 = (TH2D*)_file_norm2->Get("h_1");
-        removenoizypixelsXY(h_norm_0,10);
-        removenoizypixelsXY(h_norm_1,10);
-        removenoizypixelsXY(h_norm_2,10);
+        TH2D* h_norm_0 = (TH2D*)_file_norm0->Get("h_6");
+        TH2D* h_norm_1 = (TH2D*)_file_norm1->Get("h_6");
+        TH2D* h_norm_2 = (TH2D*)_file_norm2->Get("h_6");
+        removenoizypixelsXY(h_norm_0,4);
+        removenoizypixelsXY(h_norm_1,4);
+        removenoizypixelsXY(h_norm_2,4);
 
-        TH2D* h_0_0 = (TH2D*)_file0->Get("h_1");
-        TH2D* h_0_1 = (TH2D*)_file1->Get("h_1");
-        TH2D* h_0_2 = (TH2D*)_file2->Get("h_1");
+        TH2D* h_0_0 = (TH2D*)_file0->Get("h_6");
+        TH2D* h_0_1 = (TH2D*)_file1->Get("h_6");
+        TH2D* h_0_2 = (TH2D*)_file2->Get("h_6");
 
-        removenoizypixelsXY(h_0_0,10);
-        removenoizypixelsXY(h_0_1,10);
-        removenoizypixelsXY(h_0_2,10);
+        removenoizypixelsXY(h_0_0,4);
+        removenoizypixelsXY(h_0_1,4);
+        removenoizypixelsXY(h_0_2,4);
 
         TH1D* h_0 = h_0_0->ProjectionX("h_2_0");
         TH1D* h_1 = h_0_1->ProjectionX("h_2_1");
@@ -313,37 +319,43 @@ int histos_2()//to plot all runs with a septum runs and with a align run
         h_0->SetLineWidth(4);
         h_0->SetLineColor(kBlue);
         h_0->SetMaximum(10e-3);
-        h_0->GetXaxis()->SetTitle("Horizontal [pixels]");
+        h_0->GetXaxis()->SetRange(h_0->GetXaxis()->FindBin(18),h_0->GetXaxis()->FindBin(28));
+        h_0->GetXaxis()->SetTitle("Horizontal [mm]");
         h_0->SetTitle("Beam Profile along Vertical Axis");
 
         h_1->SetLineWidth(4);
         h_1->SetLineColor(kRed);
         h_1->SetMaximum(10e-3);
-        h_1->GetXaxis()->SetTitle("Horizontal [pixels]");
+        h_1->GetXaxis()->SetRange(h_1->GetXaxis()->FindBin(18),h_1->GetXaxis()->FindBin(28));
+        h_1->GetXaxis()->SetTitle("Horizontal [mm]");
         h_1->SetTitle("Beam Profile along Vertical Axis");
 
         h_2->SetLineWidth(4);
         h_2->SetLineColor(kBlack);
         h_2->SetMaximum(10e-3);
-        h_2->GetXaxis()->SetTitle("Horizontal [pixels]");
+        h_2->GetXaxis()->SetRange(h_2->GetXaxis()->FindBin(18),h_2->GetXaxis()->FindBin(28));
+        h_2->GetXaxis()->SetTitle("Horizontal [mm]");
         h_2->SetTitle("Beam Profile along Vertical Axis");
 
         gStyle->SetOptStat(0);
 
         TString canvasname_1 = "./canvas/prof_run3_run1_run";
         canvasname_1 += j;
-        TCanvas* c_1 = new TCanvas(canvasname_1.Data(),canvasname_1.Data(),1920,1080);
+        TCanvas* c_1 = new TCanvas(canvasname_1.Data(),canvasname_1.Data(),1500,1000);
         c_1->cd();
-        h_1->Draw("hist");
+        h_2->Draw("hist");
         h_0->Draw("same & hist");
-        h_2->Draw("same & hist");
+        h_1->Draw("same & hist");
 
-        TLegend *legend = new TLegend(0.15,0.55,0.45,0.85,"","brNDC");
+        TLegend *legend = new TLegend(0.4,0.2,0.7,0.4,"","brNDC");
         TString name = "RUN_";
         name += j;
-        legend->AddEntry(h_0,"RUN_3","ple");
+        name += " (diff at ";
+        name += diffuser_position[j];
+        name += " um)";
+        legend->AddEntry(h_0,"RUN_3 (only septum)","ple");
         legend->AddEntry(h_1,name.Data(),"ple");
-        legend->AddEntry(h_2,"RUN_1","ple");
+        legend->AddEntry(h_2,"RUN_1 (alignment)","ple");
         legend->Draw();
 
         canvasname_1 += ".png";
@@ -355,8 +367,8 @@ int histos_2()//to plot all runs with a septum runs and with a align run
 
 int histos_3()// to calculate areas above and bellow the zero for all runs
 {
-    Int_t minCountBinX, maxCountBinX;
-    Int_t rangeCountBinX = 50;
+    Double_t minCountBinX, maxCountBinX;
+    Double_t rangeCountBinX = 3;
 
     // Diffuser
     const Int_t nn = 19;
@@ -390,21 +402,21 @@ int histos_3()// to calculate areas above and bellow the zero for all runs
         TFile *_file2 = TFile::Open("/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip1_RUN_1.root");
         TFile *_file_norm2 = TFile::Open("/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip0_RUN_1.root");
 
-        TH2D* h_norm_0 = (TH2D*)_file_norm0->Get("h_1");
-        TH2D* h_norm_1 = (TH2D*)_file_norm1->Get("h_1");
-        TH2D* h_norm_2 = (TH2D*)_file_norm2->Get("h_1");
+        TH2D* h_norm_0 = (TH2D*)_file_norm0->Get("h_6");
+        TH2D* h_norm_1 = (TH2D*)_file_norm1->Get("h_6");
+        TH2D* h_norm_2 = (TH2D*)_file_norm2->Get("h_6");
 
-        removenoizypixelsXY(h_norm_0,10);
-        removenoizypixelsXY(h_norm_1,10);
-        removenoizypixelsXY(h_norm_2,10);
+        removenoizypixelsXY(h_norm_0,4);
+        removenoizypixelsXY(h_norm_1,4);
+        removenoizypixelsXY(h_norm_2,4);
 
-        TH2D* h_0_0 = (TH2D*)_file0->Get("h_1");
-        TH2D* h_0_1 = (TH2D*)_file1->Get("h_1");
-        TH2D* h_0_2 = (TH2D*)_file2->Get("h_1");
+        TH2D* h_0_0 = (TH2D*)_file0->Get("h_6");
+        TH2D* h_0_1 = (TH2D*)_file1->Get("h_6");
+        TH2D* h_0_2 = (TH2D*)_file2->Get("h_6");
 
-        removenoizypixelsXY(h_0_0,10);
-        removenoizypixelsXY(h_0_1,10);
-        removenoizypixelsXY(h_0_2,10);
+        removenoizypixelsXY(h_0_0,4);
+        removenoizypixelsXY(h_0_1,4);
+        removenoizypixelsXY(h_0_2,4);
 
         TH1D* h_0 = h_0_0->ProjectionX("h_2_0");
         TH1D* h_1 = h_0_1->ProjectionX("h_2_1");
@@ -448,8 +460,8 @@ int histos_3()// to calculate areas above and bellow the zero for all runs
             // Difference
             if(val_2 != 0)
             {
-//                val_2 = 1;
-//                errval_2 = 0;
+                val_2 = 1;
+                errval_2 = 0;
                 h_01->SetBinContent(i,(val_1 - val_0)/val_2);
                 h_01->SetBinError(i,TMath::Sqrt(TMath::Power(errval_0/val_2,2) +
                                                 TMath::Power(errval_1/val_2,2) +
@@ -464,15 +476,15 @@ int histos_3()// to calculate areas above and bellow the zero for all runs
 
         h_01->SetLineWidth(2);
         h_01->SetLineColor(kBlue);
-        h_01->SetMaximum(maxY);
-        h_01->SetMinimum(minY);
-        h_01->GetXaxis()->SetTitle("Horizontal [pixels]");
+//        h_01->SetMaximum(maxY);
+//        h_01->SetMinimum(minY);
+        h_01->GetXaxis()->SetTitle("Horizontal [mm]");
 
         gStyle->SetOptStat(0);
 
         if(j == 0)
         {
-            TCanvas* c_3 = new TCanvas("Normalized_Alignment_Plot","Normalized_Alignment_Plot",1920,1080);
+            TCanvas* c_3 = new TCanvas("Normalized_Alignment_Plot","Normalized_Alignment_Plot",1500,1000);
             c_3->cd();
             h_2->Draw();
             c_3->SaveAs("./canvas/Normalized_Alignment_Plot.png");
@@ -480,7 +492,7 @@ int histos_3()// to calculate areas above and bellow the zero for all runs
 
         TString canvasname_1 = "./canvas/run3_run1_run";
         canvasname_1 += runid[j];
-        c_1[j] = new TCanvas(canvasname_1.Data(),canvasname_1.Data(),1920,1080);
+        c_1[j] = new TCanvas(canvasname_1.Data(),canvasname_1.Data(),1500,1000);
         c_1[j]->cd();
         h_01->SetTitle("Beam Profile along Vertical Axis");
         h_01->Draw();
@@ -491,7 +503,9 @@ int histos_3()// to calculate areas above and bellow the zero for all runs
         TString name = "(RUN_";
         name += runid[j];
         name += " -- RUN_3)/RUN_1*";
-//        name += " -- RUN_3)";
+        name += " (diff at ";
+        name += position[j];
+        name += " um)";
 
         gPad->SetGrid();
         legend->AddEntry(h_01,name.Data(),"ple");
@@ -500,13 +514,13 @@ int histos_3()// to calculate areas above and bellow the zero for all runs
         canvasname_1 += ".png";
 
         //-----------------------------------------------------------------//
-        minCountBinX = 350;
-        maxCountBinX = 500;
-        Int_t min_val_pos = getMinPositionWithinRangeTH1(minCountBinX,maxCountBinX,h_01);
-        minCountBinX = min_val_pos - rangeCountBinX;
-        maxCountBinX = min_val_pos + rangeCountBinX;
-        if(maxCountBinX > h_01->GetNbinsX()) maxCountBinX = h_01->GetNbinsX();
-        if(minCountBinX < 1) minCountBinX = 1;
+        minCountBinX = 20;
+        maxCountBinX = 27;
+        Double_t min_val_pos = h_01->GetBinCenter(getMinPositionWithinRangeTH1(h_01->GetXaxis()->FindBin(minCountBinX),h_01->GetXaxis()->FindBin(maxCountBinX),h_01));
+        minCountBinX = 0;//min_val_pos - rangeCountBinX;
+        maxCountBinX = 15;//min_val_pos + rangeCountBinX;
+        if(maxCountBinX > h_01->GetBinCenter(h_01->GetNbinsX())) maxCountBinX = h_01->GetBinCenter(h_01->GetNbinsX());
+        if(minCountBinX < h_01->GetBinCenter(1)) minCountBinX = h_01->GetBinCenter(1);
         TLine *l_min=new TLine(minCountBinX,minY,minCountBinX,maxY);
         l_min->SetLineColor(kRed);
         l_min->SetLineWidth(3);
@@ -524,7 +538,7 @@ int histos_3()// to calculate areas above and bellow the zero for all runs
         l_max->Draw();
         c_1[j]->SaveAs(canvasname_1.Data());
 
-        for(Int_t i = minCountBinX; i <= maxCountBinX; i++)
+        for(Int_t i = h_01->GetXaxis()->FindBin(minCountBinX); i <= h_01->GetXaxis()->FindBin(maxCountBinX); i++)
         {
             if(h_01->GetBinContent(i) > 0)
             {
@@ -545,7 +559,7 @@ int histos_3()// to calculate areas above and bellow the zero for all runs
         //-----------------------------------------------------------------//
     }
 
-    TCanvas* c_2 = new TCanvas(canvasname_2.Data(),canvasname_2.Data(),1920,1080);
+    TCanvas* c_2 = new TCanvas(canvasname_2.Data(),canvasname_2.Data(),1500,1000);
     TGraphErrors* gr1 = new TGraphErrors(nn,position,N1,0,err_N1);
     TGraphErrors* gr1_line = new TGraphErrors(nn,position,N1,0,err_N1);
     TGraphErrors* gr2 = new TGraphErrors(nn,position,N2,0,err_N2);
@@ -584,8 +598,8 @@ int histos_3()// to calculate areas above and bellow the zero for all runs
     mg->Add(gr2_line,"AL");
     mg->Add(gr12,"AP");
     mg->Add(gr12_line,"AL");
-    mg->SetMaximum(0.04);
-    mg->SetMinimum(-0.01);
+//    mg->SetMaximum(0.04);
+//    mg->SetMinimum(-0.01);
     mg->Draw("A");
 
     TLegend *legend = new TLegend(0.80,0.80,0.95,0.95,"","brNDC");
@@ -1457,9 +1471,6 @@ int histos_8()// to plot the difference between runs in 3D
     removenoizypixelsXY(h_1,10);
     removenoizypixelsXY(h_2,10);
 
-    TH1D* h_1y = h_1->ProjectionY("h_3_1");
-    TH1D* h_2y = h_2->ProjectionY("h_3_2");
-
     Double_t integral_1 = h_1->Integral();
     Double_t integral_2 = h_2->Integral();
 
@@ -1468,18 +1479,12 @@ int histos_8()// to plot the difference between runs in 3D
     h_1->Scale(1.0/integral_1);
     h_2->Scale(1.0/integral_2);
 
-    TF1* fit_funct = new TF1("fit_funct","gaus",150,250);
-    h_1y->Fit(fit_funct,"RQ+");
-    Int_t mean1Y = 0;//fit_funct->GetParameter(1);
-    h_2y->Fit(fit_funct,"RQ+");
-    Int_t mean2Y = 0;//fit_funct->GetParameter(1);
-
     for(Int_t xi = 1; xi <= h_1->GetNbinsX(); xi++)
     {
         for(Int_t yi = 1; yi <= h_1->GetNbinsY(); yi++)
         {
-            Double_t val = h_1->GetBinContent(xi,yi) - h_2->GetBinContent(xi,yi+(mean2Y-mean1Y));
-            if(val > 0 && h_1->GetBinContent(xi,yi) > 0 && h_2->GetBinContent(xi,yi+(mean2Y-mean1Y)) > 0)
+            Double_t val = h_1->GetBinContent(xi,yi) - h_2->GetBinContent(xi,yi);
+            if(val > 0 && h_1->GetBinContent(xi,yi) > 0 && h_2->GetBinContent(xi,yi) > 0)
                 h_dif->SetBinContent(xi,yi,val);
         }
     }
@@ -1491,16 +1496,6 @@ int histos_8()// to plot the difference between runs in 3D
     gPad->SetGrid();
     h_dif->SetMaximum(1e-4);
     h_dif->Draw("colz");
-
-    TCanvas* c_1 = new TCanvas("c_1","c_1",1080,1080);
-    c_1->cd();
-    gPad->SetGrid();
-    h_1y->Draw();
-
-    TCanvas* c_2 = new TCanvas("c_2","c_2",1080,1080);
-    c_2->cd();
-    gPad->SetGrid();
-    h_2y->Draw();
 
     TCanvas* c_3 = new TCanvas("c_3","c_3",1080,1080);
     c_3->cd();
@@ -1892,6 +1887,7 @@ int histos_11()// to plot the beam movement
     Int_t i = 0;
     const Int_t nRuns = 24;
     Double_t mean_x[nRuns], mean_y[nRuns], mean_err_x[nRuns], mean_err_y[nRuns];
+    TCanvas* c_1[nRuns];
     TCanvas* c_x[nRuns];
     TCanvas* c_y[nRuns];
     Double_t ttime[nRuns], ttime_err[nRuns];
@@ -1902,12 +1898,12 @@ int histos_11()// to plot the beam movement
     {
         if(run_id == 18 || run_id == 19) continue; // runs in ToA mode
 
-        TString file_name = "/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip1_RUN_";
+        TString file_name = "/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip0_RUN_";
         file_name += run_id;
         file_name += ".root";
         TFile *_file = TFile::Open(file_name.Data());
         cout<<_file->GetName()<<endl;
-        TH2D* h_1 = (TH2D*)_file->Get("h_1");
+        TH2D* h_1 = (TH2D*)_file->Get("h_6");
         TH2D* h_10 = (TH2D*)_file->Get("h_10");
 
         ttime_err[i] = (h_10->GetBinCenter(h_10->GetNbinsX()) - h_10->GetBinCenter(1))/2.0;
@@ -1918,8 +1914,16 @@ int histos_11()// to plot the beam movement
         TH1D* h_x = h_1->ProjectionX("h_x");
         TH1D* h_y = h_1->ProjectionY("h_y");
 
-        TF1* fit_x = new TF1("fit_x","gaus",400,450);
-        TF1* fit_y = new TF1("fit_y","gaus",110,160);
+        TF1* fit_x = new TF1("fit_x","gaus",22.5,24.5);
+        fit_x->SetParameter(0,4.95231e+05);
+        fit_x->SetParameter(1,2.34910e+01);
+        fit_x->SetParameter(2,3.71847e+00);
+
+        TF1* fit_y = new TF1("fit_y","gaus",6.5,8.5);
+        fit_y->SetParameter(0,4.35498e+05);
+        fit_y->SetParameter(1,7.62031e+00);
+        fit_y->SetParameter(2,2.70004e+00);
+
 
         h_x->Fit(fit_x,"RQ+");
         h_y->Fit(fit_y,"RQ+");
@@ -1928,6 +1932,13 @@ int histos_11()// to plot the beam movement
         mean_err_x[i] = fit_x->GetParError(1);
         mean_y[i] = fit_y->GetParameter(1);
         mean_err_y[i] = fit_y->GetParError(1);
+
+        TString c_name_1 = "c_1_";
+        c_name_1 += run_id;
+        c_1[i] = new TCanvas(c_name_1.Data(),c_name_1.Data(),1000,1000);
+        c_1[i]->cd();
+        gPad->SetGrid();
+        h_1->Draw("colz");
 
         TString c_name_x = "c_x_";
         c_name_x += run_id;
@@ -1946,23 +1957,263 @@ int histos_11()// to plot the beam movement
         i++;
     }
 
-    TCanvas* c_x_t = new TCanvas("c_x_t","c_x_t",1000,1000);
+    TCanvas* c_x_t = new TCanvas("c_x_t","c_x_t",1500,1000);
     c_x_t->cd();
     TGraphErrors* gr_x = new TGraphErrors(nRuns,ttime,mean_x,ttime_err,mean_err_x);
     gPad->SetGrid();
+    gr_x->SetTitle("Horizontal position of the beam vs Time");
+    gr_x->GetYaxis()->SetTitle("X [mm]");
+    gr_x->GetXaxis()->SetTitle("Time");
     gr_x->SetMarkerStyle(21);
     gr_x->SetMarkerColor(kRed);
     gr_x->SetLineStyle(9);
+    gr_x->SetLineWidth(2);
     gr_x->SetLineColor(kRed);
     gr_x->Draw("APL");
 
-    TCanvas* c_y_t = new TCanvas("c_y_t","c_y_t",1000,1000);
+    TCanvas* c_y_t = new TCanvas("c_y_t","c_y_t",1500,1000);
     c_y_t->cd();
     TGraphErrors* gr_y = new TGraphErrors(nRuns,ttime,mean_y,ttime_err,mean_err_y);
     gPad->SetGrid();
+    gr_y->SetTitle("Vertical position of the beam vs Time");
+    gr_y->GetYaxis()->SetTitle("Y [mm]");
+    gr_y->GetXaxis()->SetTitle("Time");
     gr_y->SetMarkerStyle(21);
     gr_y->SetMarkerColor(kBlue);
     gr_y->SetLineStyle(9);
+    gr_y->SetLineWidth(2);
+    gr_y->SetLineColor(kBlue);
+    gr_y->Draw("APL");
+
+    return 0;
+}
+
+int histos_12()// to plot the difference between runs in 3D (aligned)
+{
+    Double_t mean_x, mean_y;
+    Double_t mean_x_align, mean_y_align;
+    Double_t integral_0, integral_err_0;
+    Double_t integral_alin_0, integral_err_alin_0;
+
+    gStyle->SetOptStat(0);
+
+    TFile *_file_align_0 = TFile::Open("/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip0_RUN_1.root");
+    TFile *_file_align_1 = TFile::Open("/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip1_RUN_1.root");
+    cout<<"--> Alignment 0: "<<_file_align_0->GetName()<<endl;
+    cout<<"--> Alignment 1: "<<_file_align_1->GetName()<<endl;
+    TH2D* h_1_align_0 = (TH2D*)_file_align_0->Get("h_1");
+    TH2D* h_1_align_1 = (TH2D*)_file_align_1->Get("h_1");
+    removenoizypixelsXY(h_1_align_0,4);
+    removenoizypixelsXY(h_1_align_1,4);
+
+    TH1D* h_x_align_0 = h_1_align_0->ProjectionX("h_x_align_0");
+    TH1D* h_y_align_0 = h_1_align_0->ProjectionY("h_y_align_0");
+
+    TF1* fit_x = new TF1("fit_x","gaus",22,25);
+    TF1* fit_y = new TF1("fit_y","gaus",6,9);
+
+    h_x_align_0->Fit(fit_x,"R0Q+");
+    h_y_align_0->Fit(fit_y,"R0Q+");
+
+    mean_x_align        = fit_x->GetParameter(1);
+    mean_y_align        = fit_y->GetParameter(1);
+    cout<<"mean_x_align = "<<mean_x_align<<" | mean_y_align = "<<mean_y_align<<endl;
+
+    integral_alin_0 = h_1_align_0->IntegralAndError(1,h_1_align_0->GetNbinsX(),1,h_1_align_0->GetNbinsY(),integral_err_alin_0);
+    scale2Dhisto(h_1_align_0, integral_alin_0, integral_err_alin_0);
+    scale2Dhisto(h_1_align_1, integral_alin_0, integral_err_alin_0);
+
+    gStyle->SetOptStat(0);
+    TCanvas* c_1[26];
+    TCanvas* c_2[26];
+    TCanvas* c_3[26];
+
+    TCanvas* c_1_align = new TCanvas("c_1_align","c_1_align",1000,500);
+    c_1_align->Divide(2,1);
+    c_1_align->cd(1);
+    gPad->SetGrid();
+    h_1_align_0->SetTitle("Upstream Quadpix");
+    h_1_align_0->Draw("colz");
+    c_1_align->cd(2);
+    gPad->SetGrid();
+    h_1_align_1->SetTitle("Downstream Quadpix");
+    h_1_align_1->Draw("colz");
+
+    for(Int_t run_id = 2; run_id <= 2; run_id++)
+    {
+        if(run_id == 18 || run_id == 19) continue; // runs in ToA mode
+
+        TString file_name_0 = "/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip0_RUN_";
+        TString file_name_1 = "/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip1_RUN_";
+        file_name_0 += run_id;
+        file_name_1 += run_id;
+        file_name_0 += ".root";
+        file_name_1 += ".root";
+        TFile *_file_0 = TFile::Open(file_name_0.Data());
+        TFile *_file_1 = TFile::Open(file_name_1.Data());
+        cout<<_file_0->GetName()<<endl;
+        cout<<_file_1->GetName()<<endl;
+        TH2D* h_0 = (TH2D*)_file_0->Get("h_1");
+        TH2D* h_1 = (TH2D*)_file_1->Get("h_1");
+
+        removenoizypixelsXY(h_0,4);
+        removenoizypixelsXY(h_1,4);
+
+        TH1D* h_x_0 = h_0->ProjectionX("h_x_0");
+        TH1D* h_y_0 = h_0->ProjectionY("h_y_0");
+
+        h_x_0->Fit(fit_x,"R0Q+");
+        h_y_0->Fit(fit_y,"R0Q+");
+
+        mean_x      = fit_x->GetParameter(1);
+        mean_y      = fit_y->GetParameter(1);
+        cout<<"mean_x = "<<mean_x<<" | mean_y = "<<mean_y<<endl;
+
+        integral_0 = h_0->IntegralAndError(1,h_0->GetNbinsX(),1,h_0->GetNbinsY(),integral_err_0);
+        scale2Dhisto(h_0, integral_0, integral_err_0);
+        scale2Dhisto(h_1, integral_0, integral_err_0);
+
+        Double_t x_shift = mean_x - mean_x_align;
+        Double_t y_shift = mean_y - mean_y_align;
+
+        TH2D* h_0_s = new TH2D("h_0_s",h_0->GetTitle(),h_0->GetNbinsX(),1,h_0->GetXaxis()->GetBinCenter(h_0->GetNbinsX()),h_0->GetNbinsY(),1,h_0->GetYaxis()->GetBinCenter(h_0->GetNbinsY()));
+        shifthisto2D(h_0,h_0_s,x_shift,y_shift);
+
+        TH2D* h_1_s = new TH2D("h_1_s",h_1->GetTitle(),h_1->GetNbinsX(),1,h_1->GetXaxis()->GetBinCenter(h_1->GetNbinsX()),h_1->GetNbinsY(),1,h_1->GetYaxis()->GetBinCenter(h_1->GetNbinsY()));
+        shifthisto2D(h_1,h_1_s,x_shift,y_shift);
+
+
+        TH2D* h_dif_0 = (TH2D*)h_0_s->Clone();
+        h_dif_0->Add(h_1_align_0,-1);
+
+        TString name = "c_1_";
+        name += run_id;
+        c_1[run_id] = new TCanvas(name.Data(),name.Data(),1000,1000);
+        c_1[run_id]->Divide(2,2);
+
+        c_1[run_id]->cd(1);
+        gPad->SetGrid();
+        h_0_s->SetTitle("Upstream Quadpix");
+        h_0_s->Draw("colz");
+
+        c_1[run_id]->cd(2);
+        gPad->SetGrid();
+        h_1_s->SetTitle("Downstream Quadpix");
+        h_1_s->Draw("colz");
+
+        c_1[run_id]->cd(3);
+        gPad->SetGrid();
+        h_dif_0->SetTitle("h_0 - h_alin_0");
+        h_dif_0->Draw("colz");
+    }
+
+    return 0;
+}
+
+int histos_13()// to find the offset
+{
+    TFile *_file_align_0 = TFile::Open("/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip0_RUN_1.root");
+    TFile *_file_align_1 = TFile::Open("/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip1_RUN_1.root");
+    cout<<"--> Alignment 0: "<<_file_align_0->GetName()<<endl;
+    cout<<"--> Alignment 1: "<<_file_align_1->GetName()<<endl;
+    TH2D* h_1_align_0 = (TH2D*)_file_align_0->Get("h_1");
+    TH2D* h_1_align_1 = (TH2D*)_file_align_1->Get("h_1");
+    removenoizypixelsXY(h_1_align_0,4);
+    removenoizypixelsXY(h_1_align_1,4);
+
+    Double_t integral_0, integral_err_0;
+    Double_t integral_alin_0, integral_err_alin_0;    
+
+    gStyle->SetOptStat(0);
+
+    integral_alin_0 = h_1_align_0->IntegralAndError(1,h_1_align_0->GetNbinsX(),1,h_1_align_0->GetNbinsY(),integral_err_alin_0);
+    scale2Dhisto(h_1_align_0, integral_alin_0, integral_err_alin_0);
+    scale2Dhisto(h_1_align_1, integral_alin_0, integral_err_alin_0);
+
+    TCanvas* c1 = new TCanvas("c1","c1",1000,1000);
+    c1->cd();
+    TH1D* h_1_align_x = h_1_align_1->ProjectionX("h_1_align_x");
+    h_1_align_x->SetLineColor(kBlack);
+    h_1_align_x->Draw("hist");
+    TH1D* h_1_x[26];
+
+    const Int_t nRuns = 24;
+    Double_t bin_shift_x_0[nRuns],bin_shift_x_1[nRuns],bin_shift_x_err[nRuns], bin_shift_y_0[nRuns], bin_shift_y_1[nRuns], bin_shift_y_err[nRuns];
+    Int_t i = 0;
+    Double_t ttime[nRuns], ttime_err[nRuns];
+
+    for(Int_t run_id = 1; run_id <= 26; run_id++)
+    {
+        if(run_id == 18 || run_id == 19) continue; // runs in ToA mode
+
+        TString file_name_0 = "/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip0_RUN_";
+        TString file_name_1 = "/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip1_RUN_";
+        file_name_0 += run_id;
+        file_name_1 += run_id;
+        file_name_0 += ".root";
+        file_name_1 += ".root";
+        TFile *_file_0 = TFile::Open(file_name_0.Data());
+        TFile *_file_1 = TFile::Open(file_name_1.Data());
+        cout<<_file_0->GetName()<<endl;
+        cout<<_file_1->GetName()<<endl;
+        TH2D* h_0 = (TH2D*)_file_0->Get("h_1");
+        TH2D* h_1 = (TH2D*)_file_1->Get("h_1");
+        TH2D* h_10 = (TH2D*)_file_0->Get("h_10");
+
+        ttime_err[i] = (h_10->GetBinCenter(h_10->GetNbinsX()) - h_10->GetBinCenter(1))/2.0;
+        ttime[i] = h_10->GetBinCenter(1) + ttime_err[i];
+
+        removenoizypixelsXY(h_0,4);
+        removenoizypixelsXY(h_1,4);
+
+        integral_0 = h_0->IntegralAndError(1,h_0->GetNbinsX(),1,h_0->GetNbinsY(),integral_err_0);
+        scale2Dhisto(h_0, integral_0, integral_err_0);
+        scale2Dhisto(h_1, integral_0, integral_err_0);
+
+        Int_t bin_shift_x_temp, bin_shift_y_temp;
+        chi2calc2Dhisto(h_1_align_0, h_0, bin_shift_x_temp, bin_shift_y_temp);
+        bin_shift_x_0[i] = bin_shift_x_temp;
+        bin_shift_y_0[i] = bin_shift_y_temp;
+        chi2calc2Dhisto(h_1_align_1, h_1, bin_shift_x_temp, bin_shift_y_temp);
+        bin_shift_x_1[i] = bin_shift_x_temp;
+        bin_shift_y_1[i] = bin_shift_y_temp;
+
+        bin_shift_x_err[i] = 1.0/(TMath::Sqrt(12.0));
+        bin_shift_y_err[i] = 1.0/(TMath::Sqrt(12.0));
+
+        i++;
+
+        TString name = "hh_"; name += run_id;
+        h_1_x[run_id] = h_1->ProjectionX(name.Data());
+        h_1_x[run_id]->SetLineColor(run_id+1);
+        h_1_x[run_id]->Draw("same & hist");
+    }
+
+    TCanvas* c_x_t = new TCanvas("c_x_t","c_x_t",1500,1000);
+    c_x_t->cd();
+    TGraphErrors* gr_x = new TGraphErrors(nRuns,ttime,bin_shift_x_0,ttime_err,bin_shift_x_err);
+    gPad->SetGrid();
+    gr_x->SetTitle("Horizontal offset of the beam vs Time");
+    gr_x->GetYaxis()->SetTitle("X [pixels]");
+    gr_x->GetXaxis()->SetTitle("Time");
+    gr_x->SetMarkerStyle(21);
+    gr_x->SetMarkerColor(kRed);
+    gr_x->SetLineStyle(9);
+    gr_x->SetLineWidth(2);
+    gr_x->SetLineColor(kRed);
+    gr_x->Draw("APL");
+
+    TCanvas* c_y_t = new TCanvas("c_y_t","c_y_t",1500,1000);
+    c_y_t->cd();
+    TGraphErrors* gr_y = new TGraphErrors(nRuns,ttime,bin_shift_y_0,ttime_err,bin_shift_y_err);
+    gPad->SetGrid();
+    gr_y->SetTitle("Vertical offset of the beam vs Time");
+    gr_y->GetYaxis()->SetTitle("Y [pixels]");
+    gr_y->GetXaxis()->SetTitle("Time");
+    gr_y->SetMarkerStyle(21);
+    gr_y->SetMarkerColor(kBlue);
+    gr_y->SetLineStyle(9);
+    gr_y->SetLineWidth(2);
     gr_y->SetLineColor(kBlue);
     gr_y->Draw("APL");
 
@@ -2045,7 +2296,7 @@ void removenoizypixelsXY(TH2D* histo, Float_t factor_bad_pixels)// to remove noi
 int getMinPositionWithinRangeTH1(Int_t min_x, Int_t max_x, TH1* histo)
 {
     Double_t min_val = 1e9;
-    Int_t min_val_pos = -1;
+    Int_t min_val_pos = -999;
     if(min_x < 1) min_x = 1;
     if(max_x > histo->GetNbinsX()) max_x = histo->GetNbinsX();
     for(Int_t i = min_x; i <= max_x; i++)
@@ -2057,4 +2308,103 @@ int getMinPositionWithinRangeTH1(Int_t min_x, Int_t max_x, TH1* histo)
         }
     }
     return min_val_pos;
+}
+
+void shifthisto2D(TH2D* h_in, TH2D* h_out, Double_t x_shift, Double_t y_shift)
+{
+    for(Int_t xi = 1; xi <= h_in->GetNbinsX(); xi++)
+    {
+        for(Int_t yi = 1; yi <= h_in->GetNbinsY(); yi++)
+        {
+            Int_t xi_new = xi+round(x_shift/0.055)-1;
+            Int_t yi_new = yi+round(y_shift/0.055)-1;
+
+            h_out->SetBinContent(xi_new,yi_new,0);
+            h_out->SetBinError(xi_new,yi_new,0);
+            if(xi_new >= 1 && xi_new <= h_out->GetNbinsX())
+            {
+                if(yi_new >= 1 && yi_new <= h_out->GetNbinsY())
+                {
+                    h_out->SetBinContent(xi_new,yi_new,h_in->GetBinContent(xi,yi));
+                    h_out->SetBinError(xi_new,yi_new,h_in->GetBinError(xi,yi));
+                }
+            }
+        }
+    }
+}
+
+void scale2Dhisto(TH2D* histo, Double_t integral, Double_t interal_err)
+{
+    for(Int_t i = 1; i <= histo->GetNbinsX(); i++)
+    {
+        for(Int_t j = 1; j <= histo->GetNbinsY(); j++)
+        {
+            Double_t val = histo->GetBinContent(i,j);
+            Double_t val_err = histo->GetBinError(i,j);
+            val_err = TMath::Sqrt(TMath::Power(val_err/integral,2) + TMath::Power(val*interal_err/(integral*integral),2));
+            val = val/integral;
+
+            histo->SetBinContent(i,j,val);
+            histo->SetBinError(i,j,val_err);
+        }
+    }
+}
+
+void chi2calc2Dhisto(TH2D* h1, TH2D* h2, Int_t &bin_shift_x, Int_t &bin_shift_y)
+{
+    TH1D* h1_x = h1->ProjectionX("h1_x");
+    TH1D* h1_y = h1->ProjectionY("h1_y");
+
+    TH1D* h2_x = h2->ProjectionX("h2_x");
+    TH1D* h2_y = h2->ProjectionY("h2_y");
+
+    const Int_t num_skip_bins = 11;
+
+    Double_t chi2_x[num_skip_bins] = {};
+    Double_t chi2_y[num_skip_bins] = {};
+    Double_t shift[num_skip_bins] = {};
+    Double_t min_chi2_x = 1e9, min_chi2_y = 1e9;
+
+    for(Int_t shift_id = 0; shift_id < num_skip_bins; shift_id++)
+    {
+        shift[shift_id] = (-1)*(num_skip_bins-1)/2 + shift_id;
+        for(Int_t i = 1+num_skip_bins; i <= h1_x->GetNbinsX()-num_skip_bins; i++)
+        {
+            if(h1_x->GetBinContent(i) > 0 && h2_x->GetBinContent(i+shift[shift_id]) > 0)
+                chi2_x[shift_id] += (1.0/(h1_x->GetNbinsX()-num_skip_bins))*TMath::Power(h1_x->GetBinContent(i)-h2_x->GetBinContent(i+shift[shift_id]),2)/
+                        (TMath::Power(h1_x->GetBinError(i),2) + TMath::Power(h2_x->GetBinError(i+shift[shift_id]),2));
+        }
+        for(Int_t i = 1+num_skip_bins; i <= h1_y->GetNbinsX()-num_skip_bins; i++)
+        {
+            if(h1_y->GetBinContent(i) > 0 && h2_y->GetBinContent(i+shift[shift_id]) > 0)
+                chi2_y[shift_id] += (1.0/(h1_y->GetNbinsX()-num_skip_bins))*TMath::Power(h1_y->GetBinContent(i)-h2_y->GetBinContent(i+shift[shift_id]),2)/
+                        (TMath::Power(h1_y->GetBinError(i),2) + TMath::Power(h2_y->GetBinError(i+shift[shift_id]),2));
+        }
+        if(min_chi2_x > chi2_x[shift_id])
+        {
+            min_chi2_x = chi2_x[shift_id];
+            bin_shift_x = shift[shift_id];
+        }
+        if(min_chi2_y > chi2_y[shift_id])
+        {
+            min_chi2_y = chi2_y[shift_id];
+            bin_shift_y = shift[shift_id];
+        }
+    }
+
+    /*TCanvas* c1 = new TCanvas();
+    c1->cd();
+    h1_x->Draw("hist");
+    h2_x->SetLineColor(kRed);
+    h2_x->Draw("same & hist");
+
+    TCanvas* c2 = new TCanvas();
+    c2->cd();
+    TGraph* gr_x = new TGraph(num_skip_bins,shift,chi2_x);
+    gr_x->Draw("APC");
+
+    TCanvas* c3 = new TCanvas();
+    c3->cd();
+    TGraph* gr_3 = new TGraph(num_skip_bins,shift,chi2_y);
+    gr_3->Draw("APC");*/
 }

@@ -159,13 +159,14 @@ int main(int argc, char *argv[])
                 if(word == "END#") {break;}
                 Int_t _x, _y;
 
-//                _x = atoi(word.c_str());
-//                inputfile>>_y;
+                //---- For the usual orientation of the chip ----//
+                _x = atoi(word.c_str());
+                inputfile>>_y;
 
                 //---- For the rotated Quadpix at H8 ----//
-                _y = atoi(word.c_str());
-                inputfile>>_x;
-                _x = N_PIXELS-_x-1;
+//                _y = atoi(word.c_str());
+//                inputfile>>_x;
+//                _x = N_PIXELS-_x-1;
                 //---------------------------------------//
 
                 inputfile>>COUNTS[_x][_y];
