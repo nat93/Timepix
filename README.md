@@ -11,6 +11,9 @@
 
     4.2 To performe a track reconstruction:                                 trackreco_trk
 
+Medipix Collaboration Picture:
+
+![alt text](https://github.com/nat93/Timepix/blob/master/logo2.png)
 
 To run the acquisition and data analysis scripts during SPS MD:
 
@@ -24,6 +27,9 @@ Launch data analysis scripts: (1) autorun_1.bash (continuously) (2) autorun_2.ba
 
 For SPS MD data analysis use sps_md_analysis.C to calculate the ration between CH and DCH particles.
 
+The beam profile:
+
+![alt text](https://github.com/nat93/Timepix/blob/master/picture_beam_profile.PNG)
 
 SPS MD 18-19/06/2018
 

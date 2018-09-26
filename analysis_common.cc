@@ -151,6 +151,7 @@ int main(int argc, char *argv[])
     Double_t UT_max = _Timems;
 
     fChain->GetEntry(0);
+    Long64_t _event_ini = _event;
     Double_t UT_min = _Timems;
     cout<<"--> AcquisType = "<<_AcquisType<<" (0 - MPX, 1 - ToT, 3 - ToA)"<<endl;
     cout<<"--> Clock = "<<_Clock<<" [MHz]"<<endl;
@@ -178,6 +179,10 @@ int main(int argc, char *argv[])
     TH2D* h_21  = new TH2D("h_21","Y vs X vs C (inside the dch beam spot)",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
     TH2D* h_22  = new TH2D("h_22","Y vs X vs C (outside the beam spot)",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
     TH1D* h_23  = new TH1D("h_23","#Delta Time between frames",10000,0,10000);
+    TH1D* h_24  = new TH1D("h_24","_AcquisType vs EventID",nEntries,0,nEntries);
+    TH1D* h_25  = new TH1D("h_25","_DeltaTHR vs EventID",nEntries,0,nEntries);
+    TH1D* h_26  = new TH1D("h_26","_Gate vs EventID",nEntries,0,nEntries);
+    TH1D* h_27  = new TH1D("h_27","_Bias vs EventID",nEntries,0,nEntries);
 
     h_com_1     = new TH1D("h_com_1","#Delta Time inside cluster",2*N_MAX_CLOCKS-1,-_Gate*1e6,_Gate*1e6);
     h_com_2     = new TH2D("h_com_2","#Delta Time inside cluster VS Cluster size",50,0,50,2*N_MAX_CLOCKS-1,-_Gate*1e6,_Gate*1e6);
@@ -226,7 +231,12 @@ int main(int argc, char *argv[])
         {
             zero_time = _Timems;
         }
-        last_time = _Timems;        
+        last_time = _Timems;
+
+        h_24->Fill(_event-_event_ini,_AcquisType);
+        h_25->Fill(_event-_event_ini,_DeltaTHR);
+        h_26->Fill(_event-_event_ini,_Gate);
+        h_27->Fill(_event-_event_ini,_Bias);
 
         frame_size = 0;
         for(Int_t xi = 0; xi < N_PIXELS; xi++)
@@ -242,10 +252,10 @@ int main(int argc, char *argv[])
                         h_1->Fill(xi,yi,_COUNTS[xi][yi]);
                         h_2->Fill(xi,_COUNTS[xi][yi]);
                         h_3->Fill(yi,_COUNTS[xi][yi]);
-                        h_4->Fill(_event,xi,_COUNTS[xi][yi]);
-                        h_5->Fill(_event,yi,_COUNTS[xi][yi]);
+                        h_4->Fill(_event-_event_ini,xi,_COUNTS[xi][yi]);
+                        h_5->Fill(_event-_event_ini,yi,_COUNTS[xi][yi]);
                         h_8->Fill(event_time/1000.0,yi,_COUNTS[xi][yi]);
-                        h_9->Fill(event_time/1000.0,xi,_COUNTS[xi][yi]);
+                        h_9->Fill(event_time/1000.0,xi,_COUNTS[xi][yi]);                        
                     }
                     else if(_AcquisType == 3)
                     {
@@ -259,8 +269,8 @@ int main(int argc, char *argv[])
                             h_1->Fill(xi,yi,1);
                             h_2->Fill(xi,1);
                             h_3->Fill(yi,1);
-                            h_4->Fill(_event,xi,1);
-                            h_5->Fill(_event,yi,1);
+                            h_4->Fill(_event-_event_ini,xi,1);
+                            h_5->Fill(_event-_event_ini,yi,1);
 
                             for(Int_t fff = 1; fff <= h_7->GetNbinsX(); fff++)
                             {
@@ -435,6 +445,14 @@ int main(int argc, char *argv[])
     h_22->GetYaxis()->SetTitle("Y [pixels]");
     h_23->GetXaxis()->SetTitle("#Delta Time [ms]");
     h_23->GetYaxis()->SetTitle("Number of frames");
+    h_24->GetXaxis()->SetTitle("EventID");
+    h_24->GetYaxis()->SetTitle("_AcquisType");
+    h_25->GetXaxis()->SetTitle("EventID");
+    h_25->GetYaxis()->SetTitle("_DeltaTHR");
+    h_26->GetXaxis()->SetTitle("EventID");
+    h_26->GetYaxis()->SetTitle("_Gate");
+    h_27->GetXaxis()->SetTitle("EventID");
+    h_27->GetYaxis()->SetTitle("_Bias");
 
     h_com_1->GetXaxis()->SetTitle("#Delta Time [#mus]");
     h_com_1->GetYaxis()->SetTitle("Pixels in a cluster");
@@ -449,8 +467,8 @@ int main(int argc, char *argv[])
     {
         for(Int_t j = 1; j <= N_PIXELS; j++)
         {
-//            h_6->SetBinContent(N_PIXELS/2-j+1,i,h_1->GetBinContent(i,j));//SPS
-            h_6->SetBinContent(i,j,h_1->GetBinContent(i,j));//H8
+            h_6->SetBinContent(N_PIXELS/2-j+1,i,h_1->GetBinContent(i,j));//SPS
+//            h_6->SetBinContent(i,j,h_1->GetBinContent(i,j));//H8
         }
     }
 
@@ -476,6 +494,10 @@ int main(int argc, char *argv[])
     h_21->Write();
     h_22->Write();
     h_23->Write();
+    h_24->Write();
+    h_25->Write();
+    h_26->Write();
+    h_27->Write();
 
     h_com_1->Write();
     h_com_2->Write();

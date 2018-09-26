@@ -144,7 +144,6 @@ int main(int argc, char *argv[])
             inputfile>>word; // 'START#'
 
             if(inputfile.eof()) {break;}
-            //cout<<Time_ms<<"  "<<event<<"  "<<chip<<endl;
 
             for(Int_t xi = 0; xi < N_PIXELS; xi++)
             {
