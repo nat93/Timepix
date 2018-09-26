@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     }
 
     Double_t UnixTime = -1, DeltaTHR = -1, Ikrum = -1, Bias = -1, Clock = -1, Gate = -1;
-    UInt_t AcquisType = -1, TrigType = -1, chip;
+    UInt_t AcquisType = 999, TrigType = 999, chip;
 
     Long64_t event;
     Double_t Time_ms;
@@ -144,7 +144,6 @@ int main(int argc, char *argv[])
             inputfile>>word; // 'START#'
 
             if(inputfile.eof()) {break;}
-            //cout<<Time_ms<<"  "<<event<<"  "<<chip<<endl;
 
             for(Int_t xi = 0; xi < N_PIXELS; xi++)
             {
@@ -158,8 +157,17 @@ int main(int argc, char *argv[])
             {
                 if(word == "END#") {break;}
                 Int_t _x, _y;
+
+                //---- For the usual orientation of the chip ----//
                 _x = atoi(word.c_str());
                 inputfile>>_y;
+
+                //---- For the rotated Quadpix at H8 ----//
+//                _y = atoi(word.c_str());
+//                inputfile>>_x;
+//                _x = N_PIXELS-_x-1;
+                //---------------------------------------//
+
                 inputfile>>COUNTS[_x][_y];
             }
 
