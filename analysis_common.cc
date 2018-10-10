@@ -217,7 +217,6 @@ int main(int argc, char *argv[])
 //--------------------------------------------------------------//
 
         fChain->GetEntry(i);
-
         if (_Timems > 0)
         {
             event_time  = _Timems;
@@ -255,7 +254,7 @@ int main(int argc, char *argv[])
                         h_4->Fill(_event-_event_ini,xi,_COUNTS[xi][yi]);
                         h_5->Fill(_event-_event_ini,yi,_COUNTS[xi][yi]);
                         h_8->Fill(event_time/1000.0,yi,_COUNTS[xi][yi]);
-                        h_9->Fill(event_time/1000.0,xi,_COUNTS[xi][yi]);                        
+                        h_9->Fill(event_time/1000.0,xi,_COUNTS[xi][yi]);
                     }
                     else if(_AcquisType == 3)
                     {
@@ -467,7 +466,7 @@ int main(int argc, char *argv[])
     {
         for(Int_t j = 1; j <= N_PIXELS; j++)
         {
-            h_6->SetBinContent(N_PIXELS/2-j+1,i,h_1->GetBinContent(i,j));//SPS
+            h_6->SetBinContent(N_PIXELS/2-j+1,i,h_1->GetBinContent(i,j));//SPS RomanPot Internal
 //            h_6->SetBinContent(i,j,h_1->GetBinContent(i,j));//H8
         }
     }

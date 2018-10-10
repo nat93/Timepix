@@ -48,8 +48,9 @@ int sps_md_analysis_17_09_2018()
     cout<<"--> function_2() -- to plot rp1 profile normalized by rp1"<<endl;
     cout<<"--> function_3(Int_t i) -- to fit the beam profile at rp1 (bkg fit expo)"<<endl;
     cout<<"--> function_4(Int_t i) -- to fit the beam profile at rp1 (bkg fit pol1)"<<endl;
-    cout<<"--> function_5() -- to plot the beam profile with diff. rp1/0 position"<<endl;
-    cout<<"--> function_6() -- to calculate the ratio CH/DCH [mm] "<<endl;
+    cout<<"--> function_5(Int_t i) -- to fit the beam profile at rp1 (no bkg fit)"<<endl;
+    cout<<"--> function_6() -- to plot the beam profile with diff. rp1/0 position"<<endl;
+    cout<<"--> function_7() -- to calculate the ratio CH/DCH [mm] "<<endl;
     return 0;
 }
 
@@ -1032,7 +1033,255 @@ int function_4(Int_t i)
     return 0;
 }
 
-int function_5()
+int function_5(Int_t i)
+{
+    const Int_t nSets = 13;
+
+    Double_t mg_max[] = {/*0*/40.00,/*1*/40.00,/*2*/40.00,/*3*/40.00,/*4*/40.00,/*5*/40.00,/*6*/500.0,/*7*/500.0,/*8*/500.0,/*9*/40.00,/*10*/40.00,/*11*/40.00,/*12*/40.00};
+    Double_t mg_min[] = {/*0*/5.000,/*1*/5.000,/*2*/5.000,/*3*/5.000,/*4*/5.000,/*5*/5.000,/*6*/0.000,/*7*/0.000,/*8*/0.000,/*9*/5.000,/*10*/5.000,/*11*/5.000,/*12*/5.000};
+
+    TString fileName_RP0[] = {
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S1_HISTO_RP0I_RUN_2.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S2_HISTO_RP0I_RUN_2.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S3_HISTO_RP0I_RUN_2.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S4_HISTO_RP0I_RUN_2.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S5_HISTO_RP0I_RUN_2.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S6_HISTO_RP0I_RUN_2.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S7_HISTO_RP0I_RUN_2.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S8_HISTO_RP0I_RUN_5.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S9_HISTO_RP0I_RUN_6.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S10_HISTO_RP0I_RUN_6.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S11_HISTO_RP0I_RUN_6.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S12_HISTO_RP0I_RUN_6.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S13_HISTO_RP0I_RUN_6.root"
+    };
+
+    TString fileName_RP1[] = {
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S1_HISTO_RP1I_RUN_2.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S2_HISTO_RP1I_RUN_2.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S3_HISTO_RP1I_RUN_2.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S4_HISTO_RP1I_RUN_2.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S5_HISTO_RP1I_RUN_2.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S6_HISTO_RP1I_RUN_2.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S7_HISTO_RP1I_RUN_2.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S8_HISTO_RP1I_RUN_5.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S9_HISTO_RP1I_RUN_6.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S10_HISTO_RP1I_RUN_6.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S11_HISTO_RP1I_RUN_6.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S12_HISTO_RP1I_RUN_6.root",
+        "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S13_HISTO_RP1I_RUN_6.root"
+    };
+
+    Double_t fit_ch_lim_min[]   = {/*0*/7.00,/*1*/9.00,/*2*/9.00,/*3*/9.00,/*4*/9.00,/*5*/9.00,/*6*/9.00,/*7*/0.00,/*8*/0.00,/*9*/7.00,/*10*/9.00,/*11*/9.00,/*12*/9.00};
+    Double_t fit_ch_lim_max[]   = {/*0*/9.00,/*1*/11.0,/*2*/11.0,/*3*/11.0,/*4*/11.0,/*5*/11.0,/*6*/11.0,/*7*/14.0,/*8*/14.0,/*9*/9.00,/*10*/11.0,/*11*/11.0,/*12*/11.0};
+    Double_t fit_dch_lim_min[]  = {/*0*/2.50,/*1*/4.50,/*2*/4.50,/*3*/4.50,/*4*/4.50,/*5*/4.50,/*6*/0.50,/*7*/2.50,/*8*/2.50,/*9*/2.50,/*10*/4.50,/*11*/4.50,/*12*/4.50};
+    Double_t fit_dch_lim_max[]  = {/*0*/4.00,/*1*/6.50,/*2*/6.50,/*3*/6.50,/*4*/6.50,/*5*/6.50,/*6*/6.50,/*7*/4.00,/*8*/4.00,/*9*/4.00,/*10*/6.50,/*11*/6.50,/*12*/6.50};
+    Float_t factor_bad_pixels[] = {/*0*/200.,/*1*/200.,/*2*/200.,/*3*/200.,/*4*/200.,/*5*/30.0,/*6*/4.00,/*7*/100.,/*8*/30.0,/*9*/200.,/*10*/200.,/*11*/100.,/*12*/50.0};
+    Double_t par_ch_bkg[nSets][5];
+
+    // Gauss
+    par_ch_bkg[0][0] =  0.60; par_ch_bkg[1][0] =  0.60; par_ch_bkg[2][0] =  0.06; par_ch_bkg[3][0] =  0.10;
+    par_ch_bkg[4][0] =  0.60; par_ch_bkg[5][0] =  0.60; par_ch_bkg[6][0] =  0.60; par_ch_bkg[7][0] =  0.60;
+    par_ch_bkg[8][0] =  0.60; par_ch_bkg[9][0] =  0.60; par_ch_bkg[10][0] = 0.60; par_ch_bkg[11][0] = 0.40;
+    par_ch_bkg[12][0] = 0.60;
+
+    par_ch_bkg[0][1] =  7.50; par_ch_bkg[1][1] =  7.50; par_ch_bkg[2][1] =  10.0; par_ch_bkg[3][1] =  7.50;
+    par_ch_bkg[4][1] =  7.50; par_ch_bkg[5][1] =  7.50; par_ch_bkg[6][1] =  7.50; par_ch_bkg[7][1] =  10.00;
+    par_ch_bkg[8][1] =  7.50; par_ch_bkg[9][1] =  7.50; par_ch_bkg[10][1] = 7.50; par_ch_bkg[11][1] = 10.00;
+    par_ch_bkg[12][1] = 7.50;
+
+    par_ch_bkg[0][2] =  0.80; par_ch_bkg[1][2] =  0.80; par_ch_bkg[2][2] =  0.70; par_ch_bkg[3][2] =  0.70;
+    par_ch_bkg[4][2] =  0.80; par_ch_bkg[5][2] =  0.80; par_ch_bkg[6][2] =  0.80; par_ch_bkg[7][2] =  0.80;
+    par_ch_bkg[8][2] =  0.80; par_ch_bkg[9][2] =  0.80; par_ch_bkg[10][2] = 0.80; par_ch_bkg[11][2] = 1.40;
+    par_ch_bkg[12][2] = 0.80;
+
+    // Pol1
+    par_ch_bkg[0][3] = -4.40; par_ch_bkg[1][3] = -3.70; par_ch_bkg[2][3] = -4.16; par_ch_bkg[3][3] = -3.80;
+    par_ch_bkg[4][3] = -2.50; par_ch_bkg[5][3] = -6.00; par_ch_bkg[6][3] = -2.50; par_ch_bkg[7][3] = -2.50;
+    par_ch_bkg[8][3] = -2.50; par_ch_bkg[9][3] = -2.50; par_ch_bkg[10][3] =-2.50; par_ch_bkg[11][3] =-1.60;
+    par_ch_bkg[12][3] =-2.50;
+
+    par_ch_bkg[0][4] = -0.20; par_ch_bkg[1][4] = -0.20; par_ch_bkg[2][4] = -0.20; par_ch_bkg[3][4] = -0.17;
+    par_ch_bkg[4][4] = -0.06; par_ch_bkg[5][4] = -0.02; par_ch_bkg[6][4] = -0.06; par_ch_bkg[7][4] = -0.06;
+    par_ch_bkg[8][4] = -0.06; par_ch_bkg[9][4] = -0.06; par_ch_bkg[10][4] =-0.06; par_ch_bkg[11][4] =-0.01;
+    par_ch_bkg[12][4] =-0.06;
+
+
+    TH2D* h_rp0[nSets];
+    TH2D* h_rp1[nSets];
+
+    gStyle->SetOptStat(0);
+
+    cout<<endl<<"--> Set "<<i+1<<" <--"<<endl;
+    TFile *_file_rp0 = TFile::Open(fileName_RP0[i].Data());
+    TFile *_file_rp1 = TFile::Open(fileName_RP1[i].Data());
+
+    h_rp0[i] = (TH2D*)_file_rp0->Get("h_6");
+    h_rp1[i] = (TH2D*)_file_rp1->Get("h_6");
+
+    removenoizypixelsXY(h_rp0[i],factor_bad_pixels[i]);
+    removenoizypixelsXY(h_rp1[i],factor_bad_pixels[i]);
+
+    Double_t integral_err_rp0;
+    Double_t integral_rp0 = h_rp0[i]->IntegralAndError(1,h_rp0[i]->GetNbinsX(),1,h_rp0[i]->GetNbinsY(),integral_err_rp0);
+    scale2Dhisto(h_rp0[i], integral_rp0, integral_err_rp0);
+    scale2Dhisto(h_rp1[i], integral_rp0, integral_err_rp0);
+    cout<<"--> Integral RP1: "<<h_rp1[i]->Integral()<<endl;
+
+    h_rp1[i]->GetXaxis()->SetRange(1,h_rp1[i]->GetNbinsX()/2);
+    h_rp1[i]->GetYaxis()->SetRange(1,h_rp1[i]->GetNbinsY()/2);
+    h_rp1[i]->GetXaxis()-> CenterTitle();
+    h_rp1[i]->GetYaxis()-> CenterTitle();
+
+    TString name = "c_1_";
+    name += i;
+    TCanvas* c_1 = new TCanvas(name.Data(),name.Data(),1000,1000);
+    c_1->cd();
+    h_rp1[i]->Draw("colz");
+
+    name = "h_rp1_x_";
+    name += i+1;
+    name += "_s";
+    TH1D* h_rp1_x_s = h_rp1[i]->ProjectionX(name.Data());
+
+    name = "c_3_";
+    name += i;
+    TCanvas* c_3 = new TCanvas(name.Data(),name.Data(),1000,500);
+    c_3->cd();
+    h_rp1_x_s->SetMinimum(0);
+    h_rp1_x_s->SetLineColor(kRed);
+    h_rp1_x_s->SetLineWidth(2);
+    h_rp1_x_s->Draw("same & hist");
+
+    name = "c_4_";
+    name += i;
+    TCanvas* c_4 = new TCanvas(name.Data(),name.Data(),1000,500);
+    c_4->cd();
+    h_rp1_x_s->SetLineWidth(8);
+    h_rp1_x_s->SetTitle("");
+    h_rp1_x_s->Draw("hist");
+
+    TF1* fit_funct_1 = new TF1("fit_funct_1","gaus",fit_ch_lim_min[i],fit_ch_lim_max[i]);
+    h_rp1_x_s->Fit(fit_funct_1,"R+");
+    Double_t par_ch[3];
+    fit_funct_1->GetParameters(par_ch);
+    TF1* fit_funct_ch = new TF1("fit_funct_ch","gaus",h_rp1_x_s->GetBinCenter(1),h_rp1_x_s->GetBinCenter(h_rp1_x_s->GetNbinsX()));
+    fit_funct_ch->SetParameters(par_ch);
+    fit_funct_ch->SetLineColor(kBlue);
+    fit_funct_ch->SetLineWidth(2);
+    fit_funct_ch->Draw("same");
+
+    if(fit_dch_lim_max[i] > fit_funct_ch->GetParameter(1)-3.0*fit_funct_ch->GetParameter(2))
+        fit_dch_lim_max[i] = fit_funct_ch->GetParameter(1)-3.0*fit_funct_ch->GetParameter(2) - 0.055;
+    if(fit_dch_lim_min[i] > fit_dch_lim_max[i])
+        fit_dch_lim_min[i] = fit_dch_lim_max[i];
+
+    TF1* fit_funct_2 = new TF1("fit_funct_2","expo",fit_dch_lim_min[i],fit_dch_lim_max[i]);
+    h_rp1_x_s->Fit(fit_funct_2,"R0Q+");
+    Double_t par_dch[2];
+    fit_funct_2->GetParameters(par_dch);
+    TF1* fit_funct_dch = new TF1("fit_funct_dch","expo",h_rp1_x_s->GetBinCenter(1),h_rp1_x_s->GetBinCenter(h_rp1_x_s->GetNbinsX()));
+    fit_funct_dch->SetParameters(par_dch);
+    fit_funct_dch->SetLineColor(kBlack);
+    fit_funct_dch->SetLineWidth(2);
+    fit_funct_dch->Draw("same");
+
+    TLine *l_min_ch=new TLine(fit_funct_ch->GetParameter(1)-3.0*fit_funct_ch->GetParameter(2),0,fit_funct_ch->GetParameter(1)-3.0*fit_funct_ch->GetParameter(2),h_rp1_x_s->GetMaximum());
+    l_min_ch->SetLineColor(kMagenta);
+    l_min_ch->SetLineWidth(3);
+    l_min_ch->SetLineStyle(7);
+    l_min_ch->Draw();
+    TLine *l_mean_ch=new TLine(fit_funct_ch->GetParameter(1),0,fit_funct_ch->GetParameter(1),h_rp1_x_s->GetMaximum());
+    l_mean_ch->SetLineColor(kMagenta-2);
+    l_mean_ch->SetLineWidth(3);
+    l_mean_ch->SetLineStyle(7);
+    l_mean_ch->Draw();
+    TLine *l_max_ch=new TLine(fit_funct_ch->GetParameter(1)+3.0*fit_funct_ch->GetParameter(2),0,fit_funct_ch->GetParameter(1)+3.0*fit_funct_ch->GetParameter(2),h_rp1_x_s->GetMaximum());
+    l_max_ch->SetLineColor(kMagenta);
+    l_max_ch->SetLineWidth(3);
+    l_max_ch->SetLineStyle(7);
+    l_max_ch->Draw();
+
+    TLine *l_min_dch=new TLine(fit_dch_lim_min[i],0,fit_dch_lim_min[i],h_rp1_x_s->GetMaximum());
+    l_min_dch->SetLineColor(kGreen+1);
+    l_min_dch->SetLineWidth(3);
+    l_min_dch->SetLineStyle(7);
+    l_min_dch->Draw();
+    TLine *l_max_dch=new TLine(fit_dch_lim_max[i],0,fit_dch_lim_max[i],h_rp1_x_s->GetMaximum());
+    l_max_dch->SetLineColor(kGreen+1);
+    l_max_dch->SetLineWidth(3);
+    l_max_dch->SetLineStyle(7);
+    l_max_dch->Draw();
+
+    name += ".png";
+    c_4->SaveAs(name.Data());
+
+    //=====================================//
+    // To calculate using histogram data
+    //=====================================//
+    const Int_t nSteps = 255;
+    const Double_t min_x_pos = 0.0;// mm
+    Double_t xi_l, xi_r, xi_err[nSteps] = {}, xi[nSteps] = {}, Ndch[nSteps] = {}, Ndch_err[nSteps] = {}, Nch, Nch_err, R[nSteps] = {}, R_err[nSteps] = {};
+    // CH
+    xi_l = fit_funct_ch->GetParameter(1)-3.0*fit_funct_ch->GetParameter(2);
+    xi_r = fit_funct_ch->GetParameter(1)+3.0*fit_funct_ch->GetParameter(2);
+    Nch = h_rp1_x_s->IntegralAndError(h_rp1_x_s->FindBin(xi_l),h_rp1_x_s->FindBin(xi_r),Nch_err);
+    Int_t bin_start = h_rp1_x_s->FindBin(min_x_pos), dn_bins = 4;
+
+    // DCH
+    for(Int_t ii = 0; ii < nSteps; ii++)
+    {
+        xi[ii] = min_x_pos + ii*0.055;
+        xi_err[ii] = 0.055/TMath::Sqrt(12.0);
+        Ndch[ii] = h_rp1_x_s->IntegralAndError(bin_start+ii,bin_start+ii+dn_bins,Ndch_err[ii]);
+
+        Ndch[ii] /= (dn_bins+1)*0.055;
+        Ndch_err[ii] /= (dn_bins+1)*0.055;
+        if(Ndch[ii] > 0)
+        {
+            R[ii] = Nch/Ndch[ii];
+            R_err[ii] = TMath::Sqrt(TMath::Power(Nch_err/Ndch[ii],2) + TMath::Power(Nch*Ndch_err[ii]/(Ndch[ii]*Ndch[ii]),2));
+        }
+        else
+        {
+            R[ii] = 0.0;
+            R_err[ii] = 0.0;
+        }
+    }
+    //=====================================//
+    // Ratio
+    //=====================================//
+    name = "c_5_";
+    name += i;
+    TCanvas* c_5 = new TCanvas(name.Data(),name.Data(),1000,1000);
+    c_5->cd();
+    gPad->SetGrid();
+    TGraphErrors* gr_h = new TGraphErrors(nSteps,xi,R,xi_err,R_err);
+    TMultiGraph* mg = new TMultiGraph();
+    gr_h->SetLineWidth(2);
+    gr_h->SetLineColor(kRed);
+    gr_h->SetMarkerColor(kRed);
+    mg->Add(gr_h,"AP");
+    mg->Draw("APL");
+    gPad->Modified();
+    mg->GetYaxis()->SetTitle("R^{CH/DCH} [per mm of septum width]");
+    mg->GetYaxis()->SetTitleOffset(1.2);
+    mg->GetXaxis()->SetTitle("X [mm]");
+    mg->GetYaxis()->CenterTitle(1);
+    mg->GetXaxis()->CenterTitle(1);
+    mg->GetXaxis()->SetLimits(fit_dch_lim_min[i],fit_dch_lim_max[i]);
+    mg->SetMaximum(mg_max[i]);
+    mg->SetMinimum(mg_min[i]);
+    gPad->Modified();
+    name = "ratio_ch_dch_";
+    name += i;
+    name += ".png";
+    c_5->SaveAs(name.Data());/**/
+
+    return 0;
+}
+
+int function_6()
 {
 //    TString fileName_RP1 = "/home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_HISTO_RP0I_M1_RUN_7.root";
     TString fileName_RP1 = "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S17_HISTO_RP1I_RUN_8.root";
@@ -1078,7 +1327,7 @@ int function_5()
     return 0;
 }
 
-int function_6()
+int function_7()
 {
     TString fileName_RP1 = "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S10_HISTO_RP1I_RUN_6.root";
     TString fileName_RP0 = "/home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_S10_HISTO_RP0I_RUN_6.root";
