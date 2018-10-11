@@ -58,6 +58,7 @@ int sps_md_analysis_17_09_2018_double_channeling()
     cout<<"--> function_3() -- [L3] to plot Timepix data vs CRY2 angle"<<endl;
     cout<<"--> function_4() -- to plot Timepix projection"<<endl;
     cout<<"--> function_5() -- [L2] double CH stability"<<endl;
+    cout<<"--> function_6() -- [L1] VR projection"<<endl;
     return 0;
 }
 
@@ -669,6 +670,108 @@ void function_5()
     gPad->SetGrid();
     ratio_histo->SetLineWidth(2);
     ratio_histo->Draw("hist");
+}
+
+void function_6()
+{
+    TString fileName_RP1 = "output_L1_chipid_1.root";
+    TFile *_file_rp1 = TFile::Open(fileName_RP1.Data());
+    TH2D* h_rp1_6 = (TH2D*)_file_rp1->Get("h_rp1_6");
+    Double_t start_time = 1537238620; // Tuesday, 18 September 2018, 04:43:40
+    Double_t stop_time  = 1537238700; // Tuesday, 18 September 2018, 04:45:00
+
+    TH1D* h_x = (TH1D*)h_rp1_6->ProjectionY("h_x",h_rp1_6->GetXaxis()->FindBin(start_time),h_rp1_6->GetXaxis()->FindBin(stop_time));
+    TH1D* h_x_x = (TH1D*)h_rp1_6->ProjectionY("h_x_x",h_rp1_6->GetXaxis()->FindBin(start_time),h_rp1_6->GetXaxis()->FindBin(stop_time));
+
+    TCanvas* c_0 = new TCanvas("c_0","c_0",1800,900);
+    c_0->cd();
+    gPad->SetGrid();
+    h_rp1_6->Draw("colz");
+    h_rp1_6->GetXaxis()->SetRange(h_rp1_6->GetXaxis()->FindBin(start_time),h_rp1_6->GetXaxis()->FindBin(stop_time));
+
+    TCanvas* c_1 = new TCanvas("c_1","c_1",1800,900);
+    c_1->cd();
+    gPad->SetGrid();
+    h_x->Draw();
+    h_x->SetLineColor(kBlue);
+    h_x->SetLineWidth(2);
+    TF1* g_BK = new TF1("g_BK","pol0",1.00,4.00);
+    h_x->Fit(g_BK,"R+");
+
+    for(Int_t i = 1; i <= h_x->GetNbinsX(); i++)
+    {
+        Double_t val = h_x->GetBinContent(i) - g_BK->Eval(h_x->GetBinCenter(i));
+        if(val > 0)
+            h_x_x->SetBinContent(i,val);
+        else
+            h_x_x->SetBinContent(i,0);
+    }
+
+    h_x_x->SetLineColor(kRed);
+    h_x_x->SetLineWidth(2);
+    h_x->SetMinimum(0.0);
+    h_x_x->Draw("same");
+
+    TCanvas* c_2 = new TCanvas("c_2","c_2",1800,900);
+    c_2->cd();
+    gPad->SetGrid();
+    h_x_x->Draw();
+
+    TF1* g_AM = new TF1("g_AM","gaus",9.90,11.44);
+    TF1* g_VR = new TF1("g_VR","gaus",11.88,13.64);
+    g_AM->SetLineColor(kBlue);
+    g_VR->SetLineColor(kBlue);
+
+    h_x_x->Fit(g_AM,"RQ0+");
+    h_x_x->Fit(g_VR,"RQ0+");
+
+    Double_t g_AM_VR_par[6];
+    Double_t g_AM_VR_par_err[6];
+    g_AM->GetParameters(&g_AM_VR_par[0]);
+    g_VR->GetParameters(&g_AM_VR_par[3]);
+    TF1* g_AM_VR = new TF1("g_AM_VR_BK","gaus(0)+gaus(3)",10.0,13.5);
+    g_AM_VR->SetParameters(g_AM_VR_par);
+    g_AM_VR->SetLineColor(kBlack);
+    h_x_x->Fit(g_AM_VR,"R+");
+    g_AM_VR->GetParameters(g_AM_VR_par);
+    g_AM_VR_par_err[0] = g_AM_VR->GetParError(0);
+    g_AM_VR_par_err[1] = g_AM_VR->GetParError(1);
+    g_AM_VR_par_err[2] = g_AM_VR->GetParError(2);
+    g_AM_VR_par_err[3] = g_AM_VR->GetParError(3);
+    g_AM_VR_par_err[4] = g_AM_VR->GetParError(4);
+    g_AM_VR_par_err[5] = g_AM_VR->GetParError(5);
+    h_x_x->SetMinimum(0.0);
+
+    TF1* g_AM_f = new TF1("g_AM_f","gaus",0.0,0.5*N_PIXELS*0.055);
+    TF1* g_VR_f = new TF1("g_VR_f","gaus",0.0,0.5*N_PIXELS*0.055);
+    g_AM_f->SetParameters(&g_AM_VR_par[0]);
+    g_AM_f->SetParErrors(&g_AM_VR_par_err[0]);
+    g_VR_f->SetParameters(&g_AM_VR_par[3]);
+    g_VR_f->SetParErrors(&g_AM_VR_par_err[3]);
+    g_AM_f->SetLineColor(kMagenta);
+    g_VR_f->SetLineColor(kBlue);
+    g_AM_f->SetLineWidth(2);
+    g_VR_f->SetLineWidth(2);
+    g_AM_f->Draw("same");
+    g_VR_f->Draw("same");
+
+    Double_t integral_total, integral_total_err;
+    Double_t integral_vr = 0;
+    integral_total = h_x_x->IntegralAndError(1,h_x_x->GetNbinsX(),integral_total_err)*h_x_x->GetBinWidth(1);
+    integral_total_err = TMath::Sqrt(TMath::Power(integral_total_err,2) + TMath::Power(h_x_x->GetBinWidth(1)/TMath::Sqrt(12.0),2));
+    TGraph* gr = new TGraph();
+    for(Int_t i = 0; i < 10000; i++)
+    {
+        integral_vr += g_VR_f->Eval(i*(0.5*N_PIXELS*0.055)/10000.0)*(0.5*N_PIXELS*0.055)/10000.0;
+        gr->SetPoint(i,i*(0.5*N_PIXELS*0.055)/10000.0,g_VR_f->Eval(i*(0.5*N_PIXELS*0.055)/10000.0));
+    }
+    gr->SetLineStyle(7);
+    gr->SetLineWidth(4);
+    gr->Draw("same");
+    cout<<"--> Chi2/NDF = "<<g_AM_VR->GetChisquare()<<"/"<<g_AM_VR->GetNDF()<<endl;
+    cout<<"--> I1 = "<<integral_total<<" +/- "<<integral_total_err<<endl;
+    cout<<"--> I3 = "<<integral_vr<<endl;
+    cout<<"--> I3/I1 = "<<integral_vr/integral_total<<" +/- "<<integral_vr*integral_total_err/(integral_total*integral_total)<<endl;
 }
 
 void repairnoizypixelsXY(TH2D* histo, Float_t factor_bad_pixels)// to repair noizy pixels for XY image
