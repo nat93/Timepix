@@ -58,7 +58,7 @@ do
     #2
 
     make clean; make convert_common;
-    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 1 7 /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L3_RUN_$runrunID.root
+    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 309 312 /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L12_RUN_$runrunID.root
 
 #    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 1 $nFiles /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_RUN_$runrunID.root
 #    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 345 360 /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_M1_RUN_$runrunID.root
