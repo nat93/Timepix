@@ -35,7 +35,7 @@ using namespace std;
 const Int_t N_PIXELS                = 512;      // The maximum number of pixels per axis per chip
 const Int_t N_MAX_CLUSTERS          = 10000;    // The maximum number of clusters per frame
 const Int_t N_MAX_CLOCKS            = 11810;    // The maximum number of counts in the pixel
-const Bool_t _cluster_analysis      = false;
+const Bool_t _cluster_analysis      = true;
 const Double_t PIXEL_SIZE           = 0.055;    // Pixel size [mm]
 const Double_t cluster_time_jitter  = 200.0;    // Time difference between fired pixels inside cluster [ns]
 
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
     TH1D* h_13  = new TH1D("h_13","Clusters number per frame",200,0,200);
     TH1D* h_14  = new TH1D("h_14","Hits vs EventID",nEntries,0,nEntries);
     TH1D* h_15  = new TH1D("h_15","Hits per frame",1e6,0,1e6);
-    TH1D* h_16  = new TH1D("h_16","Cluster size",50,0,50);
+    TH1D* h_16  = new TH1D("h_16","Cluster size",1e4,0,1e4);
     TH1D* h_17  = new TH1D("h_17","Int.FrameSize vs ToA (inside the ch beam spot)",N_MAX_CLOCKS,0,_Gate*1000);
     TH1D* h_18  = new TH1D("h_18","Int.FrameSize vs ToA (inside the dch beam spot)",N_MAX_CLOCKS,0,_Gate*1000);
     TH1D* h_19  = new TH1D("h_19","Int.FrameSize vs ToA (outside the beam spot)",N_MAX_CLOCKS,0,_Gate*1000);
@@ -183,6 +183,10 @@ int main(int argc, char *argv[])
     TH1D* h_25  = new TH1D("h_25","_DeltaTHR vs EventID",nEntries,0,nEntries);
     TH1D* h_26  = new TH1D("h_26","_Gate vs EventID",nEntries,0,nEntries);
     TH1D* h_27  = new TH1D("h_27","_Bias vs EventID",nEntries,0,nEntries);
+    TH2D* h_28  = new TH2D("h_28","Cluster Volume vs Cluster size",1e3,0,1e3,1e4,0,1e4);
+    TH1D* h_29  = new TH1D("h_29","Number of Fired Pixels per frame",3e5,0,3e5);
+    TH1D* h_30  = new TH1D("h_30","Number of Fired Pixels per frame (cut)",3e5,0,3e5);
+    TH1D* h_31  = new TH1D("h_31","Cluster Volume",1e5,0,1e5);
 
     h_com_1     = new TH1D("h_com_1","#Delta Time inside cluster",2*N_MAX_CLOCKS-1,-_Gate*1e6,_Gate*1e6);
     h_com_2     = new TH2D("h_com_2","#Delta Time inside cluster VS Cluster size",50,0,50,2*N_MAX_CLOCKS-1,-_Gate*1e6,_Gate*1e6);
@@ -196,6 +200,7 @@ int main(int argc, char *argv[])
     //---------------------------------------------------------------------------------------------------------------//
     //---------------------------------------------- MAIN LOOP ------------------------------------------------------//
     //---------------------------------------------------------------------------------------------------------------//
+//    nEntries /= 50;
     for(Long64_t i = 0; i < nEntries; i++)
     {
         if(i%1 == 0)
@@ -232,143 +237,167 @@ int main(int argc, char *argv[])
         }
         last_time = _Timems;
 
-        h_24->Fill(_event-_event_ini,_AcquisType);
-        h_25->Fill(_event-_event_ini,_DeltaTHR);
-        h_26->Fill(_event-_event_ini,_Gate);
-        h_27->Fill(_event-_event_ini,_Bias);
-
-        frame_size = 0;
+        Int_t fired_pixels_num = 0;
         for(Int_t xi = 0; xi < N_PIXELS; xi++)
         {
             for(Int_t yi = 0; yi < N_PIXELS; yi++)
             {
                 if(_COUNTS[xi][yi] > 0)
                 {
-                    if(_AcquisType == 0)
-                    {
-                        frame_size += _COUNTS[xi][yi];
-
-                        h_1->Fill(xi,yi,_COUNTS[xi][yi]);
-                        h_2->Fill(xi,_COUNTS[xi][yi]);
-                        h_3->Fill(yi,_COUNTS[xi][yi]);
-                        h_4->Fill(_event-_event_ini,xi,_COUNTS[xi][yi]);
-                        h_5->Fill(_event-_event_ini,yi,_COUNTS[xi][yi]);
-                        h_8->Fill(event_time/1000.0,yi,_COUNTS[xi][yi]);
-                        h_9->Fill(event_time/1000.0,xi,_COUNTS[xi][yi]);
-                    }
-                    else if(_AcquisType == 3)
-                    {
-//                        _Clock = 4.8;
-                        Double_t TOA = (N_MAX_CLOCKS-_COUNTS[xi][yi])*1e-6/_Clock;  // [sec]
-                        frame_size++;
-
-//                        if(TOA <= 0.000246)
-                        if(1)
-                        {
-                            h_1->Fill(xi,yi,1);
-                            h_2->Fill(xi,1);
-                            h_3->Fill(yi,1);
-                            h_4->Fill(_event-_event_ini,xi,1);
-                            h_5->Fill(_event-_event_ini,yi,1);
-
-                            for(Int_t fff = 1; fff <= h_7->GetNbinsX(); fff++)
-                            {
-                                if(TOA*1000 < h_7->GetBinCenter(fff))
-                                {
-                                    h_7->SetBinContent(fff,h_7->GetBinContent(fff)+1);
-
-                                    //------------------------------------------------------//
-                                    // For SPS RP0I Timepix
-                                    if(xi >= 100 && yi >= 20 && yi <= 150) // inside CH
-                                    {
-                                        h_17->SetBinContent(fff,h_17->GetBinContent(fff)+1);
-                                        h_20->Fill(xi,yi,1);
-                                    }
-                                    else if(xi >= 150 && yi > 150)   // inside DCH
-                                    {
-                                        h_18->SetBinContent(fff,h_18->GetBinContent(fff)+1);
-                                        h_21->Fill(xi,yi,1);
-                                    }
-                                    else    // outside the beam spot
-                                    {
-                                        h_19->SetBinContent(fff,h_19->GetBinContent(fff)+1);
-                                        h_22->Fill(xi,yi,1);
-                                    }
-                                    //------------------------------------------------------//
-                                }
-                            }
-
-                            h_8->Fill(event_time/1000.0,yi,1);
-                            h_9->Fill(event_time/1000.0,xi,1);
-                            if(i == 190) h_12->Fill(TOA*1e6);
-                        }
-                    }
-                    else
-                    {
-                        cout<<endl<<endl<<"--> ERROR:: _AcquisType is not 0 or 3"<<endl<<endl;
-                        assert(0);
-                    }
+                    fired_pixels_num++;
                 }
             }
         }
-        h_10->Fill(event_time/1000.0,frame_size);
-        h_14->Fill(i,frame_size);
-        h_15->Fill(frame_size);
-        h_23->Fill(event_time - previous_time);
-        previous_time = event_time;
-        //---------------------------------------------------------------------------------------------------------------//
-        //------------------------------------------ CLUSTER ANALYSIS ---------------------------------------------------//
-        //---------------------------------------------------------------------------------------------------------------//
-        if(_cluster_analysis)
+        h_29->Fill(fired_pixels_num);
+
+        if(fired_pixels_num < 1e4 || _AcquisType == 0)
         {
-            for(Int_t jk = 0; jk < N_MAX_CLUSTERS; jk++)
+            h_30->Fill(fired_pixels_num);
+            h_24->Fill(_event-_event_ini,_AcquisType);
+            h_25->Fill(_event-_event_ini,_DeltaTHR);
+            h_26->Fill(_event-_event_ini,_Gate);
+            h_27->Fill(_event-_event_ini,_Bias);
+
+            frame_size = 0;
+            for(Int_t xi = 0; xi < N_PIXELS; xi++)
             {
-                cl_size[jk]         = 0;
-                cl_pos_x[jk]        = 0.0;
-                cl_pos_x_err[jk]    = 0.0;
-                cl_pos_y[jk]        = 0.0;
-                cl_pos_y_err[jk]    = 0.0;
-                cl_clocks[jk]       = 0.0;
+                for(Int_t yi = 0; yi < N_PIXELS; yi++)
+                {
+                    if(_COUNTS[xi][yi] > 0)
+                    {
+                        if(_AcquisType == 0 || _AcquisType == 1)
+                        {
+                            frame_size += _COUNTS[xi][yi];
+
+                            h_1->Fill(xi,yi,_COUNTS[xi][yi]);
+                            h_2->Fill(xi,_COUNTS[xi][yi]);
+                            h_3->Fill(yi,_COUNTS[xi][yi]);
+                            h_4->Fill(_event-_event_ini,xi,_COUNTS[xi][yi]);
+                            h_5->Fill(_event-_event_ini,yi,_COUNTS[xi][yi]);
+                            h_8->Fill(event_time/1000.0,yi,_COUNTS[xi][yi]);
+                            h_9->Fill(event_time/1000.0,xi,_COUNTS[xi][yi]);
+                        }
+                        else if(_AcquisType == 3)
+                        {
+    //                        _Clock = 4.8;
+                            Double_t TOA = (N_MAX_CLOCKS-_COUNTS[xi][yi])*1e-6/_Clock;  // [sec]
+                            frame_size++;
+
+    //                        if(TOA <= 0.000246)
+                            if(1)
+                            {
+                                h_1->Fill(xi,yi,1);
+                                h_2->Fill(xi,1);
+                                h_3->Fill(yi,1);
+                                h_4->Fill(_event-_event_ini,xi,1);
+                                h_5->Fill(_event-_event_ini,yi,1);
+
+                                for(Int_t fff = 1; fff <= h_7->GetNbinsX(); fff++)
+                                {
+                                    if(TOA*1000 < h_7->GetBinCenter(fff))
+                                    {
+                                        h_7->SetBinContent(fff,h_7->GetBinContent(fff)+1);
+
+                                        //------------------------------------------------------//
+                                        // For SPS RP0I Timepix
+                                        if(xi >= 100 && yi >= 20 && yi <= 150) // inside CH
+                                        {
+                                            h_17->SetBinContent(fff,h_17->GetBinContent(fff)+1);
+                                            h_20->Fill(xi,yi,1);
+                                        }
+                                        else if(xi >= 150 && yi > 150)   // inside DCH
+                                        {
+                                            h_18->SetBinContent(fff,h_18->GetBinContent(fff)+1);
+                                            h_21->Fill(xi,yi,1);
+                                        }
+                                        else    // outside the beam spot
+                                        {
+                                            h_19->SetBinContent(fff,h_19->GetBinContent(fff)+1);
+                                            h_22->Fill(xi,yi,1);
+                                        }
+                                        //------------------------------------------------------//
+                                    }
+                                }
+
+                                h_8->Fill(event_time/1000.0,yi,1);
+                                h_9->Fill(event_time/1000.0,xi,1);
+                                if(i == 190) h_12->Fill(TOA*1e6);
+                            }
+                        }
+                        else
+                        {
+                            cout<<endl<<endl<<"--> ERROR:: _AcquisType is not 0 or 3"<<endl<<endl;
+                            assert(0);
+                        }
+                    }
+                }
             }
+            h_10->Fill(event_time/1000.0,frame_size);
+            h_14->Fill(i,frame_size);
+            h_15->Fill(frame_size);
 
-            Int_t cl_num = 0;
-
-            if(clusteranalysis(_COUNTS,cl_num,cl_size,cl_pos_x,cl_pos_x_err,cl_pos_y,cl_pos_y_err,cl_clocks,_AcquisType,_Clock) != 0)
+            h_23->Fill(event_time - previous_time);
+            previous_time = event_time;
+            //---------------------------------------------------------------------------------------------------------------//
+            //------------------------------------------ CLUSTER ANALYSIS ---------------------------------------------------//
+            //---------------------------------------------------------------------------------------------------------------//
+            if(_cluster_analysis)
             {
-                cout<<"--> ERROR: Cluster analysis did not check all pixels! ("<<clusteranalysis(_COUNTS,cl_num,cl_size,cl_pos_x,cl_pos_x_err,cl_pos_y,cl_pos_y_err,cl_clocks,_AcquisType,_Clock)<<")"<<endl;
-                assert(0);
+                for(Int_t jk = 0; jk < N_MAX_CLUSTERS; jk++)
+                {
+                    cl_size[jk]         = 0;
+                    cl_pos_x[jk]        = 0.0;
+                    cl_pos_x_err[jk]    = 0.0;
+                    cl_pos_y[jk]        = 0.0;
+                    cl_pos_y_err[jk]    = 0.0;
+                    cl_clocks[jk]       = 0.0;
+                }
+
+                Int_t cl_num = 0;
+
+                if(clusteranalysis(_COUNTS,cl_num,cl_size,cl_pos_x,cl_pos_x_err,cl_pos_y,cl_pos_y_err,cl_clocks,_AcquisType,_Clock) != 0)
+                {
+                    cout<<"--> ERROR: Cluster analysis did not check all pixels! ("<<clusteranalysis(_COUNTS,cl_num,cl_size,cl_pos_x,cl_pos_x_err,cl_pos_y,cl_pos_y_err,cl_clocks,_AcquisType,_Clock)<<")"<<endl;
+                    assert(0);
+                }
+
+                if(cl_num >= N_MAX_CLUSTERS)
+                {
+                    cout<<endl<<"--> ERROR:: The maximum number of clusters per a frame was reached !!!"<<endl;
+                    assert(0);
+                }
+
+                for(Int_t yy = 0; yy < cl_num; yy++)
+                {
+                    //------------------------------------------------------------------------------//
+                    //------------------------ For output file with clusters infor -----------------//
+                    //------------------------------------------------------------------------------//
+                    unix_time_clinfo    = event_time/1000.0;
+
+                    if(_AcquisType == 3) clocks_clinfo = (Double_t)N_MAX_CLOCKS - cl_clocks[yy];
+                    else clocks_clinfo = (Double_t)cl_clocks[yy];
+
+                    if(clocks_clinfo < 0) clocks_clinfo = 0;
+                    size_clinfo         = cl_size[yy];
+                    pos_x_clinfo        = cl_pos_x[yy];
+                    pos_x_err_clinfo    = cl_pos_x_err[yy];
+                    pos_y_clinfo        = cl_pos_y[yy];
+                    pos_y_err_clinfo    = cl_pos_y_err[yy];
+                    event_id_clinfo     = _event;
+                    if(_event != i) {event_id_clinfo = i;}
+
+                    tree->Fill();
+
+                    h_16->Fill(cl_size[yy]);
+                    h_28->Fill(cl_size[yy],cl_size[yy]*cl_clocks[yy]);
+                    h_31->Fill(cl_size[yy]*cl_clocks[yy]);
+
+                }
+                h_13->Fill(cl_num);
             }
-
-            if(cl_num >= N_MAX_CLUSTERS)
-            {
-                cout<<endl<<"--> ERROR:: The maximum number of clusters per a frame was reached !!!"<<endl;
-                assert(0);
-            }
-
-            for(Int_t yy = 0; yy < cl_num; yy++)
-            {
-                //------------------------------------------------------------------------------//
-                //------------------------ For output file with clusters infor -----------------//
-                //------------------------------------------------------------------------------//
-                unix_time_clinfo    = event_time/1000.0;
-                clocks_clinfo       = (Double_t)N_MAX_CLOCKS - cl_clocks[yy];
-                if(clocks_clinfo < 0) clocks_clinfo = 0;
-                size_clinfo         = cl_size[yy];
-                pos_x_clinfo        = cl_pos_x[yy];
-                pos_x_err_clinfo    = cl_pos_x_err[yy];
-                pos_y_clinfo        = cl_pos_y[yy];
-                pos_y_err_clinfo    = cl_pos_y_err[yy];
-                event_id_clinfo     = _event;
-                if(_event != i) {event_id_clinfo = i;}
-
-                tree->Fill();
-
-                h_16->Fill(cl_size[yy]);
-            }
-            h_13->Fill(cl_num);
+            //---------------------------------------------------------------------------------------------------------------//
+            nFrames++;
         }
-        //---------------------------------------------------------------------------------------------------------------//
-        nFrames++;
     }
     cout<<endl;
 
@@ -452,6 +481,9 @@ int main(int argc, char *argv[])
     h_26->GetYaxis()->SetTitle("_Gate");
     h_27->GetXaxis()->SetTitle("EventID");
     h_27->GetYaxis()->SetTitle("_Bias");
+    h_28->GetXaxis()->SetTitle("Cluster size [pixels/cluster]");
+    h_28->GetYaxis()->SetTitle("Cluster volume [counts/cluster]");
+    h_31->GetYaxis()->SetTitle("Cluster volume [counts/cluster]");
 
     h_com_1->GetXaxis()->SetTitle("#Delta Time [#mus]");
     h_com_1->GetYaxis()->SetTitle("Pixels in a cluster");
@@ -466,8 +498,9 @@ int main(int argc, char *argv[])
     {
         for(Int_t j = 1; j <= N_PIXELS; j++)
         {
-            h_6->SetBinContent(N_PIXELS/2-j+1,i,h_1->GetBinContent(i,j));//SPS RomanPot Internal
-//            h_6->SetBinContent(i,j,h_1->GetBinContent(i,j));//H8
+//            h_6->SetBinContent(N_PIXELS/2-j+1,i,h_1->GetBinContent(i,j));//SPS RomanPot Internal
+            h_6->SetBinContent(i,j,h_1->GetBinContent(i,j));
+//            h_6->SetBinContent(j,N_PIXELS-i+1,h_1->GetBinContent(i,j));//H8 september 2018
         }
     }
 
@@ -497,6 +530,10 @@ int main(int argc, char *argv[])
     h_25->Write();
     h_26->Write();
     h_27->Write();
+    h_28->Write();
+    h_29->Write();
+    h_30->Write();
+    h_31->Write();
 
     h_com_1->Write();
     h_com_2->Write();
@@ -560,6 +597,9 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
                 case 0:
                     checkregionMPX(_matrix,fired_matrix,xi,yi);
                     break;
+                case 1:
+                    checkregionMPX(_matrix,fired_matrix,xi,yi);
+                    break;
                 case 3:
                     checkregionTOA(_matrix,fired_matrix,xi,yi,Clock);
                     break;
@@ -606,8 +646,8 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
                     {
                         if(fired_matrix[xj][yj] > 0)
                         {
-                            h_x->Fill(xj);
-                            h_y->Fill(yj);
+                            h_x->Fill(xj,_matrix[xj][yj]);
+                            h_y->Fill(yj,_matrix[xj][yj]);
 
                             fired_matrix_full[xj][yj] = 1;
                             cluster_clocks[cluster_num] += _matrix[xj][yj];

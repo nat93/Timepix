@@ -322,7 +322,6 @@ int function_2()
 int function_3(Int_t i)
 {
     const Int_t nSets = 13;
-//    Int_t i = 5; // setID-1: 0,3,4,5,9,10,11,12 -- good
 
     Double_t mg_max[] = {/*0*/110.0,/*1*/110.0,/*2*/110.0,/*3*/110.0,/*4*/110.0,/*5*/110.0,/*6*/500.0,/*7*/500.0,/*8*/500.0,/*9*/70.00,/*10*/70.00,/*11*/70.00,/*12*/70.00};
     Double_t mg_min[] = {/*0*/20.00,/*1*/20.00,/*2*/20.00,/*3*/20.00,/*4*/20.00,/*5*/20.00,/*6*/0.000,/*7*/0.000,/*8*/0.000,/*9*/20.00,/*10*/20.00,/*11*/20.00,/*12*/20.00};
@@ -588,6 +587,21 @@ int function_3(Int_t i)
     name += ".png";
     c_4->SaveAs(name.Data());
 
+    ofstream outputASCII_histo;
+    name = "ASCII_DATA_PROFILE_METHOD3_S";
+    name += i+1;
+    name += ".dat";
+    outputASCII_histo.open (name.Data());
+    for(Int_t bini = 1; bini <= h_rp1_x_s_s->GetNbinsX(); bini++)
+    {
+        outputASCII_histo<<setw(10)<<h_rp1_x_s_s->GetBinCenter(bini)<<"\t";
+        outputASCII_histo<<setw(10)<<h_rp1_x_s_s->GetBinContent(bini)<<"\t";
+        outputASCII_histo<<setw(10)<<h_rp1_x_s_s->GetBinWidth(bini)/TMath::Sqrt(12.0)<<"\t";
+        outputASCII_histo<<setw(10)<<h_rp1_x_s_s->GetBinError(bini)<<"\n";
+    }
+    outputASCII_histo.close();
+
+
     //=====================================//
     // To calculate using histogram data
     //=====================================//
@@ -680,13 +694,34 @@ int function_3(Int_t i)
     name += ".png";
     c_5->SaveAs(name.Data());
 
+    ofstream outputASCII_ratio;
+    name = "ASCII_DATA_RATIO_METHOD3_S";
+    name += i+1;
+    name += ".dat";
+    outputASCII_ratio.open (name.Data());
+    for(Int_t pnti = 0; pnti < gr_h->GetN(); pnti++)
+    {
+        Double_t x, ex, y, ey;
+        gr_h->GetPoint(pnti,x,y);
+        ex = gr_h->GetErrorX(pnti);
+        ey = gr_h->GetErrorY(pnti);
+
+        if(x >= fit_dch_lim_min[i] && x <= fit_dch_lim_max[i])
+        {
+            outputASCII_ratio<<setw(10)<<x<<"\t";
+            outputASCII_ratio<<setw(10)<<y<<"\t";
+            outputASCII_ratio<<setw(10)<<ex<<"\t";
+            outputASCII_ratio<<setw(10)<<ey<<"\n";
+        }
+    }
+    outputASCII_ratio.close();
+
     return 0;
 }
 
 int function_4(Int_t i)
 {
     const Int_t nSets = 13;
-//    Int_t i = 5; // setID-1: 0,3,4,5,9,10,11,12 -- good
 
     Double_t mg_max[] = {/*0*/70.00,/*1*/70.00,/*2*/70.00,/*3*/70.00,/*4*/70.00,/*5*/70.00,/*6*/500.0,/*7*/500.0,/*8*/500.0,/*9*/70.00,/*10*/70.00,/*11*/70.00,/*12*/70.00};
     Double_t mg_min[] = {/*0*/20.00,/*1*/20.00,/*2*/20.00,/*3*/20.00,/*4*/20.00,/*5*/20.00,/*6*/0.000,/*7*/0.000,/*8*/0.000,/*9*/20.00,/*10*/20.00,/*11*/20.00,/*12*/20.00};
@@ -952,6 +987,20 @@ int function_4(Int_t i)
     name += ".png";
     c_4->SaveAs(name.Data());
 
+    ofstream outputASCII_histo;
+    name = "ASCII_DATA_PROFILE_METHOD4_S";
+    name += i+1;
+    name += ".dat";
+    outputASCII_histo.open (name.Data());
+    for(Int_t bini = 1; bini <= h_rp1_x_s_s->GetNbinsX(); bini++)
+    {
+        outputASCII_histo<<setw(10)<<h_rp1_x_s_s->GetBinCenter(bini)<<"\t";
+        outputASCII_histo<<setw(10)<<h_rp1_x_s_s->GetBinContent(bini)<<"\t";
+        outputASCII_histo<<setw(10)<<h_rp1_x_s_s->GetBinWidth(bini)/TMath::Sqrt(12.0)<<"\t";
+        outputASCII_histo<<setw(10)<<h_rp1_x_s_s->GetBinError(bini)<<"\n";
+    }
+    outputASCII_histo.close();
+
     //=====================================//
     // To calculate using histogram data
     //=====================================//
@@ -1043,6 +1092,28 @@ int function_4(Int_t i)
     name += i;
     name += ".png";
     c_5->SaveAs(name.Data());
+
+    ofstream outputASCII_ratio;
+    name = "ASCII_DATA_RATIO_METHOD4_S";
+    name += i+1;
+    name += ".dat";
+    outputASCII_ratio.open (name.Data());
+    for(Int_t pnti = 0; pnti < gr_h->GetN(); pnti++)
+    {
+        Double_t x, ex, y, ey;
+        gr_h->GetPoint(pnti,x,y);
+        ex = gr_h->GetErrorX(pnti);
+        ey = gr_h->GetErrorY(pnti);
+
+        if(x >= fit_dch_lim_min[i] && x <= fit_dch_lim_max[i])
+        {
+            outputASCII_ratio<<setw(10)<<x<<"\t";
+            outputASCII_ratio<<setw(10)<<y<<"\t";
+            outputASCII_ratio<<setw(10)<<ex<<"\t";
+            outputASCII_ratio<<setw(10)<<ey<<"\n";
+        }
+    }
+    outputASCII_ratio.close();
 
     return 0;
 }
@@ -1230,6 +1301,20 @@ int function_5(Int_t i)
     name += ".png";
     c_4->SaveAs(name.Data());
 
+    ofstream outputASCII_histo;
+    name = "ASCII_DATA_PROFILE_METHOD5_S";
+    name += i+1;
+    name += ".dat";
+    outputASCII_histo.open (name.Data());
+    for(Int_t bini = 1; bini <= h_rp1_x_s->GetNbinsX(); bini++)
+    {
+        outputASCII_histo<<setw(10)<<h_rp1_x_s->GetBinCenter(bini)<<"\t";
+        outputASCII_histo<<setw(10)<<h_rp1_x_s->GetBinContent(bini)<<"\t";
+        outputASCII_histo<<setw(10)<<h_rp1_x_s->GetBinWidth(bini)/TMath::Sqrt(12.0)<<"\t";
+        outputASCII_histo<<setw(10)<<h_rp1_x_s->GetBinError(bini)<<"\n";
+    }
+    outputASCII_histo.close();
+
     //=====================================//
     // To calculate using histogram data
     //=====================================//
@@ -1290,7 +1375,29 @@ int function_5(Int_t i)
     name = "ratio_ch_dch_";
     name += i;
     name += ".png";
-    c_5->SaveAs(name.Data());/**/
+    c_5->SaveAs(name.Data());
+
+    ofstream outputASCII_ratio;
+    name = "ASCII_DATA_RATIO_METHOD5_S";
+    name += i+1;
+    name += ".dat";
+    outputASCII_ratio.open (name.Data());
+    for(Int_t pnti = 0; pnti < gr_h->GetN(); pnti++)
+    {
+        Double_t x, ex, y, ey;
+        gr_h->GetPoint(pnti,x,y);
+        ex = gr_h->GetErrorX(pnti);
+        ey = gr_h->GetErrorY(pnti);
+
+        if(x >= fit_dch_lim_min[i] && x <= fit_dch_lim_max[i])
+        {
+            outputASCII_ratio<<setw(10)<<x<<"\t";
+            outputASCII_ratio<<setw(10)<<y<<"\t";
+            outputASCII_ratio<<setw(10)<<ex<<"\t";
+            outputASCII_ratio<<setw(10)<<ey<<"\n";
+        }
+    }
+    outputASCII_ratio.close();
 
     return 0;
 }

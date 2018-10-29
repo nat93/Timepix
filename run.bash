@@ -3,12 +3,14 @@
 ##---------------------------------------------------------##
 ##
 ##---------------------------------------------------------##
-data_dir=/media/andrii/F492773C92770302/MedipixData/SPS_DATA/MD_2018_09_17;
+#data_dir=/media/andrii/F492773C92770302/MedipixData/SPS_DATA/MD_2018_09_17;
+#data_dir=/media/andrii/F492773C92770302/MedipixData/H8_DATA/2018_09_12_pions;
 #data_dir=/home/anatochi/Medipix/H8_DATA/2018_09_12_pions;
 #data_dir=/home/anatochi/Medipix/SPS_DATA/MD_2018_06_18;
 #data_dir=/home/anatochi/Medipix/SPS_DATA/MD_2018_08_15;
+data_dir=/media/andrii/F492773C92770302/MedipixData/SPS_DATA/MD_2018_10_24;
 
-for runrunID in $(seq 8 1 8)
+for runrunID in $(seq 1 1 1)
 do
 
     #1
@@ -24,16 +26,16 @@ do
 
     cd -;
 
-    #make clean; make ascii2root_common;
-    #for runid in $(seq 1 1 $nFiles)
-    #do
-    #    if [ -e $data_dir/RUN_$runrunID/Medipix_$runid.dat ]
-    #    then
-    #        ./ascii2root_common $data_dir/RUN_$runrunID/Medipix_$runid.dat $data_dir/RUN_$runrunID/Medipix_$runid.root
-    #    else
-    #        echo "WARNING!!! The $data_dir/RUN_$runrunID/Medipix_$runid.dat cannot be find"
-    #    fi
-    #done
+#    make clean; make ascii2root_common;
+#    for runid in $(seq 1 1 $nFiles)
+#    do
+#        if [ -e $data_dir/RUN_$runrunID/Medipix_$runid.dat ]
+#        then
+#            ./ascii2root_common $data_dir/RUN_$runrunID/Medipix_$runid.dat $data_dir/RUN_$runrunID/Medipix_$runid.root
+#        else
+#            echo "WARNING!!! The $data_dir/RUN_$runrunID/Medipix_$runid.dat cannot be find"
+#        fi
+#    done
 
     ## CSV FORMAT ##
 
@@ -57,18 +59,31 @@ do
 
     #2
 
-    make clean; make convert_common;
-    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 309 312 /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L12_RUN_$runrunID.root
+#    make convert_common;
+#    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 372 376 /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_STF123_AL_RUN.root
+#    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 3044 3094 /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_LCP61_CH_RUN.root
+#    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 323 330 /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_STF123_AM_RUN.root
 
 #    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 1 $nFiles /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_RUN_$runrunID.root
 #    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 345 360 /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_M1_RUN_$runrunID.root
 #    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 362 363 /home/anatochi/Medipix/ROOT_FILES/MD_2018_06_18_M2_RUN_$runrunID.root
 #    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 250 285 /home/anatochi/Medipix/ROOT_FILES/MD_2018_08_15_M3_RUN_$runrunID.root
+#    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 1 $nFiles /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_10_24_RUN_$runrunID.root
 
     #3
 
-#    make clean; make analysis_common;
-#    ./analysis_common /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L2_RUN_$runrunID.root /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L2_HISTO_RP1I_RUN_$runrunID.root 1
+    make analysis_common;
+#    ./analysis_common /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_10_24_RUN_$runrunID.root /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_10_24_HISTO_RP0E_RUN_$runrunID.root 0
+#    ./analysis_common /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_10_24_RUN_$runrunID.root /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_10_24_HISTO_RP1I_RUN_$runrunID.root 1
+#    ./analysis_common /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_10_24_RUN_$runrunID.root /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_10_24_HISTO_RP3E_RUN_$runrunID.root 2
+
+#    ./analysis_common /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_STF123_AL_RUN.root /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_STF123_AL_RUN_CHIP_0.root 0
+#    ./analysis_common /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_STF123_AL_RUN.root /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_STF123_AL_RUN_CHIP_1.root 1
+#    ./analysis_common /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_LCP61_CH_RUN.root /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_LCP61_CH_RUN_CHIP_0.root 0
+#    ./analysis_common /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_LCP61_CH_RUN.root /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_LCP61_CH_RUN_CHIP_1.root 1
+#    ./analysis_common /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_AM_RUN.root /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_AM_RUN_CHIP_0.root 0
+#    ./analysis_common /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_AM_RUN.root /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_AM_RUN_CHIP_1.root 1
+
 #    ./analysis_common /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L2_RUN_$runrunID.root /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L2_HISTO_RP0I_RUN_$runrunID.root 3
 #    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_K0_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/MD_2018_09_17_K0_HISTO_RP0I_RUN_$runrunID.root 3
 #    ./analysis_common /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_RUN_$runrunID.root /home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_09_12_pions_HISTO_Chip0_RUN_$runrunID.root 0

@@ -25,6 +25,7 @@
 #include "TF2.h"
 #include "TSpline.h"
 #include "TProfile.h"
+#include "TFitResultPtr.h"
 //C++
 #include <iostream>
 #include <fstream>
@@ -39,7 +40,7 @@
 
 using namespace std;
 
-const Int_t N_PIXELS                = 512;
+const Int_t N_PIXELS                = 512/2;
 const Double_t PIXEL_SIZE           = 0.055;
 
 void repairnoizypixelsXY(TH2D* histo, Float_t factor_bad_pixels);
@@ -64,6 +65,8 @@ int sps_md_analysis_17_09_2018_double_channeling()
     cout<<"--> function_7() -- [L5] to plot Timepix data vs CRY3 position"<<endl;
     cout<<"--> function_8() -- [L6] to plot Timepix data vs CRY3 position"<<endl;
     cout<<"--> function_9() -- [L5,L6] spatial distribution of the first CH beam"<<endl;
+    cout<<"--> function_10() -- [L1,L8] to calibrate the RP1I w.r.t. the RP0"<<endl;
+    cout<<"--> function_11() -- [L1] to plot Timepix data vs CRY3 angle"<<endl;
     return 0;
 }
 
@@ -78,10 +81,10 @@ void function_1()
     UInt_t _AcquisType = -1, _TrigType = -1;
     Long64_t _event;
     Double_t _Timems;
-    Long64_t _COUNTS[N_PIXELS][N_PIXELS];
+    Long64_t _COUNTS[N_PIXELS*2][N_PIXELS*2];
 
-    TString inFileName1     = "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L18_RUN_8.root";
-    TString outFileName     = "output_L18_chipid_1.root";
+    TString inFileName1     = "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L1_RUN_8.root";
+    TString outFileName     = "output_L1_chipid_1.root";
 
     TString tree_name;
     tree_name = "Tree_";
@@ -122,7 +125,9 @@ void function_1()
 
     TH2D* h_3   = new TH2D("h_3","Y vs X vs C (in pixels)",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
     TH2D* h_8   = new TH2D("h_8","Y vs Time",(UT_max-UT_min)/1000.0,UT_min/1000.0,UT_max/1000.0,N_PIXELS,0,N_PIXELS);
+    TH2D* h_9   = new TH2D("h_9","X vs Time",(UT_max-UT_min)/1000.0,UT_min/1000.0,UT_max/1000.0,N_PIXELS,0,N_PIXELS);
     TH2D* h_4 = new TH2D("h_4","RP1 Internal (normalized)",N_PIXELS,0,N_PIXELS*0.055,N_PIXELS,0,N_PIXELS*0.055);
+
     h_4->GetXaxis()->SetTitle("Horizontal Axis [mm]");
     h_4->GetXaxis()->SetTimeOffset(1.2);
     h_4->GetXaxis()->CenterTitle();
@@ -158,9 +163,9 @@ void function_1()
             continue;
         }
 
-        for(Int_t xi = 0; xi < N_PIXELS; xi++)
+        for(Int_t xi = 1; xi < N_PIXELS - 1; xi++)
         {
-            for(Int_t yi = 0; yi < N_PIXELS; yi++)
+            for(Int_t yi = 1; yi < N_PIXELS - 1; yi++)
             {
                 if(_COUNTS[xi][yi] > 0 && _AcquisType == 0)
                 {
@@ -170,8 +175,9 @@ void function_1()
             }
         }
 
-//        repairnoizypixelsXY(h_2,2.0);
         median_filter(h_1,h_2,2.0);
+
+        // To check the algorythm
 
         /*TCanvas* c_3 = new TCanvas("c_3","c_3",1800,900);
         c_3->Divide(2,1);
@@ -197,6 +203,9 @@ void function_1()
             {
                 h_3->Fill(xi,yi,h_2->GetBinContent(xi+1,yi+1));
                 h_8->Fill(event_time/1000.0,yi,h_2->GetBinContent(xi+1,yi+1));
+
+                if(yi < 100)
+                    h_9->Fill(event_time/1000.0,xi,h_2->GetBinContent(xi+1,yi+1));
             }
         }
 
@@ -207,6 +216,16 @@ void function_1()
                              TMath::Sqrt(TMath::Power(h_8->GetBinError(h_8->GetXaxis()->FindBin(event_time/1000.0),yi)/integral,2) +
                                          TMath::Power(h_8->GetBinContent(h_8->GetXaxis()->FindBin(event_time/1000.0),yi)*integral_err/(integral*integral),2)));
         }
+
+        for(Int_t yi = 1; yi <= h_9->GetNbinsY(); yi++)
+        {
+            h_9->SetBinContent(h_9->GetXaxis()->FindBin(event_time/1000.0),yi,h_9->GetBinContent(h_9->GetXaxis()->FindBin(event_time/1000.0),yi)/integral);
+            h_9->SetBinError(h_9->GetXaxis()->FindBin(event_time/1000.0),yi,
+                             TMath::Sqrt(TMath::Power(h_9->GetBinError(h_9->GetXaxis()->FindBin(event_time/1000.0),yi)/integral,2) +
+                                         TMath::Power(h_9->GetBinContent(h_9->GetXaxis()->FindBin(event_time/1000.0),yi)*integral_err/(integral*integral),2)));
+        }
+
+        // To save frames in the folder
 
         /*Int_t dtime = ((event_time - UT_min)/1000 + 0.5);
         TString name = "./frames_l6_chip1/rp1int_";
@@ -240,11 +259,20 @@ void function_1()
     h_rp1_6->GetYaxis()->SetTimeOffset(1.2);
     h_rp1_6->GetYaxis()->CenterTitle();
 
+    TH2D* h_rp1_7 = new TH2D("h_rp1_7","RP1 Internal (normalized)",(UT_max-UT_min)/1000.0,UT_min/1000.0,UT_max/1000.0,N_PIXELS,0,N_PIXELS*0.055);
+    h_rp1_7->GetXaxis()->SetTitle("Time");
+    h_rp1_7->GetXaxis()->SetTimeOffset(1.2);
+    h_rp1_7->GetXaxis()->CenterTitle();
+    h_rp1_7->GetYaxis()->SetTitle("Projection on Vertical Axis [mm]");
+    h_rp1_7->GetYaxis()->SetTimeOffset(1.2);
+    h_rp1_7->GetYaxis()->CenterTitle();
+
     Double_t integral, integral_err;
     integral = h_3->IntegralAndError(1,h_3->GetNbinsX(),1,h_3->GetNbinsY(),integral_err);
     scale2Dhisto(h_3,integral,integral_err);
 
     rewriteHisto(h_8,h_rp1_6);
+    rewriteHisto(h_9,h_rp1_7);
 
     rotateNscale(h_3,h_4);
 
@@ -269,12 +297,26 @@ void function_1()
     h_8->GetXaxis()->SetTimeDisplay(1);
     h_8->Draw("colz");
 
+    TCanvas* c_11 = new TCanvas("c_11","c_11",1800,900);
+    c_11->cd();
+    gPad->SetGrid();
+    h_9->GetYaxis()->SetRange(1,256);
+    h_9->GetXaxis()->SetTimeDisplay(1);
+    h_9->Draw("colz");
+
     TCanvas* c_2 = new TCanvas("c_2","c_2",1800,900);
     c_2->cd();
     gPad->SetGrid();
     h_rp1_6->GetYaxis()->SetRange(1,256);
     h_rp1_6->GetXaxis()->SetTimeDisplay(1);
     h_rp1_6->Draw("colz");
+
+    TCanvas* c_22 = new TCanvas("c_22","c_22",1800,900);
+    c_22->cd();
+    gPad->SetGrid();
+    h_rp1_7->GetYaxis()->SetRange(1,256);
+    h_rp1_7->GetXaxis()->SetTimeDisplay(1);
+    h_rp1_7->Draw("colz");
 
     c_0->Write();
     c_00->Write();
@@ -283,7 +325,9 @@ void function_1()
     h_3->Write();
     h_4->Write();
     h_8->Write();
+    h_9->Write();
     h_rp1_6->Write();
+    h_rp1_7->Write();
 
     _file->Close();
     //---------------------------------------------------------------------------------------//
@@ -291,7 +335,7 @@ void function_1()
 
 void function_2()
 {
-//    gStyle->SetOptStat(0);
+    gStyle->SetOptStat(0);
     TFile *_file_chipid_chip1 = TFile::Open("output_L1_chipid_1.root");
     TGraph *_cry3_angularscan = new TGraph("crystal3_angularscan.dat","%lg %lg");
     _cry3_angularscan->SetName("_cry3_angularscan");
@@ -310,7 +354,7 @@ void function_2()
     _cry3_angularscan->Fit(_cry3_angularscan_spline,"R+");
 
     TH2D* h_chip1_1 = (TH2D*)_file_chipid_chip1->Get("h_rp1_6");
-    TH2D* h_chip1_2 = new TH2D("h_chip1_HvsA","h_chip1_HvsA",600,1400,2000,N_PIXELS/2,0,N_PIXELS*0.055/2);
+    TH2D* h_chip1_2 = new TH2D("h_chip1_HvsA","h_chip1_HvsA",600,1400,2000,N_PIXELS,0,N_PIXELS*0.055);
 
     for(Int_t i = 1; i <= h_chip1_1->GetNbinsX(); i++)
     {
@@ -335,10 +379,6 @@ void function_2()
     TH1D* h_chip1_2_projection = (TH1D*)h_chip1_2->ProjectionY("h_chip1_2_projection",h_chip1_2->GetXaxis()->FindBin(1760),h_chip1_2->GetXaxis()->FindBin(1880));
     TH1D* h_chip1_3_projection = (TH1D*)h_chip1_2->ProjectionX("h_chip1_3_projection",h_chip1_2->GetYaxis()->FindBin(1.5),h_chip1_2->GetYaxis()->FindBin(5.5));
 
-    TString outFileName     = "output_function_2.root";
-    TFile *_file = new TFile(outFileName.Data(),"RECREATE");
-    if ( _file->IsOpen() ) cout<<endl<<"--> File opened successfully!"<<endl;
-
     TCanvas* c_0 = new TCanvas("c_0","c_0",1000,1000);
     c_0->cd();
     gPad->SetGrid();
@@ -351,7 +391,7 @@ void function_2()
     TCanvas* c_1 = new TCanvas("c_1","c_1",1800,900);
     c_1->cd();
     gPad->SetGrid();
-//    h_chip1_2->GetXaxis()->SetRange(h_chip1_2->GetXaxis()->FindBin(1760),h_chip1_2->GetXaxis()->FindBin(1880));
+    h_chip1_2->GetXaxis()->SetRange(h_chip1_2->GetXaxis()->FindBin(1760),h_chip1_2->GetXaxis()->FindBin(1880));
     h_chip1_2->SetTitle("");
     h_chip1_2->GetXaxis()->CenterTitle();
     h_chip1_2->GetXaxis()->SetTitle("CRYSTAL3 LVDT Angle [#murad]");
@@ -364,15 +404,62 @@ void function_2()
     gPad->SetGrid();
     h_chip1_2_projection->Draw("hist");
 
-    TCanvas* c_3 = new TCanvas("c_3","c_3",900,900);
-    c_3->cd();
+    TCanvas* c_3 = new TCanvas("c_3","c_3",1800,900);
+    c_3->Divide(2,1);
+    c_3->cd(1);
     gPad->SetGrid();
-    h_chip1_3_projection->Draw("hist");
+    h_chip1_3_projection->SetTitle("");
+    h_chip1_3_projection->SetLineWidth(2);
+    h_chip1_3_projection->SetFillColor(kCyan);
+    h_chip1_3_projection->Draw("bar1 & e");
     h_chip1_3_projection->GetXaxis()->SetRange(h_chip1_2->GetXaxis()->FindBin(1760),h_chip1_2->GetXaxis()->FindBin(1880));
 
-    c_0->Write();
-    _cry3_angularscan->Write();
-    _file->Close();
+    TF1* fit_1 = new TF1("fit_1","gaus",1780,1860);
+    h_chip1_3_projection->Fit(fit_1,"RQ0+");
+    fit_1->SetParameter(1,1825);
+    fit_1->SetLineStyle(7);
+    fit_1->SetLineWidth(4);
+    fit_1->SetLineColor(kBlack);
+//    fit_1->Draw("same");
+
+    TH1D* hh = new TH1D("hh","hh",h_chip1_3_projection->GetNbinsX(),h_chip1_3_projection->GetBinLowEdge(1),h_chip1_3_projection->GetBinLowEdge(h_chip1_3_projection->GetNbinsX())+h_chip1_3_projection->GetBinWidth(1));
+    for(Int_t i = 1; i <= h_chip1_3_projection->GetNbinsX(); i++)
+    {
+        hh->SetBinContent(i,h_chip1_3_projection->GetBinContent(i));
+        hh->SetBinError(i,h_chip1_3_projection->GetBinError(i));
+        if(h_chip1_3_projection->GetBinContent(i) - 10.0*h_chip1_3_projection->GetBinError(i) > fit_1->Eval(h_chip1_3_projection->GetBinCenter(i)))
+        {
+            hh->SetBinContent(i,fit_1->Eval(h_chip1_3_projection->GetBinCenter(i)));
+        }
+        if(h_chip1_3_projection->GetBinContent(i) + 10.0*h_chip1_3_projection->GetBinError(i) < fit_1->Eval(h_chip1_3_projection->GetBinCenter(i)))
+        {
+            hh->SetBinContent(i,fit_1->Eval(h_chip1_3_projection->GetBinCenter(i)));
+        }
+    }
+
+    hh->SetTitle("");
+    hh->SetLineWidth(2);
+    hh->SetLineColor(kGreen+2);
+    hh->Draw("hist & same & e");
+    h_chip1_3_projection->GetXaxis()->CenterTitle();
+    h_chip1_3_projection->GetXaxis()->SetTitle("CRYSTAL3 LVDT Angle [#murad]");
+
+    c_3->cd(2);
+    hh->Draw("hist & e");
+    hh->GetXaxis()->SetRange(hh->FindBin(1760),hh->FindBin(1880));
+    TF1* fit_2 = new TF1("fit_2","gaus",1760,1880);
+    hh->Fit(fit_2,"RQ0+");
+    fit_2->SetLineStyle(7);
+    fit_2->SetLineWidth(4);
+    fit_2->SetLineColor(kBlack);
+    fit_2->Draw("same");
+    hh->GetXaxis()->CenterTitle();
+    hh->GetXaxis()->SetTitle("CRYSTAL3 LVDT Angle [#murad]");
+
+    cout<<"--> chi2/ndf = "<<fit_2->GetChisquare()<<"/"<<fit_2->GetNDF()<<endl;
+    cout<<"--> Constant = "<<fit_2->GetParameter(0)<<" +/- "<<fit_2->GetParError(0)<<endl;
+    cout<<"--> Mean = "<<fit_2->GetParameter(1)<<" +/- "<<fit_2->GetParError(1)<<endl;
+    cout<<"--> Sigma = "<<fit_2->GetParameter(2)<<" +/- "<<fit_2->GetParError(2)<<endl;
 }
 
 void function_3()
@@ -386,7 +473,7 @@ void function_3()
     TSpline3 *_cry2_angularscan_spline = new TSpline3("_cry2_angularscan_spline",_cry2_angularscan);
 
     TH2D* h_chip1_1 = (TH2D*)_file_chipid_chip1->Get("h_rp1_6");
-    TH2D* h_chip1_2 = new TH2D("h_chip1_HvsA","h_chip1_HvsA",7000,-6700,-6000,N_PIXELS/2,0,N_PIXELS*0.055/2);
+    TH2D* h_chip1_2 = new TH2D("h_chip1_HvsA","h_chip1_HvsA",7000,-6700,-6000,N_PIXELS,0,N_PIXELS*0.055);
 
     for(Int_t i = 1; i <= h_chip1_1->GetNbinsX(); i++)
     {
@@ -789,6 +876,10 @@ void function_7()
     _cry3_linearscan->GetXaxis()->CenterTitle();
     _cry3_linearscan->GetXaxis()->SetTitle("Time");
 
+TCanvas* ccc_000 = new TCanvas();
+ccc_000->cd();
+_cry3_linearscan->Draw("APL");
+
 
     Double_t time_start = 1537218040;   // Tuesday, 17 September 2018, 23:00:40
     Double_t time_stop  = 1537218100;   // Tuesday, 17 September 2018, 23:01:40
@@ -815,7 +906,7 @@ void function_7()
     pfy->Fit(_cry3_linearscan_spline,"RQ0+");
 
     TH2D* h_chip1_1 = (TH2D*)_file_chipid_chip1->Get("h_rp1_6");
-    TH2D* h_chip1_2 = new TH2D("h_chip1_HvsA","h_chip1_HvsA",200,63,83,N_PIXELS/2,0,N_PIXELS*0.055/2);
+    TH2D* h_chip1_2 = new TH2D("h_chip1_HvsA","h_chip1_HvsA",200,63,83,N_PIXELS,0,N_PIXELS*0.055);
 
     Double_t slope = _cry3_linearscan_spline->GetParameter(1);
     Double_t offset = _cry3_linearscan_spline->GetParameter(0);
@@ -920,7 +1011,7 @@ void function_8()
     pfy->Fit(_cry3_linearscan_spline,"R+");
 
     TH2D* h_chip1_1 = (TH2D*)_file_chipid_chip1->Get("h_rp1_6");
-    TH2D* h_chip1_2 = new TH2D("h_chip1_HvsA","h_chip1_HvsA",200,60,70,N_PIXELS/2,0,N_PIXELS*0.055/2);
+    TH2D* h_chip1_2 = new TH2D("h_chip1_HvsA","h_chip1_HvsA",200,60,70,N_PIXELS,0,N_PIXELS*0.055);
 
     Double_t slope = _cry3_linearscan_spline->GetParameter(1);
     Double_t offset = _cry3_linearscan_spline->GetParameter(0);
@@ -1001,7 +1092,7 @@ void function_9()
     UInt_t _AcquisType = -1, _TrigType = -1;
     Long64_t _event;
     Double_t _Timems;
-    Long64_t _COUNTS[N_PIXELS][N_PIXELS];
+    Long64_t _COUNTS[N_PIXELS*2][N_PIXELS*2];
 
     //--- SPS FILL 2 ---//
 //    TString inFileName1     = "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L5_RUN_8.root";
@@ -1160,13 +1251,13 @@ void function_9()
     TCanvas* c_0 = new TCanvas("c_0","c_0",900,900);
     c_0->cd();
     gPad->SetGrid();
-    h_py_pixels->GetXaxis()->SetRange(1,N_PIXELS/2);
+    h_py_pixels->GetXaxis()->SetRange(1,N_PIXELS);
     h_py_pixels->Draw();
 
     TCanvas* c_1 = new TCanvas("c_1","c_1",900,900);
     c_1->cd();
     gPad->SetGrid();
-    h_py_mm->GetXaxis()->SetRange(1,N_PIXELS/2);
+    h_py_mm->GetXaxis()->SetRange(1,N_PIXELS);
     h_py_mm->Draw("hist");
 
     Double_t par[5];
@@ -1183,6 +1274,409 @@ void function_9()
     f_3->SetLineWidth(3);
     f_3->Draw("same");
     cout<<"--> chi2/NDF = "<<f_3->GetChisquare()<<"/"<<f_3->GetNDF()<<endl;
+}
+
+void function_10()
+{
+    //---------------------------------------------------------------------------------------//
+
+    TChain* fChain_1;
+    TChain* fChain_3;
+    Long64_t nEntries;
+
+    Long64_t _COUNTS_1[N_PIXELS*2][N_PIXELS*2];
+    Long64_t _COUNTS_3[N_PIXELS*2][N_PIXELS*2];
+
+    TString inFileName1     = "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L1_RUN_8.root";
+    TString outFileName     = "output_L1_calibration.root";
+
+    fChain_1 = new TChain("Tree_1");
+    fChain_3 = new TChain("Tree_3");
+
+    fChain_1->Add(inFileName1.Data());
+    fChain_3->Add(inFileName1.Data());
+
+    fChain_1->SetBranchAddress("COUNTS",      _COUNTS_1);
+    fChain_3->SetBranchAddress("COUNTS",      _COUNTS_3);
+
+    if(fChain_1->GetEntries() != fChain_3->GetEntries())
+    {
+        cout<<endl<<endl<<"### ERROR::Different number of entries!!! ###"<<endl<<endl<<endl;
+        assert(0);
+    }
+
+    nEntries = fChain_1->GetEntries();
+    cout<<"--> InputFileName: "<<inFileName1<<endl;
+    cout<<"--> Number of Frames: "<<nEntries<<endl;
+    //------------------------------------------------------------------------------//
+    //------------------------------- HISTOGRAMS -----------------------------------//
+    //------------------------------------------------------------------------------//
+
+    TH1D* h_1 = new TH1D("h_1","RP0 Int.",1e3,0,1e6);
+    TH1D* h_2 = new TH1D("h_2","RP1 Int.",1e3,0,1e8);
+    TH2D* h_3 = new TH2D("h_3","RP1 Int. vs RP0 Int.",1e3,0,1e6,1e3,0,1e8);
+
+    //---------------------------------------------------------------------------------------------------------------//
+    //---------------------------------------------- MAIN LOOP ------------------------------------------------------//
+    //---------------------------------------------------------------------------------------------------------------//
+    for(Long64_t i = 0; i < nEntries; i++)
+    {
+        TH2D* h_1_1 = new TH2D("h_1_1","Y vs X vs C (in pixels) [RP1I]",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
+        TH2D* h_2_1 = new TH2D("h_2_1","Y vs X vs C (in pixels) [RP1I]",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
+
+        TH2D* h_1_3 = new TH2D("h_1_3","Y vs X vs C (in pixels) [RP0I]",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
+        TH2D* h_2_3 = new TH2D("h_2_3","Y vs X vs C (in pixels) [RP0I]",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
+
+        if(i%1 == 0)
+        {
+            printf("\r--> Working: %3.1f %%",100*(Double_t)i/nEntries);
+            fflush(stdout);
+        }
+
+        fChain_1->GetEntry(i);
+        fChain_3->GetEntry(i);
+
+        for(Int_t xi = 1; xi < N_PIXELS - 1; xi++)
+        {
+            for(Int_t yi = 1; yi < N_PIXELS - 1; yi++)
+            {
+                if(_COUNTS_1[xi][yi] > 0)
+                {
+                    h_1_1->Fill(xi,yi,_COUNTS_1[xi][yi]);
+                    h_2_1->Fill(xi,yi,_COUNTS_1[xi][yi]);
+                }
+                if(_COUNTS_3[xi][yi] > 0)
+                {
+                    h_1_3->Fill(xi,yi,_COUNTS_3[xi][yi]);
+                    h_2_3->Fill(xi,yi,_COUNTS_3[xi][yi]);
+                }
+            }
+        }
+
+        median_filter(h_1_1,h_2_1,2.0);
+        median_filter(h_1_3,h_2_3,2.0);
+
+        // To check the algorythm
+
+//        TCanvas* c_3_1 = new TCanvas("c_3_1","c_3_1",1800,900);
+//        c_3_1->Divide(2,1);
+
+//        c_3_1->cd(1);
+//        gPad->SetGrid();
+//        h_1_1->GetXaxis()->SetRange(1,256);
+//        h_1_1->GetYaxis()->SetRange(1,256);
+//        h_1_1->Draw("colz");
+
+//        c_3_1->cd(2);
+//        gPad->SetGrid();
+//        h_2_1->GetXaxis()->SetRange(1,256);
+//        h_2_1->GetYaxis()->SetRange(1,256);
+//        h_2_1->Draw("colz");
+
+//        TCanvas* c_3_2 = new TCanvas("c_3_2","c_3_2",1800,900);
+//        c_3_2->Divide(2,1);
+
+//        c_3_2->cd(1);
+//        gPad->SetGrid();
+//        h_1_3->GetXaxis()->SetRange(1,256);
+//        h_1_3->GetYaxis()->SetRange(1,256);
+//        h_1_3->Draw("colz");
+
+//        c_3_2->cd(2);
+//        gPad->SetGrid();
+//        h_2_3->GetXaxis()->SetRange(1,256);
+//        h_2_3->GetYaxis()->SetRange(1,256);
+//        h_2_3->Draw("colz");
+
+        Double_t integral_1, integral_3;
+        integral_1= h_2_1->Integral(1,h_2_1->GetNbinsX(),1,h_2_1->GetNbinsY());
+        integral_3= h_2_3->Integral(1,h_2_3->GetNbinsX(),1,h_2_3->GetNbinsY());
+
+        h_1->Fill(integral_3);
+        h_2->Fill(integral_1);
+        h_3->Fill(integral_3,integral_1);
+
+        h_1_1->Delete();
+        h_2_1->Delete();
+
+        h_1_3->Delete();
+        h_2_3->Delete();
+    }
+    cout<<endl;
+
+    TFile *_file = new TFile(outFileName.Data(),"RECREATE");
+    if ( _file->IsOpen() ) cout<<endl<<"--> File '"<<_file->GetName()<<"' opened successfully!"<<endl;
+    h_1->Write();
+    h_2->Write();
+    h_3->Write();
+    _file->Close();
+    //---------------------------------------------------------------------------------------//
+}
+
+void function_11()
+{
+//    gStyle->SetOptStat(0);
+    TFile *_file_chipid_chip1 = TFile::Open("output_L1_chipid_1.root");
+    TGraph *_cry3_angularscan = new TGraph("crystal3_angularscan.dat","%lg %lg");
+    _cry3_angularscan->SetName("_cry3_angularscan");
+    _cry3_angularscan->SetTitle("CRYSTAL3 LVDT Angle [#murad]");
+    _cry3_angularscan->GetXaxis()->CenterTitle();
+    _cry3_angularscan->GetXaxis()->SetTitle("Time");
+
+    Double_t time_start = 1537238370;   // Tuesday, 18 September 2018, 04:39:30
+    Double_t time_stop  = 1537238880;   // Tuesday, 18 September 2018, 04:48:00
+
+//    to fit with pol1
+    TF1 *_cry3_angularscan_spline = new TF1("_cry3_angularscan_spline","pol1",time_start,time_stop);
+    _cry3_angularscan->Fit(_cry3_angularscan_spline,"R+");
+
+    TH2D* h_chip1_1 = (TH2D*)_file_chipid_chip1->Get("h_rp1_6");
+    TH2D* h_chip1_2 = new TH2D("h_chip1_HvsA","h_chip1_HvsA",600,-2000,-1400,N_PIXELS,0,N_PIXELS*0.055);
+
+    vector<Double_t> ratio;
+    vector<Double_t> ratio_err;
+    vector<Double_t> angle;
+    vector<Double_t> angle_err;
+
+    Double_t fit_bkg_lim_min = 256*0.055 - 12.7;
+    Double_t fit_bkg_lim_max = 256*0.055 - 13.2;
+    Double_t fit_singlech_lim_min = 256*0.055 - 2.0;
+    Double_t fit_singlech_lim_max = 256*0.055 - 4.5;
+    Double_t par_bkg[2];
+
+    for(Int_t i = 1; i <= h_chip1_1->GetNbinsX(); i++)
+    {
+        Double_t _time      = h_chip1_1->GetXaxis()->GetBinCenter(i);
+        Double_t _angle     = _cry3_angularscan_spline->Eval(_time);
+
+        for(Int_t j = 1; j <= h_chip1_1->GetNbinsY(); j++)
+        {
+            Double_t _position  = h_chip1_1->GetYaxis()->GetBinCenter(j);
+            Double_t _value     = h_chip1_1->GetBinContent(i,j);
+            Double_t _value_err = h_chip1_1->GetBinError(i,j);
+
+            if(_time > time_start && _time < time_stop)
+            {
+                h_chip1_2->SetBinContent(h_chip1_2->GetXaxis()->FindBin(_angle),h_chip1_2->GetYaxis()->FindBin(_position),_value);
+                h_chip1_2->SetBinError(h_chip1_2->GetXaxis()->FindBin(_angle),h_chip1_2->GetYaxis()->FindBin(_position),_value_err);
+            }
+        }
+
+        TH1D* h_1 = (TH1D*)h_chip1_1->ProjectionY("h_1",i,i);
+        TH1D* h_1_s = (TH1D*)h_chip1_1->ProjectionY("h_1_s",i,i);
+        TH1D* h_1_s_s = (TH1D*)h_chip1_1->ProjectionY("h_1_s_s",i,i);
+
+        if(h_1->Integral(1,h_1->GetNbinsX()) != 1) continue;
+        //--------------------------------------------------------------//
+        // To count the ratio
+        //--------------------------------------------------------------//
+
+        TF1* fit_funct_ch_bkg = new TF1("fit_funct_ch_bkg","pol0",fit_bkg_lim_min,fit_bkg_lim_max);
+        fit_funct_ch_bkg->SetParameter(0, 2e-3);
+        h_1->Fit(fit_funct_ch_bkg,"R0Q+");
+
+        fit_funct_ch_bkg->GetParameters(&par_bkg[0]);
+        TF1* bkg_func = new TF1("bkg_func","pol0",h_1->GetBinCenter(1),h_1->GetBinCenter(h_1->GetNbinsX()));
+        bkg_func->SetParameters(par_bkg);
+
+        for(Int_t j = 1; j <= h_1_s_s->GetNbinsX(); j++)
+        {
+            Double_t val = h_1_s->GetBinContent(j) - bkg_func->Eval(h_1_s->GetBinCenter(j));
+
+            if(val > 0)
+                h_1_s_s->SetBinContent(j,val);
+            else
+                h_1_s_s->SetBinContent(j,0);
+        }
+
+        TF1* fit_funct_1 = new TF1("fit_funct_1","gaus",fit_singlech_lim_min,fit_singlech_lim_max);
+        h_1_s_s->Fit(fit_funct_1,"R0Q+");
+
+        Double_t min_count_am = fit_funct_1->GetParameter(1)-3.0*fit_funct_1->GetParameter(2);
+        Double_t max_count_am = 256*0.055;
+
+        Double_t I1, I1_err;
+        Double_t I2, I2_err;
+        I1 = h_1_s_s->IntegralAndError(1,h_1_s_s->GetNbinsX(),I1_err);
+        I2 = h_1_s_s->IntegralAndError(h_1_s_s->GetXaxis()->FindBin(min_count_am),h_1_s_s->GetXaxis()->FindBin(max_count_am),I2_err);
+
+        ratio.push_back(1.0 - I2/I1);
+        ratio_err.push_back(TMath::Sqrt(TMath::Power(I2_err/I1,2) + TMath::Power(I2*I1_err/(I1*I1),2)));
+        angle.push_back(_angle);
+        angle_err.push_back(1.0);
+
+        //--------------------------------------------------------------//
+        // To plot
+        //--------------------------------------------------------------//
+
+//        TCanvas* c_2_temp = new TCanvas("c_2_temp","c_2_temp",1000,500);
+//        c_2_temp->cd();
+//        h_1->SetMinimum(0);
+//        h_1->Draw("hist");
+//        fit_funct_1->SetLineColor(kBlue);
+//        fit_funct_1->SetLineWidth(4);
+//        fit_funct_1->Draw("same");
+
+//        TString name = "#chi^{2}/NDF = [";
+//        name += (Int_t)fit_funct_ch_bkg->GetChisquare();
+//        name += "/";
+//        name += fit_funct_ch_bkg->GetNDF();
+//        name += "] = ";
+//        name += (Int_t)fit_funct_ch_bkg->GetChisquare()/fit_funct_ch_bkg->GetNDF();
+//        h_1->SetTitle(name.Data());
+//        fit_funct_ch_bkg->SetLineWidth(6);
+//        fit_funct_ch_bkg->Draw("same");
+
+//        bkg_func->SetLineColor(kGreen+2);
+//        bkg_func->Draw("same");
+
+//        TCanvas* c_3_temp = new TCanvas("c_3_temp","c_3_temp",1000,500);
+//        c_3_temp->cd();
+//        h_1_s->SetMinimum(0);
+//        h_1_s->SetLineColor(kBlue);
+//        h_1_s->SetLineWidth(2);
+//        h_1_s->Draw("e1");
+
+//        h_1_s_s->SetLineColor(kRed);
+//        h_1_s_s->SetLineWidth(2);
+//        h_1_s_s->Draw("same & e1");
+
+//        TCanvas* c_4_temp = new TCanvas("c_4_temp","c_4_temp",1000,500);
+//        c_4_temp->cd();
+//        gPad->SetGrid();
+//        h_1_s_s->SetLineWidth(2);
+//        h_1_s_s->SetTitle("");
+//        h_1_s_s->GetXaxis()-> CenterTitle();
+//        h_1_s_s->GetYaxis()-> CenterTitle();
+//        h_1_s_s->Draw("e1");
+
+//        TLine *l_min_ch=new TLine(min_count_am,0,min_count_am,h_1_s_s->GetMaximum());
+//        l_min_ch->SetLineColor(kMagenta);
+//        l_min_ch->SetLineWidth(3);
+//        l_min_ch->SetLineStyle(7);
+//        l_min_ch->Draw();
+//        TLine *l_mean_ch=new TLine(fit_funct_1->GetParameter(1),0,fit_funct_1->GetParameter(1),h_1_s_s->GetMaximum());
+//        l_mean_ch->SetLineColor(kMagenta-2);
+//        l_mean_ch->SetLineWidth(3);
+//        l_mean_ch->SetLineStyle(7);
+//        l_mean_ch->Draw();
+//        TLine *l_max_ch=new TLine(max_count_am,0,max_count_am,h_1_s_s->GetMaximum());
+//        l_max_ch->SetLineColor(kMagenta);
+//        l_max_ch->SetLineWidth(3);
+//        l_max_ch->SetLineStyle(7);
+//        l_max_ch->Draw();
+
+//        break;
+        //--------------------------------------------------------------//
+    }
+    Int_t dim = ratio.size();
+
+    TCanvas* c_0 = new TCanvas("c_0","c_0",1800,900);
+    c_0->cd();
+    gPad->SetGrid();
+    h_chip1_1->Draw("colz");
+
+    TCanvas* c_1 = new TCanvas("c_1","c_1",1800,900);
+    c_1->cd();
+    gPad->SetGrid();
+    TGraphErrors *gr_1 = new TGraphErrors(dim, &angle[0], &ratio[0], &angle_err[0], &ratio_err[0]);
+    gr_1->SetMarkerStyle(21);
+    gr_1->SetMarkerColor(kBlack);
+    gr_1->SetLineWidth(2);
+    gr_1->SetLineColor(kBlue);
+    gr_1->GetXaxis()->SetTitle("CRYSTAL3 LVDT Angle [#murad]");
+    gr_1->GetYaxis()->SetTitle("Ratio (1 - AM/TOTAL)");
+    gr_1->GetYaxis()->CenterTitle();
+    gr_1->GetXaxis()->CenterTitle();
+    gr_1->GetXaxis()->SetLimits(-1900,-1600);
+    gr_1->Draw("AP");
+
+    TCanvas* c_2 = new TCanvas("c_2","c_2",1000,1000);
+    c_2->cd();
+    gPad->SetGrid();
+    _cry3_angularscan->SetMarkerStyle(21);
+    _cry3_angularscan->Draw("AP");
+    _cry3_angularscan_spline->SetLineColor(kRed);
+    _cry3_angularscan_spline->SetLineWidth(2);
+    _cry3_angularscan_spline->Draw("same & L");
+
+    TCanvas* c_3 = new TCanvas("c_3","c_3",1800,900);
+    c_3->cd();
+    gPad->SetGrid();
+    h_chip1_2->GetXaxis()->SetRange(h_chip1_2->GetXaxis()->FindBin(-1900),h_chip1_2->GetXaxis()->FindBin(-1600));
+    h_chip1_2->SetTitle("");
+    h_chip1_2->GetXaxis()->CenterTitle();
+    h_chip1_2->GetXaxis()->SetTitle("CRYSTAL3 LVDT Angle [#murad]");
+    h_chip1_2->GetYaxis()->CenterTitle();
+    h_chip1_2->GetYaxis()->SetTitle("Projection on Horizontal Axis [mm]");
+    h_chip1_2->SetMinimum(0.004);
+    h_chip1_2->Draw("colz");
+
+    TCanvas* c_4= new TCanvas("c_4","c_4",1800,900);
+    c_4->cd();
+    gPad->SetGrid();
+    TGraphErrors *gr_2 = new TGraphErrors(dim, &angle[0], &ratio[0], &angle_err[0], &ratio_err[0]);
+    gr_2->SetMarkerStyle(21);
+    gr_2->SetMarkerColor(kBlack);
+    gr_2->SetLineWidth(2);
+    gr_2->SetLineColor(kBlue);
+    gr_2->GetXaxis()->SetTitle("CRYSTAL3 LVDT Angle [#murad]");
+    gr_2->GetYaxis()->SetTitle("Ratio (1 - AM/TOTAL)");
+    gr_2->GetYaxis()->CenterTitle();
+    gr_2->GetXaxis()->CenterTitle();
+    gr_2->GetXaxis()->SetLimits(-1900,-1600);
+    gr_2->Draw("AP");
+
+    TF1* fit_landau = new TF1("fit_landau","landau",-1900,-1600);
+    TFitResultPtr fit_results = gr_2->Fit(fit_landau,"SR+");
+
+    double angle_fix[1] = {-1820.0};
+    double angle_fix_err[1];
+
+    fit_results->GetConfidenceIntervals(1, 1, 1, angle_fix, angle_fix_err, 0.683, false);
+
+    /*
+     * void ROOT::Fit::FitResult::GetConfidenceIntervals	(	unsigned int 	n,   unsigned int 	stride1,    unsigned int 	stride2,    const double * 	x,    double * 	ci,    double 	cl = 0.95,    bool 	norm = true     )		const
+     *get confidence intervals for an array of n points x.
+     * stride1 indicates the stride in the coordinate space while stride2 the stride in dimension space.
+     * For 1-dim points : stride1=1, stride2=1
+     * for multi-dim points arranged as (x0,x1,...,xN,y0,....yN) stride1=1 stride2=n
+     * for multi-dim points arraged as (x0,y0,..,x1,y1,...,xN,yN,..) stride1=ndim, stride2=1
+     * the confidence interval are returned in the array ci
+     * cl is the desired confidedence interval
+     * value norm is a flag to control if the intervals need to be normalized to the chi2/ndf value
+     * By default the intervals are corrected using the chi2/ndf value of the fit if a chi2 fit is performed
+    */
+
+    Double_t calibr = 0.195/fit_landau->Eval(angle_fix[0]);
+    Double_t calibr_err = TMath::Sqrt(TMath::Power(3.1e-5/fit_landau->Eval(angle_fix[0]),2) +
+            TMath::Power(0.195*angle_fix_err[0]/(fit_landau->Eval(angle_fix[0])*fit_landau->Eval(angle_fix[0])),2));
+
+    TH1D* h_dist = new TH1D("h_dist","CH Efficiency",13,-1900,-1614);
+
+    for(Int_t i = 1; i <= h_dist->GetNbinsX(); i++)
+    {
+        Double_t x = h_dist->GetBinCenter(i);
+
+        angle_fix[0]        = x;
+        angle_fix_err[0]    = 0;
+        fit_results->GetConfidenceIntervals(1, 1, 1, angle_fix, angle_fix_err, 0.683, false);
+
+        h_dist->SetBinContent(i,calibr*fit_landau->Eval(x));
+        h_dist->SetBinError(i,TMath::Sqrt(TMath::Power(calibr_err*fit_landau->Eval(x),2) +
+                                          TMath::Power(calibr*angle_fix_err[0],2)));
+    }
+
+    TCanvas* c_5= new TCanvas("c_5","c_5",1800,900);
+    c_5->cd();
+    gPad->SetGrid();
+    h_dist->Draw("e1");
+
+    Double_t ch_eff, ch_eff_err;
+    ch_eff = h_dist->IntegralAndError(h_dist->GetXaxis()->FindBin(fit_landau->GetParameter(1)-4.0*fit_landau->GetParameter(2)),
+                                      h_dist->GetXaxis()->FindBin(fit_landau->GetParameter(1)+4.0*fit_landau->GetParameter(2)),
+                                      ch_eff_err);
+    cout<<"--> CH EFF. = "<<ch_eff<<" +/- "<<ch_eff_err<<endl;
 }
 
 void repairnoizypixelsXY(TH2D* histo, Float_t factor_bad_pixels)// to repair noizy pixels for XY image
