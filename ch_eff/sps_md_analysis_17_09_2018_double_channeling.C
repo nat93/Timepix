@@ -56,7 +56,7 @@ double findMedian(double a[], int n);
 
 int sps_md_analysis_17_09_2018_double_channeling()
 {
-    cout<<"--> function_1() -- [L1-L18] to plot rp_i 2d beam image normalized by rp_i counts"<<endl;
+    cout<<"--> function_1() -- [L1-L19] to plot rp_i 2d beam image normalized by rp_i counts"<<endl;
     cout<<"--> function_2() -- [L1] to plot Timepix data vs CRY3 angle"<<endl;
     cout<<"--> function_3() -- [L3] to plot Timepix data vs CRY2 angle"<<endl;
     cout<<"--> function_4() -- [L2,L7-L10] to plot Timepix projection"<<endl;
@@ -83,8 +83,8 @@ void function_1()
     Double_t _Timems;
     Long64_t _COUNTS[N_PIXELS*2][N_PIXELS*2];
 
-    TString inFileName1     = "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L1_RUN_8.root";
-    TString outFileName     = "output_L1_chipid_1.root";
+    TString inFileName1     = "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L19_RUN_8.root";
+    TString outFileName     = "output_L19_chipid_1.root";
 
     TString tree_name;
     tree_name = "Tree_";
@@ -876,9 +876,9 @@ void function_7()
     _cry3_linearscan->GetXaxis()->CenterTitle();
     _cry3_linearscan->GetXaxis()->SetTitle("Time");
 
-TCanvas* ccc_000 = new TCanvas();
-ccc_000->cd();
-_cry3_linearscan->Draw("APL");
+    TCanvas* ccc_000 = new TCanvas();
+    ccc_000->cd();
+    _cry3_linearscan->Draw("APL");
 
 
     Double_t time_start = 1537218040;   // Tuesday, 17 September 2018, 23:00:40
@@ -933,6 +933,8 @@ _cry3_linearscan->Draw("APL");
 
     TH1D* h_chip1_2_projection = (TH1D*)h_chip1_2->ProjectionY("h_chip1_2_projection",h_chip1_2->GetXaxis()->FindBin(63),h_chip1_2->GetXaxis()->FindBin(83));
     TH1D* h_chip1_3_projection = (TH1D*)h_chip1_2->ProjectionX("h_chip1_3_projection",h_chip1_2->GetYaxis()->FindBin(1.5),h_chip1_2->GetYaxis()->FindBin(5.5));
+    TH1D* h_pr_y_wo_cry = (TH1D*)h_chip1_2->ProjectionY("h_pr_y_wo_cry",h_chip1_2->GetXaxis()->FindBin(76),h_chip1_2->GetXaxis()->FindBin(78));
+    TH1D* h_pr_y_wo_cry_n_bkg = (TH1D*)h_chip1_2->ProjectionY("h_pr_y_wo_cry_n_bkg",h_chip1_2->GetXaxis()->FindBin(76),h_chip1_2->GetXaxis()->FindBin(78));
 
     TString outFileName     = "output_function_2.root";
     TFile *_file = new TFile(outFileName.Data(),"RECREATE");
@@ -969,9 +971,87 @@ _cry3_linearscan->Draw("APL");
     c_3->cd();
     gPad->SetGrid();
     h_chip1_3_projection->Draw("hist");
-//    h_chip1_3_projection->GetXaxis()->SetRange(h_chip1_2->GetXaxis()->FindBin(1760),h_chip1_2->GetXaxis()->FindBin(1880));
+
+    const Int_t nPnts = 5;
+    Double_t mpx_pos[] = {7.3,  7.5,    11.0,   12.0,   12.5};
+    Double_t mpx_err[] = {0.1,  0.1,    0.1,    0.1,    0.1};
+    Double_t cry_pos[] = {64.8, 65.0,   69.7,   71.1,   71.8};
+    Double_t cry_err[] = {0.1,  0.1,    0.1,    0.1,    0.1};
+
+    TCanvas* c_4 = new TCanvas("c_4","c_4",1000,1000);
+    c_4->cd();
+    gPad->SetGrid();
+    TGraphErrors* gr_1 = new TGraphErrors(nPnts,mpx_pos,cry_pos,mpx_err,cry_err);
+    gr_1->SetMarkerStyle(21);
+    gr_1->SetLineWidth(2);
+    gr_1->SetLineColor(kBlue);
+    gr_1->GetXaxis()->SetTitle("Position on Timepix [mm]");
+    gr_1->GetYaxis()->SetTitle("CRYSTAL3 LVDT Position [mm]");
+    gr_1->GetXaxis()->CenterTitle();
+    gr_1->GetYaxis()->CenterTitle();
+    gr_1->Draw("AP");
+
+    TF1* fit_1 = new TF1("fit_1","pol1",mpx_pos[0]-1,mpx_pos[nPnts-1]+1);
+    gr_1->Fit(fit_1,"R+");
+    fit_1->SetLineWidth(3);
+
+    TCanvas* c_5 = new TCanvas("c_5","c_5",1800,900);
+    c_5->Divide(1,2);
+    c_5->cd(1);
+    h_pr_y_wo_cry->Draw();
+    Double_t par[5];
+    TF1* fit_pol = new TF1("fit_pol","pol1",0,4);
+    TF1* fit_gaus = new TF1("fit_gaus","gaus",6.5,8.5);
+    TF1* fit_pol_gaus = new TF1("fit_pol_gaus","pol1(0) + gaus(2)",0.0,8.5);
+    h_pr_y_wo_cry->Fit(fit_pol,"RQ0+");
+    h_pr_y_wo_cry->Fit(fit_gaus,"RQ0+");
+    fit_pol->GetParameters(&par[0]);
+    fit_gaus->GetParameters(&par[2]);
+    fit_pol_gaus->SetParameters(par);
+    h_pr_y_wo_cry->Fit(fit_pol_gaus,"R+");
+    fit_pol_gaus->GetParameters(&par[0]);
+    TF1* func_bkg = new TF1("func_bkg","pol1",0,h_pr_y_wo_cry->GetBinCenter(h_pr_y_wo_cry->GetNbinsX()));
+    func_bkg->SetParameters(&par[0]);
+    func_bkg->Draw("same");
+
+    for(Int_t i = 1; i <= h_pr_y_wo_cry_n_bkg->GetNbinsX(); i++)
+    {
+        Double_t val = h_pr_y_wo_cry_n_bkg->GetBinContent(i) - func_bkg->Eval(h_pr_y_wo_cry_n_bkg->GetBinCenter(i));
+        if(val < 0) val = 0;
+        h_pr_y_wo_cry_n_bkg->SetBinContent(i,val);
+    }
+    c_5->cd(2);
+    h_pr_y_wo_cry_n_bkg->Draw();
+
+    TGraphErrors* gr_projection = new TGraphErrors();
+    for(Int_t i = 1; i <= h_pr_y_wo_cry_n_bkg->GetNbinsX(); i++)
+    {
+        Double_t x = fit_1->Eval(h_pr_y_wo_cry_n_bkg->GetBinCenter(i));
+        Double_t y = h_pr_y_wo_cry_n_bkg->GetBinContent(i);
+        Double_t ey = h_pr_y_wo_cry_n_bkg->GetBinError(i);
+        Double_t ex = 0.055/TMath::Sqrt(12.0);
+        gr_projection->SetPoint(i-1,x,y);
+        gr_projection->SetPointError(i-1,ex,ey);
+    }
+
+    TCanvas* c_6 = new TCanvas("c_6","c_6",1800,900);
+    c_6->cd();
+    gPad->SetGrid();
+    gr_projection->SetLineColor(kBlue);
+    gr_projection->SetLineWidth(2);
+    gr_projection->Draw("AP");
+
 
     c_0->Write();
+    c_1->Write();
+    c_2->Write();
+    c_3->Write();
+    c_4->Write();
+    c_5->Write();
+    c_6->Write();
+    h_pr_y_wo_cry->Write();
+    gr_1->Write();
+    gr_projection->Write();
     _cry3_linearscan->Write();
     _file->Close();
 }
@@ -1612,6 +1692,10 @@ void function_11()
     h_chip1_2->SetMinimum(0.004);
     h_chip1_2->Draw("colz");
 
+    //-----------//
+    // METHOD I
+    //-----------//
+
     TCanvas* c_4= new TCanvas("c_4","c_4",1800,900);
     c_4->cd();
     gPad->SetGrid();
@@ -1628,12 +1712,12 @@ void function_11()
     gr_2->Draw("AP");
 
     TF1* fit_landau = new TF1("fit_landau","landau",-1900,-1600);
-    TFitResultPtr fit_results = gr_2->Fit(fit_landau,"SR+");
+    TFitResultPtr fit_results_landau = gr_2->Fit(fit_landau,"SR+");
 
     double angle_fix[1] = {-1820.0};
     double angle_fix_err[1];
 
-    fit_results->GetConfidenceIntervals(1, 1, 1, angle_fix, angle_fix_err, 0.683, false);
+    fit_results_landau->GetConfidenceIntervals(1, 1, 1, angle_fix, angle_fix_err, 0.683, false);
 
     /*
      * void ROOT::Fit::FitResult::GetConfidenceIntervals	(	unsigned int 	n,   unsigned int 	stride1,    unsigned int 	stride2,    const double * 	x,    double * 	ci,    double 	cl = 0.95,    bool 	norm = true     )		const
@@ -1652,31 +1736,107 @@ void function_11()
     Double_t calibr_err = TMath::Sqrt(TMath::Power(3.1e-5/fit_landau->Eval(angle_fix[0]),2) +
             TMath::Power(0.195*angle_fix_err[0]/(fit_landau->Eval(angle_fix[0])*fit_landau->Eval(angle_fix[0])),2));
 
-    TH1D* h_dist = new TH1D("h_dist","CH Efficiency",13,-1900,-1614);
+    TH1D* h_dist_landau = new TH1D("h_dist_landau","CH Efficiency",13,-1900,-1614);
 
-    for(Int_t i = 1; i <= h_dist->GetNbinsX(); i++)
+    for(Int_t i = 1; i <= h_dist_landau->GetNbinsX(); i++)
     {
-        Double_t x = h_dist->GetBinCenter(i);
+        Double_t x = h_dist_landau->GetBinCenter(i);
 
         angle_fix[0]        = x;
         angle_fix_err[0]    = 0;
-        fit_results->GetConfidenceIntervals(1, 1, 1, angle_fix, angle_fix_err, 0.683, false);
+        fit_results_landau->GetConfidenceIntervals(1, 1, 1, angle_fix, angle_fix_err, 0.683, false);
 
-        h_dist->SetBinContent(i,calibr*fit_landau->Eval(x));
-        h_dist->SetBinError(i,TMath::Sqrt(TMath::Power(calibr_err*fit_landau->Eval(x),2) +
-                                          TMath::Power(calibr*angle_fix_err[0],2)));
+        h_dist_landau->SetBinContent(i,calibr*fit_landau->Eval(x));
+        h_dist_landau->SetBinError(i,TMath::Sqrt(TMath::Power(calibr_err*fit_landau->Eval(x),2) +
+                                                 TMath::Power(calibr*angle_fix_err[0],2)));
     }
 
     TCanvas* c_5= new TCanvas("c_5","c_5",1800,900);
     c_5->cd();
     gPad->SetGrid();
-    h_dist->Draw("e1");
+    h_dist_landau->SetTitle("1 bin = 2x #Theta_{c}");
+    h_dist_landau->GetXaxis()->SetTitle("CRYSTAL3 LVDT Angle [#murad]");
+    h_dist_landau->GetYaxis()->SetTitle("Ratio (1 - AM/TOTAL)");
+    h_dist_landau->GetYaxis()->CenterTitle();
+    h_dist_landau->GetXaxis()->CenterTitle();
+    h_dist_landau->SetMarkerStyle(21);
+    h_dist_landau->SetLineWidth(2);
+    h_dist_landau->Draw("e1");
 
     Double_t ch_eff, ch_eff_err;
-    ch_eff = h_dist->IntegralAndError(h_dist->GetXaxis()->FindBin(fit_landau->GetParameter(1)-4.0*fit_landau->GetParameter(2)),
-                                      h_dist->GetXaxis()->FindBin(fit_landau->GetParameter(1)+4.0*fit_landau->GetParameter(2)),
+    ch_eff = h_dist_landau->IntegralAndError(h_dist_landau->GetXaxis()->FindBin(fit_landau->GetParameter(1)-3.0*fit_landau->GetParameter(2)),
+                                      h_dist_landau->GetXaxis()->FindBin(fit_landau->GetParameter(1)+3.0*fit_landau->GetParameter(2)),
                                       ch_eff_err);
-    cout<<"--> CH EFF. = "<<ch_eff<<" +/- "<<ch_eff_err<<endl;
+    cout<<"--> [METHOD I] CH EFF. = "<<ch_eff<<" +/- "<<ch_eff_err<<endl;
+
+    //-----------//
+    // METHOD II
+    //-----------//
+
+    TCanvas* c_6= new TCanvas("c_6","c_6",1800,900);
+    c_6->cd();
+    gPad->SetGrid();
+    TGraphErrors *gr_3 = new TGraphErrors(dim, &angle[0], &ratio[0], &angle_err[0], &ratio_err[0]);
+    gr_3->SetMarkerStyle(21);
+    gr_3->SetMarkerColor(kBlack);
+    gr_3->SetLineWidth(2);
+    gr_3->SetLineColor(kBlue);
+    gr_3->GetXaxis()->SetTitle("CRYSTAL3 LVDT Angle [#murad]");
+    gr_3->GetYaxis()->SetTitle("Ratio (1 - AM/TOTAL)");
+    gr_3->GetYaxis()->CenterTitle();
+    gr_3->GetXaxis()->CenterTitle();
+    gr_3->GetXaxis()->SetLimits(-1900,-1600);
+    gr_3->Draw("AP");
+
+    TF1* fit_gaus = new TF1("fit_gaus","gaus",fit_landau->GetParameter(1)-2.0*fit_landau->GetParameter(2),fit_landau->GetParameter(1)+2.0*fit_landau->GetParameter(2));
+    TFitResultPtr fit_results_gaus = gr_3->Fit(fit_gaus,"SR+");
+
+    TF1* gaus_func = new TF1("gaus_func","gaus",-1900,-1600);
+    gaus_func->SetParameter(0,fit_gaus->GetParameter(0));
+    gaus_func->SetParameter(1,fit_gaus->GetParameter(1));
+    gaus_func->SetParameter(2,fit_gaus->GetParameter(2));
+    gaus_func->Draw("same");
+
+    angle_fix[0]        = -1820.0;
+    angle_fix_err[0]    = 0;
+
+    fit_results_gaus->GetConfidenceIntervals(1, 1, 1, angle_fix, angle_fix_err, 0.683, false);
+
+    calibr = 0.195/gaus_func->Eval(angle_fix[0]);
+    calibr_err = TMath::Sqrt(TMath::Power(3.1e-5/gaus_func->Eval(angle_fix[0]),2) +
+            TMath::Power(0.195*angle_fix_err[0]/(gaus_func->Eval(angle_fix[0])*gaus_func->Eval(angle_fix[0])),2));
+
+    TH1D* h_dist_gaus = new TH1D("h_dist_gaus","CH Efficiency",13,-1900,-1614);
+
+    for(Int_t i = 1; i <= h_dist_gaus->GetNbinsX(); i++)
+    {
+        Double_t x = h_dist_gaus->GetBinCenter(i);
+
+        angle_fix[0]        = x;
+        angle_fix_err[0]    = 0;
+        fit_results_gaus->GetConfidenceIntervals(1, 1, 1, angle_fix, angle_fix_err, 0.683, false);
+
+        h_dist_gaus->SetBinContent(i,calibr*gaus_func->Eval(x));
+        h_dist_gaus->SetBinError(i,TMath::Sqrt(TMath::Power(calibr_err*gaus_func->Eval(x),2) +
+                                               TMath::Power(calibr*angle_fix_err[0],2)));
+    }
+
+    TCanvas* c_7= new TCanvas("c_7","c_7",1800,900);
+    c_7->cd();
+    gPad->SetGrid();
+    h_dist_gaus->SetTitle("1 bin = 2x #Theta_{c}");
+    h_dist_gaus->GetXaxis()->SetTitle("CRYSTAL3 LVDT Angle [#murad]");
+    h_dist_gaus->GetYaxis()->SetTitle("Ratio (1 - AM/TOTAL)");
+    h_dist_gaus->GetYaxis()->CenterTitle();
+    h_dist_gaus->GetXaxis()->CenterTitle();
+    h_dist_gaus->SetMarkerStyle(21);
+    h_dist_gaus->SetLineWidth(2);
+    h_dist_gaus->Draw("e1");
+
+    ch_eff = h_dist_gaus->IntegralAndError(h_dist_gaus->GetXaxis()->FindBin(gaus_func->GetParameter(1)-3.0*gaus_func->GetParameter(2)),
+                                           h_dist_gaus->GetXaxis()->FindBin(gaus_func->GetParameter(1)+3.0*gaus_func->GetParameter(2)),
+                                           ch_eff_err);
+    cout<<"--> [METHOD II] CH EFF. = "<<ch_eff<<" +/- "<<ch_eff_err<<endl;
 }
 
 void repairnoizypixelsXY(TH2D* histo, Float_t factor_bad_pixels)// to repair noizy pixels for XY image
