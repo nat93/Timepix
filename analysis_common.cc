@@ -133,7 +133,6 @@ int main(int argc, char *argv[])
     tree->Branch("ClusterPosY",     &pos_y_clinfo,          "pos_y_clinfo/D");
     tree->Branch("ClusterPosYerr",  &pos_y_err_clinfo,      "pos_y_err_clinfo/D");
     tree->Branch("EventID",         &event_id_clinfo,       "event_id_clinfo/L");
-    tree->Branch("EventID",         &event_id_clinfo,       "event_id_clinfo/L");
     tree->Branch("Clock",           &_Clock,                "_Clock/D");
     tree->Branch("Gate",            &_Gate,                 "_Gate/D");
 
@@ -200,9 +199,15 @@ int main(int argc, char *argv[])
     //---------------------------------------------------------------------------------------------------------------//
     //---------------------------------------------- MAIN LOOP ------------------------------------------------------//
     //---------------------------------------------------------------------------------------------------------------//
+
 //    nEntries /= 50;
     for(Long64_t i = 0; i < nEntries; i++)
     {
+//        if(i < 33300 || i > 33600) continue;
+
+//        if(i != 33314) continue;
+//        if(i != 20004) continue;
+
         if(i%1 == 0)
         {
             printf("\r--> Working: %3.1f %%",100*(Double_t)i/nEntries);
@@ -250,7 +255,7 @@ int main(int argc, char *argv[])
         }
         h_29->Fill(fired_pixels_num);
 
-        if(fired_pixels_num < 1e4 || _AcquisType == 0)
+        if(1)//fired_pixels_num < 1e4 || _AcquisType == 0)
         {
             h_30->Fill(fired_pixels_num);
             h_24->Fill(_event-_event_ini,_AcquisType);
@@ -498,8 +503,8 @@ int main(int argc, char *argv[])
     {
         for(Int_t j = 1; j <= N_PIXELS; j++)
         {
-//            h_6->SetBinContent(N_PIXELS/2-j+1,i,h_1->GetBinContent(i,j));//SPS RomanPot Internal
-            h_6->SetBinContent(i,j,h_1->GetBinContent(i,j));
+            h_6->SetBinContent(N_PIXELS/2-j+1,i,h_1->GetBinContent(i,j));//SPS RomanPot Internal
+//            h_6->SetBinContent(i,j,h_1->GetBinContent(i,j));
 //            h_6->SetBinContent(j,N_PIXELS-i+1,h_1->GetBinContent(i,j));//H8 september 2018
         }
     }

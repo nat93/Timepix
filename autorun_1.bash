@@ -7,8 +7,8 @@
 # To mount DFS on the PC
 # sudo mount -t davfs https://dfs.cern.ch/dfs ./dfs -o username=ua9user
 
-data_dir_in=/home/anatochi/dfs/Experiments/UA9/Students\ archive/Andrii/Timepix_SPS_protons/TEST/;
-data_dir_out=/home/anatochi/Medipix/SPS_DATA/TEST/TIMEPIX/;
+data_dir_in=/home/andrii/dfs/Experiments/UA9/Students\ archive/Andrii/Timepix_SPS_protons/SPS_MD_2018_11_07/RUN_1/;
+data_dir_out=/media/andrii/F492773C92770302/MedipixData/SPS_DATA/MD_2018_11_07/RUN_1/;
 make ascii2root_common;
 
 nfiles_old=$(ls -1 "$data_dir_in"*.dat | wc -l); # Initial number of files in the directory
