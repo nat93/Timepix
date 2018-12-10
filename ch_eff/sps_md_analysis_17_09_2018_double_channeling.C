@@ -51,7 +51,7 @@ void scale2Dhisto_YT(TH2D* histo);
 void rotateNscale(TH2D* h_in, TH2D* h_out);
 void rewriteHisto(TH2D* h_in, TH2D* h_out);
 double getAverage2D(TH2D* histo);
-void median_filter(TH2D* h_in, TH2D* h_out, Double_t factor_bad_pixels);
+int median_filter(TH2D* h_in, TH2D* h_out, Double_t factor_bad_pixels);
 double findMedian(double a[], int n);
 
 int sps_md_analysis_17_09_2018_double_channeling()
@@ -83,8 +83,8 @@ void function_1()
     Double_t _Timems;
     Long64_t _COUNTS[N_PIXELS*2][N_PIXELS*2];
 
-    TString inFileName1     = "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L19_RUN_8.root";
-    TString outFileName     = "output_L19_chipid_1.root";
+    TString inFileName1     = "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L2_RUN_8.root";
+    TString outFileName     = "output_L2_chipid_1.root";
 
     TString tree_name;
     tree_name = "Tree_";
@@ -126,7 +126,8 @@ void function_1()
     TH2D* h_3   = new TH2D("h_3","Y vs X vs C (in pixels)",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
     TH2D* h_8   = new TH2D("h_8","Y vs Time",(UT_max-UT_min)/1000.0,UT_min/1000.0,UT_max/1000.0,N_PIXELS,0,N_PIXELS);
     TH2D* h_9   = new TH2D("h_9","X vs Time",(UT_max-UT_min)/1000.0,UT_min/1000.0,UT_max/1000.0,N_PIXELS,0,N_PIXELS);
-    TH2D* h_4 = new TH2D("h_4","RP1 Internal (normalized)",N_PIXELS,0,N_PIXELS*0.055,N_PIXELS,0,N_PIXELS*0.055);
+    TH2D* h_4   = new TH2D("h_4","RP1 Internal (normalized)",N_PIXELS,0,N_PIXELS*0.055,N_PIXELS,0,N_PIXELS*0.055);
+    TH1D* h_5   = new TH1D("h_5","Number of the filtered pixels per frame",10000,0,10000);
 
     h_4->GetXaxis()->SetTitle("Horizontal Axis [mm]");
     h_4->GetXaxis()->SetTimeOffset(1.2);
@@ -175,24 +176,27 @@ void function_1()
             }
         }
 
-        median_filter(h_1,h_2,2.0);
+        h_5->Fill(median_filter(h_1,h_2,2.0));
 
+        //----------------------------------------------------//
         // To check the algorythm
 
-        /*TCanvas* c_3 = new TCanvas("c_3","c_3",1800,900);
-        c_3->Divide(2,1);
+//        TCanvas* c_3 = new TCanvas("c_3","c_3",1800,900);
+//        c_3->Divide(2,1);
 
-        c_3->cd(1);
-        gPad->SetGrid();
-        h_1->GetXaxis()->SetRange(1,256);
-        h_1->GetYaxis()->SetRange(1,256);
-        h_1->Draw("colz");
+//        c_3->cd(1);
+//        gPad->SetGrid();
+//        h_1->GetXaxis()->SetRange(1,256);
+//        h_1->GetYaxis()->SetRange(1,256);
+//        h_1->Draw("colz");
 
-        c_3->cd(2);
-        gPad->SetGrid();
-        h_2->GetXaxis()->SetRange(1,256);
-        h_2->GetYaxis()->SetRange(1,256);
-        h_2->Draw("colz");*/
+//        c_3->cd(2);
+//        gPad->SetGrid();
+//        h_2->GetXaxis()->SetRange(1,256);
+//        h_2->GetYaxis()->SetRange(1,256);
+//        h_2->Draw("colz");
+//        break;
+        //----------------------------------------------------//
 
         Double_t integral, integral_err;
         integral= h_2->IntegralAndError(1,h_2->GetNbinsX(),1,h_2->GetNbinsY(),integral_err);
@@ -326,6 +330,7 @@ void function_1()
     h_4->Write();
     h_8->Write();
     h_9->Write();
+    h_5->Write();
     h_rp1_6->Write();
     h_rp1_7->Write();
 
@@ -517,7 +522,7 @@ void function_3()
 void function_4()
 {
     gStyle->SetOptStat(0);
-    TString fileName_RP1 = "output_L8_chipid_1.root";
+    TString fileName_RP1 = "output_L2_chipid_1.root";
 
     Double_t fit_bkg_lim_min = 12.7;
     Double_t fit_bkg_lim_max = 13.2;
@@ -1928,12 +1933,22 @@ void scale2Dhisto_YT(TH2D* histo)// to scale the 2D histo Y vs Time
 
 void rotateNscale(TH2D* h_in, TH2D* h_out)// to rotate and scale from pixels to mm for SPS RomanPot Internal
 {
+    // For 512x512
+//    for(Int_t i = 1; i <= h_in->GetNbinsX(); i++)
+//    {
+//        for(Int_t j = 1; j <= h_in->GetNbinsY(); j++)
+//        {
+//            h_out->SetBinContent(h_in->GetNbinsX()/2-j+1,i,h_in->GetBinContent(i,j));
+//            h_out->SetBinError(h_in->GetNbinsX()/2-j+1,i,h_in->GetBinError(i,j));
+//        }
+//    }
+    // For 256x256
     for(Int_t i = 1; i <= h_in->GetNbinsX(); i++)
     {
         for(Int_t j = 1; j <= h_in->GetNbinsY(); j++)
         {
-            h_out->SetBinContent(h_in->GetNbinsX()/2-j+1,i,h_in->GetBinContent(i,j));
-            h_out->SetBinError(h_in->GetNbinsX()/2-j+1,i,h_in->GetBinError(i,j));
+            h_out->SetBinContent(h_in->GetNbinsX()-j+1,i,h_in->GetBinContent(i,j));
+            h_out->SetBinError(h_in->GetNbinsX()-j+1,i,h_in->GetBinError(i,j));
         }
     }
 }
@@ -1968,8 +1983,9 @@ double getAverage2D(TH2D* histo)// to get average value of the counts 2D
     return (Double_t)(average/nBins);
 }
 
-void median_filter(TH2D* h_in, TH2D* h_out, Double_t factor_bad_pixels)
+int median_filter(TH2D* h_in, TH2D* h_out, Double_t factor_bad_pixels)
 {
+    Int_t filtered_pixels = 0;
     const Int_t nBins = 3;
     if (nBins % 2 == 0)
     {
@@ -1991,13 +2007,19 @@ void median_filter(TH2D* h_in, TH2D* h_out, Double_t factor_bad_pixels)
                     kk++;
                 }
             }
+
             Double_t val = findMedian(a, nBins*nBins);
-            if(h_in->GetBinContent(i,j) < val*factor_bad_pixels)
+            filtered_pixels++;
+            if(h_in->GetBinContent(i,j) < val*factor_bad_pixels && h_in->GetBinContent(i,j) > val/factor_bad_pixels)
+            {
                 val = h_in->GetBinContent(i,j);
+                filtered_pixels--;
+            }
 
             h_out->SetBinContent(i,j,val);
         }
     }
+    return filtered_pixels;
 }
 
 double findMedian(double a[], int n)// Function for calculating median

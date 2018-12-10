@@ -2056,6 +2056,8 @@ int function_9(Int_t i)
     h_rp1_x->SetLineWidth(2);
     h_rp1_x->Draw("hist");
 
+    TH1D* h_rp1_x_clone = h_rp1_x->Clone("h_rp1_x_clone");
+
     TF1* fit_funct_ch_bkg;
 
     if(expo_fit_bkg_status[i] == 1)
@@ -2117,6 +2119,8 @@ int function_9(Int_t i)
     h_rp1_x_s_s->SetLineColor(kRed);
     h_rp1_x_s_s->SetLineWidth(2);
     h_rp1_x_s_s->Draw("same & hist");
+
+    TH1D* h_rp1_x_s_s_clone = h_rp1_x_s_s->Clone("h_rp1_x_s_s_clone");
 
     name = "c_4_";
     name += i;
@@ -2329,6 +2333,63 @@ int function_9(Int_t i)
         }
     }
     outputASCII_ratio.close();
+
+    // 07/12/2018
+    cout<<endl;
+    cout<<endl;
+
+    // without background
+    Double_t aa, bb, Ncount, Ncount_err, Ncount_tot, Ncount_tot_err;
+
+    aa = 0.0;
+    bb = 0.2;
+    Ncount      = h_rp1_x_s_s_clone->IntegralAndError(h_rp1_x_s_s_clone->FindBin(aa),h_rp1_x_s_s_clone->FindBin(bb),Ncount_err);
+    Ncount_tot  = h_rp1_x_s_s_clone->IntegralAndError(1,h_rp1_x_s_s_clone->GetNbinsX(),Ncount_tot_err);
+
+    cout<<"--> Without backgound"<<endl;
+    cout<<"--> Ncount = "<<Ncount<<" +/- "<<Ncount_err<<endl;
+    cout<<"--> Ncount_tot = "<<Ncount_tot<<" +/- "<<Ncount_tot_err<<endl;
+    cout<<"--> Ncount/Ncount_tot = "<<Ncount/Ncount_tot<<" +/- "
+       <<TMath::Sqrt(TMath::Power(Ncount_err/Ncount_tot,2) + TMath::Power(Ncount*Ncount_tot_err/(Ncount_tot*Ncount_tot),2))<<endl;
+
+    name = "c_6_";
+    name += i;
+    TCanvas* c_6 = new TCanvas(name.Data(),name.Data(),1000,500);
+    c_6->cd();
+    h_rp1_x_s_s_clone->SetLineColor(kBlue);
+    h_rp1_x_s_s_clone->Draw("hist&e1");
+
+    TLine *line_aa = new TLine(aa,0,aa,h_rp1_x_s_s_clone->GetMaximum());
+    line_aa->SetLineColor(kRed);
+    line_aa->SetLineWidth(3);
+    line_aa->SetLineStyle(7);
+    line_aa->Draw();
+
+    TLine *line_bb = new TLine(bb,0,bb,h_rp1_x_s_s_clone->GetMaximum());
+    line_bb->SetLineColor(kRed);
+    line_bb->SetLineWidth(3);
+    line_bb->SetLineStyle(7);
+    line_bb->Draw();
+
+    // with background
+    Ncount      = h_rp1_x_clone->IntegralAndError(h_rp1_x_clone->FindBin(aa),h_rp1_x_clone->FindBin(bb),Ncount_err);
+    Ncount_tot  = h_rp1_x_clone->IntegralAndError(1,h_rp1_x_clone->GetNbinsX(),Ncount_tot_err);
+
+    cout<<"--> With backgound"<<endl;
+    cout<<"--> Ncount = "<<Ncount<<" +/- "<<Ncount_err<<endl;
+    cout<<"--> Ncount_tot = "<<Ncount_tot<<" +/- "<<Ncount_tot_err<<endl;
+    cout<<"--> Ncount/Ncount_tot = "<<Ncount/Ncount_tot<<" +/- "
+       <<TMath::Sqrt(TMath::Power(Ncount_err/Ncount_tot,2) + TMath::Power(Ncount*Ncount_tot_err/(Ncount_tot*Ncount_tot),2))<<endl;
+
+    name = "c_7_";
+    name += i;
+    TCanvas* c_7 = new TCanvas(name.Data(),name.Data(),1000,500);
+    c_7->cd();
+    h_rp1_x_clone->SetLineColor(kBlue);
+    h_rp1_x_clone->Draw("hist&e1");
+
+    line_aa->Draw();
+    line_bb->Draw();
 
     return 0;
 }

@@ -29,7 +29,7 @@ using namespace std;
 int plot_tree()
 {
     TChain* fChain = new TChain("Tree");
-    fChain->Add("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/SPS_2018_11_26_L3_RP1I_RUN_1.root");
+    fChain->Add("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_11_27_B05_RUN_1.root");
 
     cout<<fChain->GetEntries()<<endl;
 
