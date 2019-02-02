@@ -6,10 +6,6 @@ CPPFLAGS += $(shell $(ROOTSYS)/bin/root-config --cflags)
 EXTRALIBS += $(shell $(ROOTSYS)/bin/root-config --libs)
 LDLIBS += $(shell $(ROOTSYS)/bin/root-config --libs)
 
-#ROOTCFLAGS    = $(shell /usr/bin/root-config --cflags)
-#ROOTLIBS      = $(shell /usr/bin/root-config --libs)
-#ROOTGLIBS     = $(shell /usr/bin/root-config --glibs)
-
 CXX           = g++
 CXXFLAGS      = -g -Wall -fPIC -Wno-deprecated
 

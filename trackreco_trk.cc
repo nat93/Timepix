@@ -150,9 +150,11 @@ int main(int argc, char *argv[])
         fChain[i]->SetBranchAddress("EventID",         &event_id_clinfo);
         fChain[i]->SetBranchAddress("Clock",           &_Clock);
         fChain[i]->SetBranchAddress("Gate",            &_Gate);
-
-        nEntries[i] = (fChain[i]->GetEntries());
+    }
+    for(Int_t i = 0; i < N_MAX_CHIP; i++)
+    {
         fChain[i]->GetEntry(0);
+        nEntries[i] = (fChain[i]->GetEntries());
         cout<<"--> ChipID: "<<i<<endl;
         cout<<"--> InputFileName: "<<inFileName<<endl;
         cout<<"--> Number of nEntries: "<<nEntries[i]<<endl<<endl;
@@ -306,12 +308,8 @@ int main(int argc, char *argv[])
     TH2D* h80 = new TH2D("h80","Y position on Plane 3 vs Y position on Plane 1",400,-20,20,400,-20,20);
     TH2D* h81 = new TH2D("h81","Y position on Plane 3 vs Y position on Plane 2",400,-20,20,400,-20,20);
 
-
-
     TH1D* h83 = new TH1D("h83","#Theta_{X}^{Arm 1} - #Theta_{X}^{Arm 2}",2000,-1000,1000);
     TH1D* h84 = new TH1D("h84","#Theta_{Y}^{Arm 1} - #Theta_{Y}^{Arm 2}",2000,-1000,1000);
-
-
 
     TH2D* h85 = new TH2D("h85","#Delta#Theta_{X} vs X position",200,-10,10,100000,-0.1,0.1);
     TProfile *h86 = new TProfile("h86","Profile: #Delta_{X} Plane3-0 vs Y position on Plane 0",400,-20,20,-20,20);
@@ -1718,4 +1716,39 @@ void GetRotaion(Int_t planeID, Double_t &x_pos, Double_t &y_pos, Double_t &x_pos
 
     x_pos_err = TMath::Sqrt(TMath::Power(x_pos_err_old,2) + TMath::Power(p1_err*y_pos_old,2) + TMath::Power(p1*y_pos_err_old,2));
     y_pos_err = TMath::Sqrt(TMath::Power(y_pos_err_old,2) + TMath::Power(p1_err*x_pos_old,2) + TMath::Power(p1*x_pos_err_old,2));
+
+//    Double_t p0x, p1x, p0y, p1y;
+//    switch (planeID)
+//    {
+//    case 0:
+//        p0x =  0.1694;
+//        p1x =  0.0006226;
+//        p0y =  0.09406;
+//        p1y = -0.001413;
+//        break;
+//    case 1:
+//        p0x =  0.1719;
+//        p1x = -0.03652;
+//        p0y =  0.07538;
+//        p1y =  0.03714;
+//        break;
+//    case 2:
+//        p0x =  0.06158;
+//        p1x = -0.005974;
+//        p0y =  0.01573;
+//        p1y =  0.006431;
+//        break;
+//    default:
+//        p0x = 0.0;
+//        p1x = 0.0;
+//        p0y = 0.0;
+//        p1y = 0.0;
+//        break;
+//    }
+
+//    Double_t x_pos_old      = x_pos;
+//    Double_t y_pos_old      = y_pos;
+
+//    x_pos = x_pos_old + (p0x + p1x*y_pos_old);
+//    y_pos = y_pos_old + (p0y + p1y*x_pos_old);
 }

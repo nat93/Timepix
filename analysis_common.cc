@@ -186,6 +186,7 @@ int main(int argc, char *argv[])
     TH1D* h_29  = new TH1D("h_29","Number of Fired Pixels per frame",3e5,0,3e5);
     TH1D* h_30  = new TH1D("h_30","Number of Fired Pixels per frame (cut)",3e5,0,3e5);
     TH1D* h_31  = new TH1D("h_31","Cluster Volume",1e5,0,1e5);
+    TH2D* h_32  = new TH2D("h_32","Y vs X vs ToA (only one frame)",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
 
     h_com_1     = new TH1D("h_com_1","#Delta Time inside cluster",2*N_MAX_CLOCKS-1,-_Gate*1e6,_Gate*1e6);
     h_com_2     = new TH2D("h_com_2","#Delta Time inside cluster VS Cluster size",50,0,50,2*N_MAX_CLOCKS-1,-_Gate*1e6,_Gate*1e6);
@@ -203,11 +204,6 @@ int main(int argc, char *argv[])
 //    nEntries /= 50;
     for(Long64_t i = 0; i < nEntries; i++)
     {
-//        if(i < 33300 || i > 33600) continue;
-
-//        if(i != 33314) continue;
-//        if(i != 20004) continue;
-
         if(i%1 == 0)
         {
             printf("\r--> Working: %3.1f %%",100*(Double_t)i/nEntries);
@@ -326,7 +322,11 @@ int main(int argc, char *argv[])
 
                                 h_8->Fill(event_time/1000.0,yi,1);
                                 h_9->Fill(event_time/1000.0,xi,1);
-                                if(i == 190) h_12->Fill(TOA*1e6);
+                                if(i == 13)
+                                {
+                                    h_12->Fill(TOA*1e6);
+                                    h_32->Fill(xi,yi,TOA*1e6);
+                                }
                             }
                         }
                         else
@@ -489,6 +489,8 @@ int main(int argc, char *argv[])
     h_28->GetXaxis()->SetTitle("Cluster size [pixels/cluster]");
     h_28->GetYaxis()->SetTitle("Cluster volume [counts/cluster]");
     h_31->GetYaxis()->SetTitle("Cluster volume [counts/cluster]");
+    h_32->GetXaxis()->SetTitle("X [pixels]");
+    h_32->GetYaxis()->SetTitle("Y [pixels]");
 
     h_com_1->GetXaxis()->SetTitle("#Delta Time [#mus]");
     h_com_1->GetYaxis()->SetTitle("Pixels in a cluster");
@@ -539,6 +541,7 @@ int main(int argc, char *argv[])
     h_29->Write();
     h_30->Write();
     h_31->Write();
+    h_32->Write();
 
     h_com_1->Write();
     h_com_2->Write();
