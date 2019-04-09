@@ -49,7 +49,7 @@ void scale1Dhisto(TH1D* histo, Double_t integral, Double_t integral_err);
 void scale2Dhisto(TH2D* histo, Double_t integral, Double_t integral_err);
 void scale2Dhisto_YT(TH2D* histo);
 void rotateNscale(TH2D* h_in, TH2D* h_out);
-void rewriteHisto(TH2D* h_in, TH2D* h_out);
+void rewriteHisto(TH2D* h_in, TH2D* h_out, TH1D* h_fills);
 double getAverage2D(TH2D* histo);
 int median_filter(TH2D* h_in, TH2D* h_out, Double_t factor_bad_pixels);
 double findMedian(double a[], int n);
@@ -83,8 +83,8 @@ void function_1()
     Double_t _Timems;
     Long64_t _COUNTS[N_PIXELS*2][N_PIXELS*2];
 
-    TString inFileName1     = "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L2_RUN_8.root";
-    TString outFileName     = "output_L2_chipid_1.root";
+    TString inFileName1     = "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_L1_RUN_8.root";
+    TString outFileName     = "output_L1_chipid_1.root";
 
     TString tree_name;
     tree_name = "Tree_";
@@ -128,6 +128,7 @@ void function_1()
     TH2D* h_9   = new TH2D("h_9","X vs Time",(UT_max-UT_min)/1000.0,UT_min/1000.0,UT_max/1000.0,N_PIXELS,0,N_PIXELS);
     TH2D* h_4   = new TH2D("h_4","RP1 Internal (normalized)",N_PIXELS,0,N_PIXELS*0.055,N_PIXELS,0,N_PIXELS*0.055);
     TH1D* h_5   = new TH1D("h_5","Number of the filtered pixels per frame",10000,0,10000);
+    TH1D* h_6   = new TH1D("h_6","Number of fills for ech bin, for h_8/h_rp1_6 hists",(UT_max-UT_min)/1000.0,UT_min/1000.0,UT_max/1000.0);
 
     h_4->GetXaxis()->SetTitle("Horizontal Axis [mm]");
     h_4->GetXaxis()->SetTimeOffset(1.2);
@@ -206,12 +207,13 @@ void function_1()
             for(Int_t yi = 0; yi < N_PIXELS; yi++)
             {
                 h_3->Fill(xi,yi,h_2->GetBinContent(xi+1,yi+1));
-                h_8->Fill(event_time/1000.0,yi,h_2->GetBinContent(xi+1,yi+1));
+                h_8->Fill(event_time/1000.0,yi,h_2->GetBinContent(xi+1,yi+1));                
 
                 if(yi < 100)
                     h_9->Fill(event_time/1000.0,xi,h_2->GetBinContent(xi+1,yi+1));
             }
         }
+        h_6->Fill(event_time/1000.0);
 
         for(Int_t yi = 1; yi <= h_8->GetNbinsY(); yi++)
         {
@@ -275,8 +277,8 @@ void function_1()
     integral = h_3->IntegralAndError(1,h_3->GetNbinsX(),1,h_3->GetNbinsY(),integral_err);
     scale2Dhisto(h_3,integral,integral_err);
 
-    rewriteHisto(h_8,h_rp1_6);
-    rewriteHisto(h_9,h_rp1_7);
+    rewriteHisto(h_8,h_rp1_6,h_6);
+    rewriteHisto(h_9,h_rp1_7,h_6);
 
     rotateNscale(h_3,h_4);
 
@@ -331,6 +333,7 @@ void function_1()
     h_8->Write();
     h_9->Write();
     h_5->Write();
+    h_6->Write();
     h_rp1_6->Write();
     h_rp1_7->Write();
 
@@ -350,6 +353,7 @@ void function_2()
 
     Double_t time_start = 1537238370;   // Tuesday, 18 September 2018, 04:39:30
     Double_t time_stop  = 1537238880;   // Tuesday, 18 September 2018, 04:48:00
+    Double_t ch_position = 1820;        // LVDT position of the best ch orientation in urad
 
 //    to fit with splines
 //    TSpline3 *_cry3_angularscan_spline = new TSpline3("_cry3_angularscan_spline",_cry3_angularscan);
@@ -359,31 +363,47 @@ void function_2()
     _cry3_angularscan->Fit(_cry3_angularscan_spline,"R+");
 
     TH2D* h_chip1_1 = (TH2D*)_file_chipid_chip1->Get("h_rp1_6");
-    TH2D* h_chip1_2 = new TH2D("h_chip1_HvsA","h_chip1_HvsA",600,1400,2000,N_PIXELS,0,N_PIXELS*0.055);
+
+    // You have to put the number of bins much higher tht the sampling of the angles, in order to be sure that you will not overwrite any bin (e.g. 30000)
+    TH2D* h_chip1_2 = new TH2D("h_chip1_HvsA","h_chip1_HvsA",120*100,1400-ch_position,2000-ch_position,N_PIXELS,0,N_PIXELS*0.055);
+    TH1D* h_chip1_3 = new TH1D("h_chip1_HvsA_nFills","h_chip1_HvsA_nFills",120*100,1400-ch_position,2000-ch_position);
 
     for(Int_t i = 1; i <= h_chip1_1->GetNbinsX(); i++)
     {
+        Double_t _time      = h_chip1_1->GetXaxis()->GetBinCenter(i);
+        Double_t _angle     = (-1)*_cry3_angularscan_spline->Eval(_time)-ch_position;
+
         for(Int_t j = 1; j <= h_chip1_1->GetNbinsY(); j++)
-        {
-            Double_t _time      = h_chip1_1->GetXaxis()->GetBinCenter(i);
-            Double_t _angle     = (-1)*_cry3_angularscan_spline->Eval(_time);
-            Double_t _position  = h_chip1_1->GetYaxis()->GetBinCenter(j);
+        {            
             Double_t _value     = h_chip1_1->GetBinContent(i,j);
             Double_t _value_err = h_chip1_1->GetBinError(i,j);
 
             if(_time > time_start && _time < time_stop)
             {
-                h_chip1_2->SetBinContent(h_chip1_2->GetXaxis()->FindBin(_angle),h_chip1_2->GetYaxis()->FindBin(_position),_value);
-                h_chip1_2->SetBinError(h_chip1_2->GetXaxis()->FindBin(_angle),h_chip1_2->GetYaxis()->FindBin(_position),_value_err);
-
-//                h_chip1_2->Fill(_angle,_position,_value);
+                h_chip1_2->SetBinContent(h_chip1_2->GetXaxis()->FindBin(_angle),j,_value);
+                h_chip1_2->SetBinError(h_chip1_2->GetXaxis()->FindBin(_angle),j,_value_err);
             }
+        }
+        h_chip1_3->Fill(_angle);
+    }
+    h_chip1_3->Rebin( 100 );
+    h_chip1_2->RebinX( 100 );
+
+    for(Int_t xi = 1; xi <= h_chip1_2->GetNbinsX(); xi++)
+    {
+        Int_t nFills = h_chip1_3->GetBinContent(xi);
+        if(nFills < 1) h_chip1_3 = 1;
+
+        for(Int_t yi = 1; yi <= h_chip1_2->GetNbinsY(); yi++)
+        {
+            h_chip1_2->SetBinContent(xi,yi,h_chip1_2->GetBinContent(xi,yi)/nFills);
+            h_chip1_2->SetBinError(xi,yi,h_chip1_2->GetBinError(xi,yi)/nFills);
         }
     }
 
-    TH1D* h_chip1_2_projection = (TH1D*)h_chip1_2->ProjectionY("h_chip1_2_projection",h_chip1_2->GetXaxis()->FindBin(1760),h_chip1_2->GetXaxis()->FindBin(1880));
-    TH1D* h_chip1_3_projection = (TH1D*)h_chip1_2->ProjectionX("h_chip1_3_projection",h_chip1_2->GetYaxis()->FindBin(1.5),h_chip1_2->GetYaxis()->FindBin(5.5));
+    cout<<endl<<"--> Bin = "<<h_chip1_2->GetXaxis()->GetBinWidth(0)<<" [urad]"<<endl<<endl;
 
+    TFile* outFile = new TFile("function2_out.root","RECREATE");
     TCanvas* c_0 = new TCanvas("c_0","c_0",1000,1000);
     c_0->cd();
     gPad->SetGrid();
@@ -392,18 +412,31 @@ void function_2()
     _cry3_angularscan_spline->SetLineColor(kRed);
     _cry3_angularscan_spline->SetLineWidth(2);
     _cry3_angularscan_spline->Draw("same & L");
+    c_0->Write();
+    _cry3_angularscan->Write();
 
     TCanvas* c_1 = new TCanvas("c_1","c_1",1800,900);
     c_1->cd();
     gPad->SetGrid();
-    h_chip1_2->GetXaxis()->SetRange(h_chip1_2->GetXaxis()->FindBin(1760),h_chip1_2->GetXaxis()->FindBin(1880));
+//    h_chip1_2->GetXaxis()->SetRange(h_chip1_2->GetXaxis()->FindBin(1760),h_chip1_2->GetXaxis()->FindBin(1880));
     h_chip1_2->SetTitle("");
     h_chip1_2->GetXaxis()->CenterTitle();
     h_chip1_2->GetXaxis()->SetTitle("CRYSTAL3 LVDT Angle [#murad]");
     h_chip1_2->GetYaxis()->CenterTitle();
     h_chip1_2->GetYaxis()->SetTitle("Projection on Horizontal Axis [mm]");
     h_chip1_2->Draw("colz");
+    c_1->Write();
+    h_chip1_2->Write();
 
+    TCanvas* c_fills = new TCanvas("c_fills","c_fills",1000,1000);
+    c_fills->cd();
+    h_chip1_3->Draw();
+    c_fills->Write();
+    h_chip1_3->Write();
+
+/* For angular distribution
+    TH1D* h_chip1_2_projection = (TH1D*)h_chip1_2->ProjectionY("h_chip1_2_projection",h_chip1_2->GetXaxis()->FindBin(1760),h_chip1_2->GetXaxis()->FindBin(1880));
+    TH1D* h_chip1_3_projection = (TH1D*)h_chip1_2->ProjectionX("h_chip1_3_projection",h_chip1_2->GetYaxis()->FindBin(1.5),h_chip1_2->GetYaxis()->FindBin(5.5));
     TCanvas* c_2 = new TCanvas("c_2","c_2",900,900);
     c_2->cd();
     gPad->SetGrid();
@@ -464,7 +497,9 @@ void function_2()
     cout<<"--> chi2/ndf = "<<fit_2->GetChisquare()<<"/"<<fit_2->GetNDF()<<endl;
     cout<<"--> Constant = "<<fit_2->GetParameter(0)<<" +/- "<<fit_2->GetParError(0)<<endl;
     cout<<"--> Mean = "<<fit_2->GetParameter(1)<<" +/- "<<fit_2->GetParError(1)<<endl;
-    cout<<"--> Sigma = "<<fit_2->GetParameter(2)<<" +/- "<<fit_2->GetParError(2)<<endl;
+    cout<<"--> Sigma = "<<fit_2->GetParameter(2)<<" +/- "<<fit_2->GetParError(2)<<endl;*/
+
+    outFile->Close();
 }
 
 void function_3()
@@ -522,7 +557,7 @@ void function_3()
 void function_4()
 {
     gStyle->SetOptStat(0);
-    TString fileName_RP1 = "output_L2_chipid_1.root";
+    TString fileName_RP1 = "output_L8_chipid_1.root";
 
     Double_t fit_bkg_lim_min = 12.7;
     Double_t fit_bkg_lim_max = 13.2;
@@ -637,6 +672,18 @@ void function_4()
     cout<<"--> integral_doublech/integral_total = "<<(Double_t)integral_doublech/integral_total<<" +/- "<<
           TMath::Sqrt(TMath::Power(integral_doublech_err/integral_total,2) + TMath::Power(integral_doublech*integral_total_err/(integral_total*integral_total),2))<<endl;
 
+    fileName_RP1 += "_ProjectionFit.root";
+    TFile* output = new TFile(fileName_RP1.Data(),"RECREATE");
+    c_1->Write();
+    c_2->Write();
+    c_3->Write();
+    c_4->Write();
+
+    h_rp1->Write();
+    h_rp1_x->Write();
+    h_rp1_x_s->Write();
+    h_rp1_x_s_s->Write();
+    output->Close();
 }
 
 void function_5()
@@ -1953,14 +2000,18 @@ void rotateNscale(TH2D* h_in, TH2D* h_out)// to rotate and scale from pixels to 
     }
 }
 
-void rewriteHisto(TH2D* h_in, TH2D* h_out)// to rewrite a histogram
+void rewriteHisto(TH2D* h_in, TH2D* h_out, TH1D *h_fills)// to rewrite a histogram
 {
+    Int_t nFills = 0;
     for(Int_t i = 1; i <= h_in->GetNbinsX(); i++)
     {
+        nFills = h_fills->GetBinContent(i);
+        if(nFills < 1) nFills = 1;
+
         for(Int_t j = 1; j <= h_in->GetNbinsY(); j++)
         {
-            h_out->SetBinContent(i,j,h_in->GetBinContent(i,j));
-            h_out->SetBinError(i,j,h_in->GetBinError(i,j));
+            h_out->SetBinContent(i,j,h_in->GetBinContent(i,j)/nFills);
+            h_out->SetBinError(i,j,h_in->GetBinError(i,j)/nFills);
         }
     }
 }
