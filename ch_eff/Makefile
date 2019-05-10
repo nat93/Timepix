@@ -25,9 +25,10 @@ OUTLIB	      = ./obj/
 
 #----------------------------------------------------#
 
-all: sps_md_analysis_17_10_2017_thesis sps_md_analysis_17_09_2018_thesis
+all: sps_md_analysis_17_10_2017_thesis sps_md_analysis_17_09_2018_thesis sps_md_analysis_07_11_2018_thesis
 
 clean:
 	rm -f *~
 	rm -f sps_md_analysis_17_10_2017_thesis
 	rm -f sps_md_analysis_17_09_2018_thesis
+	rm -f sps_md_analysis_07_11_2018_thesis

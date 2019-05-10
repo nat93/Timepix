@@ -118,53 +118,29 @@ void function_1()
 
     //********************************************************//
     //********************************************************//
-    // CRYSTAL2 Angular Scan
-    // 2018_09_17
-//    Long64_t minUnixTime_run    = 1537206118;
-//    Long64_t maxUnixTime_run    = 1537206480;
-//    Long64_t entryINI           = 0;
+    // CRYSTAL3 in AM
+    // 2018_11_07
+//    Long64_t minUnixTime_run    = 1541590200;
+//    Long64_t maxUnixTime_run    = 1541590680;
+//    Long64_t entryINI           = 26200;
 
-    // CRYSTAL3 Linear Scan
-    // 2018_09_17
-//    Long64_t minUnixTime_run    = 1537208927;
-//    Long64_t maxUnixTime_run    = 1537209478;
-//    Long64_t entryINI           = 2800;
+    // CRYSTAL3 in CH AM VR
+    // 2018_11_07
+//    Long64_t minUnixTime_run    = 1541591700;
+//    Long64_t maxUnixTime_run    = 1541600400;
+//    Long64_t entryINI           = 28000;
 
-    // CRYSTAL3 Fine Linear Scan
-    // 2018_09_17
-//    Long64_t minUnixTime_run    = 1537218019;
-//    Long64_t maxUnixTime_run    = 1537218120;
-//    Long64_t entryINI           = 12700;
+    // CRYSTAL3 in Angular Scan
+    // 2018_11_07
+//    Long64_t minUnixTime_run    = 1541595270;
+//    Long64_t maxUnixTime_run    = 1541598703;
+//    Long64_t entryINI           = 35800;
 
-    // CRYSTAL3 Angular Scan
-    // 2018_09_18
-//    Long64_t minUnixTime_run    = 1537238369;
-//    Long64_t maxUnixTime_run    = 1537238894;
-//    Long64_t entryINI           = 31700;
-
-    // CRYSTAL3 in CH, Double-channeling perfect orientation
-    // 2018_09_18
-//    Long64_t minUnixTime_run    = 1537233727;
-//    Long64_t maxUnixTime_run    = 1537233912;
-//    Long64_t entryINI           = 27000;
-
-    // CRYSTAL3 in CH, Double-channeling for CpFM and LHC COLL comparison
-    // 2018_09_18
-//    Long64_t minUnixTime_run    = 1537240380;
-//    Long64_t maxUnixTime_run    = 1537240560;
-//    Long64_t entryINI           = 33500;
-
-    // CRYSTAL3 in AM, LHC COLL SCAN
-    // 2018_09_18
-//    Long64_t minUnixTime_run    = 1537239635;
-//    Long64_t maxUnixTime_run    = 1537240164;
-//    Long64_t entryINI           = 32800;
-
-    // CRYSTAL3 in CH, LHC COLL SCAN
-    // 2018_09_18
-    Long64_t minUnixTime_run    = 1537240613;
-    Long64_t maxUnixTime_run    = 1537241139;
-    Long64_t entryINI           = 33700;
+    // CRYSTAL3 in CH
+    // 2018_11_07
+    Long64_t minUnixTime_run    = 1541598760;
+    Long64_t maxUnixTime_run    = 1541598940;
+    Long64_t entryINI           = 43300;
 
 
 
@@ -172,11 +148,6 @@ void function_1()
     Double_t filterFactor       = 2.0;
     TString outputFileName      = "output_function_1_RP1.root";
     Int_t chipID = 1;
-
-    //========= RomanPot 0 =========//
-//    Double_t filterFactor       = 2.0;
-//    TString outputFileName      = "output_function_1_RP0.root";
-//    Int_t chipID = 3;
     //********************************************************//
     //********************************************************//
 
@@ -193,7 +164,7 @@ void function_1()
     Double_t _Timems;
     Long64_t _COUNTS[N_PIXELS*2][N_PIXELS*2];
 
-    TString _fileName   = "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_RUN_8.root";
+    TString _fileName   = "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_11_07_RUN_1.root";
 
     TString tree_name;
     tree_name = "Tree_";
@@ -357,8 +328,8 @@ void function_2()
 {
     cout<<endl<<">>> function_2() <<<"<<endl;
 
-    TString Inputfilename   = "blm1_crystal3_ch_collimator_linear_scan_2018_09_17.dat";
-    TString Outputfilename   = "blm1_crystal3_ch_collimator_linear_scan_2018_09_17.root";
+    TString Inputfilename   = "crystal3_angular_scan_2018_11_07.dat";
+    TString Outputfilename   = "crystal3_angular_scan_2018_11_07.root";
 
     TFile *file = new TFile(Outputfilename.Data(),"recreate");
     TTree *tree = new TTree("Tree","A Root Tree");
@@ -392,8 +363,8 @@ void function_3()
 {
     cout<<endl<<">>> function_3() <<<"<<endl;
 
-    TString Inputfilename   = "bctdc_crystal3_ch_collimator_linear_scan_2018_09_17.dat";
-    TString Outputfilename   = "bctdc_crystal3_ch_collimator_linear_scan_2018_09_17.root";
+    TString Inputfilename   = "bctdc_crystal3_ch_target_2018_11_07.dat";
+    TString Outputfilename   = "bctdc_crystal3_ch_target_2018_11_07.root";
 
     TFile *file = new TFile(Outputfilename.Data(),"recreate");
     TTree *tree = new TTree("Tree","A Root Tree");
@@ -804,12 +775,12 @@ void function_6()
     // 2018_09_17
     TString output_file_name    = "output_function_6_RP1.root";
     TString input_file_tpx      = "output_function_1_RP1.root";
-    TString input_file_motor    = "crystal3_angularscan_2018_09_17.root";
-    Long64_t minUnixTime_run    = 1537238369;
-    Long64_t maxUnixTime_run    = 1537238894;
-    Int_t angBins               = 6000;
-    Double_t angLimMin          = -2000;
-    Double_t angLimMax          = -1400;
+    TString input_file_motor    = "crystal3_angular_scan_2018_11_07.root";
+    Long64_t minUnixTime_run    = 1541595270;
+    Long64_t maxUnixTime_run    = 1541598703;
+    Int_t angBins               = 4000;
+    Double_t angLimMin          = 400;
+    Double_t angLimMax          = 800;
 
     //=============================================================//
 
@@ -859,7 +830,7 @@ void function_6()
         hh_10->Fill(untime_motor,angle);
 
         gr_0->SetPoint(gr_0_iter,untime_motor-minUnixTime_run,angle);
-        gr_0->SetPointError(gr_0_iter,0.001,0.001);
+        gr_0->SetPointError(gr_0_iter,0.001,0.1);
         gr_0_iter++;
     }
     cout<<endl;

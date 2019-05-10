@@ -116,9 +116,9 @@ void function_1()
     //------------------------------------------------------------------------------//
     // CRYSTAL2 Angular Scan
     // 2017_10_17
-    Long64_t minUnixTime_run    = 1508258897;
-    Long64_t maxUnixTime_run    = 1508259288;
-    Long64_t entryINI           = 271700;
+//    Long64_t minUnixTime_run    = 1508258897;
+//    Long64_t maxUnixTime_run    = 1508259288;
+//    Long64_t entryINI           = 271700;
     //------------------------------------------------------------------------------//
     // CRYSTAL4 Angular Scan
     // 2017_10_17
@@ -128,9 +128,9 @@ void function_1()
     //------------------------------------------------------------------------------//
     // CRYSTAL2 in CH, step1
     // 2017_10_17
-//    Long64_t minUnixTime_run    = 1508282585;
-//    Long64_t maxUnixTime_run    = 1508282948;
-//    Long64_t entryINI           = 438300;
+    Long64_t minUnixTime_run    = 1508282585;
+    Long64_t maxUnixTime_run    = 1508282948;
+    Long64_t entryINI           = 438300;
     //------------------------------------------------------------------------------//
     // CRYSTAL2 in CH, step2
     // 2017_10_17
@@ -182,7 +182,7 @@ void function_1()
 //    Long64_t minUnixTime_run    = 1508292393;
 //    Long64_t maxUnixTime_run    = 1508292582;
 //    Long64_t entryINI           = 505482;
-
+    //------------------------------------------------------------------------------//
 
     Bool_t entryINIstatus       = kFALSE;
     //------------------------------------------------------------------------------//
