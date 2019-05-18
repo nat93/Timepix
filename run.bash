@@ -21,7 +21,7 @@
 
 #data_dir=/media/andrii/NATOCHII_HDD/DELETE_2020_Medipix/SPS_DATA/MD_2017_10_17/TIMEPIX;
 
-for runrunID in $(seq 8 1 8)
+for runrunID in $(seq 3 1 3)
 do
 
     #1
@@ -85,8 +85,9 @@ do
 
     #5
 
-#    make clean; make trackreco_trk;
-#    ./trackreco_trk H8_Test_Beam_2018_04_11_pions_CLUSTERINFO_RUN_$runrunID.root H8_Test_Beam_2018_04_11_pions_TRACKINFO_RUN_MODE_2_RUN_$runrunID.root 2
+    make clean; make trackreco_trk;
+    ./trackreco_trk H8_Test_Beam_2018_04_11_pions_CLUSTERINFO_RUN_$runrunID.root outputFile.root 5
+#    ./trackreco_trk H8_Test_Beam_2018_04_11_pions_CLUSTERINFO_RUN_$runrunID.root H8_Test_Beam_2018_04_11_pions_TRACKINFO_RUN_MODE_2_RUN_$runrunID.root 4
 
 done
 
