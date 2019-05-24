@@ -25,13 +25,11 @@ OUTLIB	      = ./obj/
 
 #----------------------------------------------------#
 
-all: ascii2root_common csv2root_common convert_common analysis_common analysis_trk trackreco_trk
+all: sps_md_analysis_17_10_2017_thesis sps_md_analysis_17_09_2018_thesis sps_md_analysis_07_11_2018_thesis ion_analysis
 
 clean:
 	rm -f *~
-	rm -f ascii2root_common
-	rm -f csv2root_common
-	rm -f convert_common
-	rm -f analysis_common
-	rm -f analysis_trk
-	rm -f trackreco_trk
+	rm -f sps_md_analysis_17_10_2017_thesis
+	rm -f sps_md_analysis_17_09_2018_thesis
+	rm -f sps_md_analysis_07_11_2018_thesis
+	rm -f ion_analysis

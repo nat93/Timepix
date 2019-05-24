@@ -4,9 +4,12 @@
 ## SPS MD auto check new files on DFS and convert to ROOT ##
 ##--------------------------------------------------------##
 
-data_dir_in=/home/andrii/dfs/Experiments/UA9/Students\ archive/Andrii/Timepix_SPS_protons/SPS_MD_2017_10_17/;
-data_dir_out=/home/andrii/Medipix/SPS_DATA/MD_2017_10_17/TIMEPIX/;
-make ascii2root_v5;
+# To mount DFS on the PC
+# sudo mount -t davfs https://dfs.cern.ch/dfs ./dfs -o username=ua9user
+
+data_dir_in=/home/andrii/dfs/Experiments/UA9/Students\ archive/Andrii/Timepix_SPS_protons/SPS_MD_2018_11_07/RUN_1/;
+data_dir_out=/media/andrii/F492773C92770302/MedipixData/SPS_DATA/MD_2018_11_07/RUN_1/;
+make ascii2root_common;
 
 nfiles_old=$(ls -1 "$data_dir_in"*.dat | wc -l); # Initial number of files in the directory
 ls "$data_dir_in"*.dat > filelist1.dat; # Initial list of the files in the directory
@@ -16,7 +19,7 @@ do
     filename=$(basename "$fullfile");
     extension="${filename##*.}";
     filename="${filename%.*}";
-    ./ascii2root_v5 "$fullfile" $data_dir_out$filename.root;
+    ./ascii2root_common "$fullfile" $data_dir_out$filename.root;
 done
 
 echo "";
@@ -42,7 +45,7 @@ while true; do
             then # run the script
                 filename=$(basename "$fullfile_new");
                 filename="${filename%.*}";
-                ./ascii2root_v5 "$fullfile_new" $data_dir_out$filename.root;
+                ./ascii2root_common "$fullfile_new" $data_dir_out$filename.root;
             fi
         done
         ls "$data_dir_in"*.dat > filelist1.dat;

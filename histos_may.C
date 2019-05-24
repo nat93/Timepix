@@ -30,7 +30,24 @@ using namespace std;
 bool checkpixel(TH1D *h, Int_t bin);
 void removenoizypixelsX(TH1D* h_1);
 void removenoizypixelsY(TH1D* h_1);
+void removenoizypixelsXY(TH2D* histo);
 int findcenter(TH1D* h_profile);
+
+int histos()
+{
+    cout<<"--> histos_0() -- to plot beam profiles and image for all runs"<<endl;
+    cout<<"--> histos_1() -- to plot all alignment runs on the same plots"<<endl;
+    cout<<"--> histos_2() -- to plot all runs with a septum runs and with a align run"<<endl;
+    cout<<"--> histos_3() -- to calculate areas above and bellow the zero for all runs"<<endl;
+    cout<<"--> histos_4() -- to calculate areas above and bellow the zero for the defined runs with some obstacles on the beam"<<endl;
+    cout<<"--> histos_5() -- to calculate areas above left/right and bellow the zero for all runs"<<endl;
+    cout<<"--> histos_6() -- to calculate areas above left/right and bellow the zero for the defined runs with some obstacles on the beam"<<endl;
+    cout<<"--> histos_7() -- polar coordinate convertor"<<endl;
+    cout<<"--> histos_8() -- to plot the difference between runs in 3D"<<endl;
+    cout<<"--> histos_9() -- to calculate specified areas for the defined runs with some obstacles on the beam"<<endl;
+
+    return 0;
+}
 
 int histos_0()//to plot beam profiles and image for all runs
 {
@@ -39,11 +56,12 @@ int histos_0()//to plot beam profiles and image for all runs
         TString filename = "/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_05_16_pions_RUN_HISTO_0_";
         filename += j;
         filename += ".root";
-        TFile *_file_1 = TFile::Open(filename.Data());
+        TFile *_file1 = TFile::Open(filename.Data());
 
-        TH2D* h_0 = (TH2D*)_file_1->Get("h_91");
-        TH1D* h_1 = (TH1D*)_file_1->Get("h_92");
-        TH1D* h_2 = (TH1D*)_file_1->Get("h_93");
+        TH2D* h_0 = (TH2D*)_file1->Get("h_91");
+        removenoizypixelsXY(h_0);
+        TH1D* h_1 = h_0->ProjectionX("h_92");
+        TH1D* h_2 = h_0->ProjectionY("h_93");
 
         Double_t integral_0;
         Double_t val_1, errval_1, integral_1, errintegral_1;
@@ -145,9 +163,9 @@ int histos_1()//to plot all alignment runs on the same plots
 
             TFile *_file1 = TFile::Open(filename.Data());
 
-            TH1D* h_1 = (TH1D*)_file1->Get("h_92");
-
-            removenoizypixelsX(h_1);
+            TH2D* h_0 = (TH2D*)_file1->Get("h_91");
+            removenoizypixelsXY(h_0);
+            TH1D* h_1 = h_0->ProjectionX("h_92");
 
             Double_t val_1, errval_1, integral_1, errintegral_1;
 
@@ -194,13 +212,17 @@ int histos_2()//to plot all runs with a septum runs and with a align run
         TFile *_file1 = TFile::Open(filename.Data());
         TFile *_file2 = TFile::Open("/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_05_16_pions_RUN_HISTO_0_28.root");
 
-        TH1D* h_0 = (TH1D*)_file0->Get("h_92");
-        TH1D* h_1 = (TH1D*)_file1->Get("h_92");
-        TH1D* h_2 = (TH1D*)_file2->Get("h_92");
+        TH2D* h_0_0 = (TH2D*)_file0->Get("h_91");
+        TH2D* h_0_1 = (TH2D*)_file1->Get("h_91");
+        TH2D* h_0_2 = (TH2D*)_file2->Get("h_91");
 
-        removenoizypixelsX(h_0);
-        removenoizypixelsX(h_1);
-        removenoizypixelsX(h_2);
+        removenoizypixelsXY(h_0_0);
+        removenoizypixelsXY(h_0_1);
+        removenoizypixelsXY(h_0_2);
+
+        TH1D* h_0 = h_0_0->ProjectionX("h_92_0");
+        TH1D* h_1 = h_0_1->ProjectionX("h_92_1");
+        TH1D* h_2 = h_0_2->ProjectionX("h_92_2");
 
         Double_t val_0, errval_0, integral_0, errintegral_0;
         Double_t val_1, errval_1, integral_1, errintegral_1;
@@ -255,13 +277,13 @@ int histos_2()//to plot all runs with a septum runs and with a align run
         TCanvas* c_1 = new TCanvas(canvasname_1.Data(),canvasname_1.Data(),1920,1080);
         c_1->cd();
         h_1->Draw();
-        //h_0->Draw("same");
+        h_0->Draw("same");
         h_2->Draw("same");
 
         TLegend *legend = new TLegend(0.15,0.55,0.45,0.85,"","brNDC");
         TString name = "RUN_";
         name += j;
-        //legend->AddEntry(h_0,"RUN_59","ple");
+        legend->AddEntry(h_0,"RUN_59","ple");
         legend->AddEntry(h_1,name.Data(),"ple");
         legend->AddEntry(h_2,"RUN_28","ple");
         legend->Draw();
@@ -319,14 +341,18 @@ int histos_3()// to calculate areas above and bellow the zero for all runs
         TFile *_file1 = TFile::Open(filename.Data());
         TFile *_file2 = TFile::Open("/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_05_16_pions_RUN_HISTO_0_28.root");
 
-        TH1D* h_0 = (TH1D*)_file0->Get("h_92");
-        TH1D* h_1 = (TH1D*)_file1->Get("h_92");
-        TH1D* h_2 = (TH1D*)_file2->Get("h_92");
-        TH1D* h_01 = (TH1D*)_file0->Get("h_92");
+        TH2D* h_0_0 = (TH2D*)_file0->Get("h_91");
+        TH2D* h_0_1 = (TH2D*)_file1->Get("h_91");
+        TH2D* h_0_2 = (TH2D*)_file2->Get("h_91");
 
-        removenoizypixelsX(h_0);
-        removenoizypixelsX(h_1);
-        removenoizypixelsX(h_2);
+        removenoizypixelsXY(h_0_0);
+        removenoizypixelsXY(h_0_1);
+        removenoizypixelsXY(h_0_2);
+
+        TH1D* h_0 = h_0_0->ProjectionX("h_92_0");
+        TH1D* h_1 = h_0_1->ProjectionX("h_92_1");
+        TH1D* h_2 = h_0_2->ProjectionX("h_92_2");
+        TH1D* h_01 = h_0_0->ProjectionX("h_92_01");
 
         Double_t val_0, errval_0, integral_0, errintegral_0;
         Double_t val_1, errval_1, integral_1, errintegral_1;
@@ -520,14 +546,18 @@ int histos_4()// to calculate areas above and bellow the zero for the defined ru
         TFile *_file1 = TFile::Open(filename.Data());
         TFile *_file2 = TFile::Open("/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_05_16_pions_RUN_HISTO_0_28.root");
 
-        TH1D* h_0 = (TH1D*)_file0->Get("h_92");
-        TH1D* h_1 = (TH1D*)_file1->Get("h_92");
-        TH1D* h_2 = (TH1D*)_file2->Get("h_92");
-        TH1D* h_01 = (TH1D*)_file0->Get("h_92");
+        TH2D* h_0_0 = (TH2D*)_file0->Get("h_91");
+        TH2D* h_0_1 = (TH2D*)_file1->Get("h_91");
+        TH2D* h_0_2 = (TH2D*)_file2->Get("h_91");
 
-        removenoizypixelsX(h_0);
-        removenoizypixelsX(h_1);
-        removenoizypixelsX(h_2);
+        removenoizypixelsXY(h_0_0);
+        removenoizypixelsXY(h_0_1);
+        removenoizypixelsXY(h_0_2);
+
+        TH1D* h_0 = h_0_0->ProjectionX("h_92_0");
+        TH1D* h_1 = h_0_1->ProjectionX("h_92_1");
+        TH1D* h_2 = h_0_2->ProjectionX("h_92_2");
+        TH1D* h_01 = h_0_0->ProjectionX("h_92_01");
 
         Double_t val_0, errval_0, integral_0, errintegral_0;
         Double_t val_1, errval_1, integral_1, errintegral_1;
@@ -731,14 +761,18 @@ int histos_5()// to calculate areas above left/right and bellow the zero for all
         TFile *_file1 = TFile::Open(filename.Data());
         TFile *_file2 = TFile::Open("/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_05_16_pions_RUN_HISTO_0_28.root");
 
-        TH1D* h_0 = (TH1D*)_file0->Get("h_92");
-        TH1D* h_1 = (TH1D*)_file1->Get("h_92");
-        TH1D* h_2 = (TH1D*)_file2->Get("h_92");
-        TH1D* h_01 = (TH1D*)_file0->Get("h_92");
+        TH2D* h_0_0 = (TH2D*)_file0->Get("h_91");
+        TH2D* h_0_1 = (TH2D*)_file1->Get("h_91");
+        TH2D* h_0_2 = (TH2D*)_file2->Get("h_91");
 
-        removenoizypixelsX(h_0);
-        removenoizypixelsX(h_1);
-        removenoizypixelsX(h_2);
+        removenoizypixelsXY(h_0_0);
+        removenoizypixelsXY(h_0_1);
+        removenoizypixelsXY(h_0_2);
+
+        TH1D* h_0 = h_0_0->ProjectionX("h_92_0");
+        TH1D* h_1 = h_0_1->ProjectionX("h_92_1");
+        TH1D* h_2 = h_0_2->ProjectionX("h_92_2");
+        TH1D* h_01 = h_0_0->ProjectionX("h_92_01");
 
         Double_t val_0, errval_0, integral_0, errintegral_0;
         Double_t val_1, errval_1, integral_1, errintegral_1;
@@ -978,14 +1012,18 @@ int histos_6()// to calculate areas above left/right and bellow the zero for the
         TFile *_file1 = TFile::Open(filename.Data());
         TFile *_file2 = TFile::Open("/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_05_16_pions_RUN_HISTO_0_28.root");
 
-        TH1D* h_0 = (TH1D*)_file0->Get("h_92");
-        TH1D* h_1 = (TH1D*)_file1->Get("h_92");
-        TH1D* h_2 = (TH1D*)_file2->Get("h_92");
-        TH1D* h_01 = (TH1D*)_file0->Get("h_92");
+        TH2D* h_0_0 = (TH2D*)_file0->Get("h_91");
+        TH2D* h_0_1 = (TH2D*)_file1->Get("h_91");
+        TH2D* h_0_2 = (TH2D*)_file2->Get("h_91");
 
-        removenoizypixelsX(h_0);
-        removenoizypixelsX(h_1);
-        removenoizypixelsX(h_2);
+        removenoizypixelsXY(h_0_0);
+        removenoizypixelsXY(h_0_1);
+        removenoizypixelsXY(h_0_2);
+
+        TH1D* h_0 = h_0_0->ProjectionX("h_92_0");
+        TH1D* h_1 = h_0_1->ProjectionX("h_92_1");
+        TH1D* h_2 = h_0_2->ProjectionX("h_92_2");
+        TH1D* h_01 = h_0_0->ProjectionX("h_92_01");
 
         Double_t val_0, errval_0, integral_0, errintegral_0;
         Double_t val_1, errval_1, integral_1, errintegral_1;
@@ -1154,7 +1192,7 @@ int histos_6()// to calculate areas above left/right and bellow the zero for the
     mg->Add(gr2_line,"AL");
     mg->Add(gr12,"AP");
     mg->Add(gr12_line,"AL");
-    mg->SetMaximum(5.0);
+    mg->SetMaximum(6.0);
     mg->SetMinimum(-1.0);
     mg->Draw("A");
 
@@ -1183,13 +1221,11 @@ int histos_7()// polar coordinate convertor
         TFile *_file_1 = TFile::Open(filename.Data());
 
         TH2D* h_0 = (TH2D*)_file_1->Get("h_91");
-        TH1D* h_1 = (TH1D*)_file_1->Get("h_92");
-        TH1D* h_2 = (TH1D*)_file_1->Get("h_93");
+        removenoizypixelsXY(h_0);
+        TH1D* h_1 = h_0->ProjectionX("h_92");
+        TH1D* h_2 = h_0->ProjectionY("h_93");
         TH1D* h_3 = new TH1D("h_3","Polar Angle #Phi [rad]",2.2*TMath::Pi()*1000,-1.1*TMath::Pi(),1.1*TMath::Pi());
         TH2D* h_4 = new TH2D("h_4","Y vs X vs COUNTS",300,-150,150,300,-150,150);
-
-        removenoizypixelsX(h_1);
-        removenoizypixelsY(h_2);
 
         Double_t integral_0;
         Double_t val_1, errval_1, integral_1, errintegral_1;
@@ -1329,8 +1365,11 @@ int histos_8()// to plot the difference between runs in 3D
     TH2D* h_1 = (TH2D*)_file_1->Get("h_91");
     TH2D* h_2 = (TH2D*)_file_2->Get("h_91");
 
-    TH1D* h_1y = (TH1D*)_file_1->Get("h_93");
-    TH1D* h_2y = (TH1D*)_file_2->Get("h_93");
+    removenoizypixelsXY(h_1);
+    removenoizypixelsXY(h_2);
+
+    TH1D* h_1y = h_1->ProjectionY("h_93_1");
+    TH1D* h_2y = h_2->ProjectionY("h_93_2");
 
     Double_t integral_1 = h_1->Integral();
     Double_t integral_2 = h_2->Integral();
@@ -1434,14 +1473,18 @@ int histos_9()// to calculate specified areas for the defined runs with some obs
         TFile *_file1 = TFile::Open(filename.Data());
         TFile *_file2 = TFile::Open("/home/anatochi/Medipix/ROOT_FILES/H8_Test_Beam_2018_05_16_pions_RUN_HISTO_0_28.root");
 
-        TH1D* h_0 = (TH1D*)_file0->Get("h_92");
-        TH1D* h_1 = (TH1D*)_file1->Get("h_92");
-        TH1D* h_2 = (TH1D*)_file2->Get("h_92");
-        TH1D* h_01 = (TH1D*)_file0->Get("h_92");
+        TH2D* h_0_0 = (TH2D*)_file0->Get("h_91");
+        TH2D* h_0_1 = (TH2D*)_file1->Get("h_91");
+        TH2D* h_0_2 = (TH2D*)_file2->Get("h_91");
 
-        removenoizypixelsX(h_0);
-        removenoizypixelsX(h_1);
-        removenoizypixelsX(h_2);
+        removenoizypixelsXY(h_0_0);
+        removenoizypixelsXY(h_0_1);
+        removenoizypixelsXY(h_0_2);
+
+        TH1D* h_0 = h_0_0->ProjectionX("h_92_0");
+        TH1D* h_1 = h_0_1->ProjectionX("h_92_1");
+        TH1D* h_2 = h_0_2->ProjectionX("h_92_2");
+        TH1D* h_01 = h_0_0->ProjectionX("h_92_01");
 
         Double_t val_0, errval_0, integral_0, errintegral_0;
         Double_t val_1, errval_1, integral_1, errintegral_1;
@@ -1812,3 +1855,19 @@ void removenoizypixelsY(TH1D* h_1)// to remove noizy pixels for Y profile
     }
 }
 
+void removenoizypixelsXY(TH2D* histo)// to remove noizy pixels for XY image
+{
+    Float_t factor_bad_pixels = 4;
+    for(Int_t xi = 1; xi < histo->GetNbinsX(); xi++)
+    {
+        for(Int_t yi = 1; yi < histo->GetNbinsX(); yi++)
+        {
+            if(histo->GetBinContent(xi,yi) - factor_bad_pixels*histo->GetBinError(xi,yi) >
+                    histo->GetBinContent(xi,yi+1) + factor_bad_pixels*histo->GetBinError(xi,yi+1))
+            {
+                histo->SetBinContent(xi,yi,0);
+                histo->SetBinError(xi,yi,0);
+            }
+        }
+    }
+}

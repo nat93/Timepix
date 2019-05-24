@@ -1,8 +1,8 @@
 //--------------------------------------------------------------------------//
 // Author:          Andrii Natochii
 // CERN-LAL-TSNUK:  2018
-// Description:     To convert ASCII file to ROOT file for H8 and SPS
-//                  The format of the input data LOCAL_PC/PYTHON_SCRIPT type
+// Description:     To convert new CSV file to ROOT file for SPS
+//                  The format of the new UA9Publisher
 //--------------------------------------------------------------------------//
 
 //ROOT
@@ -15,13 +15,21 @@
 #include <fstream>
 #include <assert.h>
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+
 using namespace std;
 
 const Int_t N_PIXELS    = 512;  // The maximum number of pixels per axis per chip
 
+UInt_t chipname2id(TString chipName);
+UInt_t getChipIdFromTheNextLine(string nextLine);
+
 int main(int argc, char *argv[])
 {
-    cout<<endl<<"--> ASCII2ROOT COMMON"<<endl<<endl;
+    cout<<endl<<"--> CSV2ROOT COMMON"<<endl<<endl;
     if(argc < 3)
     {
         cout<<"--> ERROR: Wrong number of input parameters("<<argc<<")!"<<endl;
@@ -47,7 +55,7 @@ int main(int argc, char *argv[])
     }
 
     Double_t UnixTime = -1, DeltaTHR = -1, Ikrum = -1, Bias = -1, Clock = -1, Gate = -1;
-    UInt_t AcquisType = 999, TrigType = 999, chip;
+    UInt_t AcquisType = -1, TrigType = -1, chip, chip_new;
 
     Long64_t event;
     Double_t Time_ms;
@@ -82,68 +90,57 @@ int main(int argc, char *argv[])
         while(1)
         {
             inputfile>>word;
-            if(word == "=Time")
+
+            if(word == "=Acq")
             {
                 inputfile>>word;
-                inputfile>>UnixTime;
-            }
-            if(word == "=Trigger")
-            {
-                inputfile>>word;
-                inputfile>>word;
-                if(word == "HW")
+                if(word == "time")
                 {
                     inputfile>>word;
-                    if(word == "start") {TrigType = 3;}
-                    if(word == "stop") {TrigType = 2;}
+                    inputfile>>Gate;
                 }
-                if(word == "SW") {TrigType = 1;}
             }
-            if(word == "=Acquis.")
+            if(word == "=Timepix")
             {
                 inputfile>>word;
                 inputfile>>word;
-                if(word == "TOA") {AcquisType = 3;}
-                if(word == "TOT") {AcquisType = 1;}
-                if(word == "MPX") {AcquisType = 0;}
-            }
-            if(word == "=DeltaTHR")
-            {
-                inputfile>>word;
-                inputfile>>DeltaTHR;
-            }
-            if(word == "=Ikrum")
-            {
-                inputfile>>word;
-                inputfile>>Ikrum;
+                inputfile>>Clock;
             }
             if(word == "=Bias")
             {
                 inputfile>>word;
                 inputfile>>Bias;
             }
-            if(word == "=Clock")
+            if(word == "=Tpx")
             {
                 inputfile>>word;
-                inputfile>>Clock;
+                if(word == "mode")
+                {
+                    inputfile>>word;
+                    inputfile>>AcquisType;
+                }
             }
-            if(word == "=Gate")
+            if(word == "ID,PosX,PosY,Value,")
             {
                 inputfile>>word;
-                inputfile>>Gate;
+                istringstream csvStream(word);
+                string csvElement;
+
+                // Unix_time
+                getline(csvStream, csvElement, ',');
+                UnixTime = atof(csvElement.c_str());
+
+                break;
             }
-            if(word == "HEADER_END") {break;}
+            if(inputfile.eof()) {break;}
         }
+
+        string csvLine = word;
 
         while(1)
         {
-            // READ DATA FROM THE MATRIX
-            inputfile>>Time_ms;
-            inputfile>>event;
-            inputfile>>chip;
-            inputfile>>word; // 'START#'
-
             if(inputfile.eof()) {break;}
+            // Frame time,Event number,Frame ID,Chip ID,PosX,PosY,Value,
 
             for(Int_t xi = 0; xi < N_PIXELS; xi++)
             {
@@ -153,23 +150,45 @@ int main(int argc, char *argv[])
                 }
             }
 
-            while(inputfile>>word)
+            while(1)
             {
-                if(word == "END#") {break;}
-                Int_t _x, _y;
+                istringstream csvStream(csvLine);
+                string csvElement;
+                // Frame time
+                getline(csvStream, csvElement, ',');
+                Time_ms = (atof(csvElement.c_str()) - UnixTime)*1000.0;
 
-                //---- For the usual orientation of the chip ----//
-                _x = atoi(word.c_str());
-                inputfile>>_y;
+                // Event number
+                getline(csvStream, csvElement, ',');
+                event = atof(csvElement.c_str());
 
-                //---- For the rotated Quadpix at H8 ----//
-//                _y = atoi(word.c_str());
-//                inputfile>>_x;
-//                _x = N_PIXELS-_x-1;
-                //---------------------------------------//
+                // Frame ID
+                getline(csvStream, csvElement, ',');
 
-                inputfile>>COUNTS[_x][_y];
+                // Chip ID
+                getline(csvStream, csvElement, ',');
+                chip = chipname2id(csvElement);
+
+                // PosX
+                getline(csvStream, csvElement, ',');
+                Int_t _x = atoi(csvElement.c_str());
+
+                // PosY
+                getline(csvStream, csvElement, ',');
+                Int_t _y = atoi(csvElement.c_str());
+
+                // Value
+                getline(csvStream, csvElement, ',');
+                COUNTS[_x][_y] = atoi(csvElement.c_str());
+
+                inputfile>>csvLine;
+                if(inputfile.eof()) {break;}
+
+                // Check the next line for the same chip
+                chip_new = getChipIdFromTheNextLine(csvLine);
+                if(chip != chip_new){break;}
             }
+//            cout<<"--> END:: "<<Time_ms<<" "<<event<<" "<<chip<<endl;
 
             tree->Fill();
         }
@@ -186,3 +205,35 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+UInt_t chipname2id(TString chipName)
+{
+    UInt_t chipID = -999;
+
+    if(chipName == "G02-W0108") chipID = 0;
+    else if(chipName == "K09-W0255") chipID = 1;
+    else if(chipName == "C08-W0255") chipID = 2;
+    else if(chipName == "F04-W0108") chipID = 3;
+    else if(chipName == "I02-W0108") chipID = 4;
+    else chipID = -1;
+
+    return chipID;
+}
+
+UInt_t getChipIdFromTheNextLine(string nextLine)
+{
+    istringstream csvStream(nextLine);
+    string csvElement;
+    getline(csvStream, csvElement, ',');
+    getline(csvStream, csvElement, ',');
+    getline(csvStream, csvElement, ',');
+    getline(csvStream, csvElement, ',');
+    return chipname2id(csvElement);
+}
+
+// From SPS:
+//   devRP0E=0 #G02-W0108    FITpix 0384
+//   devRP3I=1 #K09-W0255    FITpix 0393
+//   devRP3E=2 #C08-W0255    FITpix 0399
+//   devRP1I=3 #F04-W0108    FITpix 0409
+//   devRP0I=4 #I02-W0108    FITpix 0415
