@@ -36,9 +36,14 @@ int getMinPositionWithinRangeTH1(Int_t min_x, Int_t max_x, TH1* histo);
 void scale2Dhisto(TH2D* histo, Double_t integral, Double_t interal_err);
 void shifthisto2D(TH2D* h_in, TH2D* h_out, Double_t x_shift, Double_t y_shift);
 void chi2calc2Dhisto(TH2D* h1, TH2D* h2, Int_t &bin_shift_x, Int_t &bin_shift_y);
+void shifthisto2Dnew(TH2D* histo, Int_t x_shift_bin, Int_t y_shift_bin);
+void removeMaskedColumnRow(TH2D* histo, Int_t center_x, Int_t center_y);
 
 int histos_september()
 {
+    cout<<endl;
+
+    cout<<"--> SEPTUM <--"<<endl;
     cout<<"--> histos_0() -- to plot beam profiles and image for all runs"<<endl;
     cout<<"--> histos_1() -- to plot all alignment runs on the same plots"<<endl;
     cout<<"--> histos_2() -- to plot all runs with a septum runs and with a align run"<<endl;
@@ -55,9 +60,20 @@ int histos_september()
     cout<<"--> histos_13() -- to find the offset"<<endl;
     cout<<"--> histos_14() -- to plot the difference between runs and septum run in 3D (all runs)"<<endl;
 
+    cout<<endl;
+    cout<<"--> CRYSTAL <--"<<endl;
+    cout<<"--> histos_15() -- to plot beam profiles and image for all runs"<<endl;
+    cout<<"--> histos_16() -- to plot the difference between runs and septum run in 3D (ACP85)"<<endl;
+    cout<<"--> histos_17() -- to plot the difference between runs and septum run in 3D (STF123)"<<endl;
+
+    cout<<endl;
+
     return 0;
 }
 
+//--------------------------------------------------//
+//------------------ SEPTUM ------------------------//
+//--------------------------------------------------//
 int histos_0()//to plot beam profiles and image for all runs
 {
     for(Int_t j = 1; j <= 1; j++)
@@ -2476,6 +2492,656 @@ int histos_14()// to plot the difference between runs and septum run in 3D (all 
     return 0;
 }
 
+//--------------------------------------------------//
+//------------------ CRYSTAL------------------------//
+//--------------------------------------------------//
+
+int histos_15()//to plot beam profiles and image for all runs
+{
+    gStyle->SetOptStat(0);
+
+    const Int_t nFiles = 10;
+    TString filename[] = {
+        // ACP85
+        "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_AL_RUN_CHIP_0.root",
+        "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_AL_RUN_CHIP_1.root",
+        "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_CH_RUN_CHIP_0.root",
+        "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_CH_RUN_CHIP_1.root",
+        "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_AM_RUN_CHIP_0.root",
+        "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_AM_RUN_CHIP_1.root",
+        // STF123
+        "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_STF123_AL_RUN_CHIP_0.root",
+        "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_STF123_AL_RUN_CHIP_1.root",
+        "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_STF123_CH_RUN_CHIP_0.root",
+        "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_STF123_CH_RUN_CHIP_1.root"
+    };
+
+    TString canvasname;
+
+    for(Int_t j = 0; j < nFiles; j++)
+    {
+        TFile *_file = TFile::Open(filename[j].Data());
+
+        TH2D* h_0 = (TH2D*)_file->Get("h_6");
+        removenoizypixelsXY(h_0,10);
+
+        TH1D* h_1 = h_0->ProjectionX("h_01");
+        TH1D* h_2 = h_0->ProjectionY("h_02");
+
+        h_0->SetTitle("");
+        h_0->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+        h_0->GetXaxis()->CenterTitle();
+        h_0->GetYaxis()->SetTitle("Vertical Axis [mm]");
+        h_0->GetYaxis()->CenterTitle();
+
+        h_1->SetLineWidth(2);
+        h_1->SetTitle("Projection on Horizontal Axis");
+        h_1->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+        h_1->GetXaxis()->CenterTitle();
+        h_1->GetYaxis()->SetTitle("Counts");
+        h_1->GetYaxis()->CenterTitle();
+
+        h_2->SetLineWidth(2);
+        h_2->SetTitle("Projection on Vertical Axis");
+        h_2->GetXaxis()->SetTitle("Vertical Axis [mm]");
+        h_2->GetXaxis()->CenterTitle();
+        h_2->GetYaxis()->SetTitle("Counts");
+        h_2->GetYaxis()->CenterTitle();
+
+        canvasname = "./canvas/h0_"; canvasname += j;
+        TCanvas* c_0 = new TCanvas(canvasname.Data(),canvasname.Data(),1000,1000);
+        c_0->cd();
+        h_0->Draw("colz");
+        canvasname += ".png";
+        c_0->SaveAs(canvasname.Data());
+
+        canvasname = "./canvas/h1_"; canvasname += j;
+        TCanvas* c_1 = new TCanvas(canvasname.Data(),canvasname.Data(),1000,500);
+        c_1->cd();
+        h_1->Draw("hist");
+        canvasname += ".png";
+        c_1->SaveAs(canvasname.Data());
+
+        canvasname = "./canvas/h2_"; canvasname += j;
+        TCanvas* c_2 = new TCanvas(canvasname.Data(),canvasname.Data(),1000,500);
+        c_2->cd();
+        h_2->Draw("hist");
+        canvasname += ".png";
+        c_2->SaveAs(canvasname.Data());
+    }
+
+    return 0;
+}
+
+int histos_16()// to plot the difference between crystal runs and alignment run in 3D (ACP85)
+{
+    Double_t integral_0, integral_err_0;
+
+    gStyle->SetOptStat(0);
+
+    TFile *_file_al_0 = TFile::Open("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_AL_RUN_CHIP_0.root");
+    TFile *_file_al_1 = TFile::Open("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_AL_RUN_CHIP_1.root");
+
+    TH2D* h_0_al_0 = (TH2D*)_file_al_0->Get("h_6");
+    TH2D* h_0_al_1 = (TH2D*)_file_al_1->Get("h_6");
+    removenoizypixelsXY(h_0_al_0,10);
+    removenoizypixelsXY(h_0_al_1,10);
+
+    integral_0 = h_0_al_0->IntegralAndError(1,h_0_al_0->GetNbinsX(),1,h_0_al_0->GetNbinsY(),integral_err_0);
+    scale2Dhisto(h_0_al_0, integral_0, integral_err_0);
+    scale2Dhisto(h_0_al_1, integral_0, integral_err_0);
+
+    TCanvas* c_al_0 = new TCanvas("c_al_0","c_al_0",1000,1000);
+    c_al_0->cd();
+    h_0_al_0->SetTitle("");
+    h_0_al_0->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_0_al_0->GetXaxis()->CenterTitle();
+    h_0_al_0->GetYaxis()->SetTitle("Vertical Axis [mm]");
+    h_0_al_0->GetYaxis()->CenterTitle();
+    h_0_al_0->Draw("colz");
+    c_al_0->SetLogz();
+    h_0_al_0->SetMaximum(1.4e-4);
+    c_al_0->SaveAs("./canvas/c_al_0.png");
+
+    TCanvas* c_al_1 = new TCanvas("c_al_1","c_al_1",1000,1000);
+    c_al_1->cd();
+    h_0_al_1->SetTitle("");
+    h_0_al_1->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_0_al_1->GetXaxis()->CenterTitle();
+    h_0_al_1->GetYaxis()->SetTitle("Vertical Axis [mm]");
+    h_0_al_1->GetYaxis()->CenterTitle();
+    h_0_al_1->Draw("colz");
+    c_al_1->SetLogz();
+    h_0_al_1->SetMaximum(1.4e-4);
+    c_al_1->SaveAs("./canvas/c_al_1.png");
+
+    TFile *_file_ch_0 = TFile::Open("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_CH_RUN_CHIP_0.root");
+    TFile *_file_am_0 = TFile::Open("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_AM_RUN_CHIP_0.root");
+    TFile *_file_ch_1 = TFile::Open("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_CH_RUN_CHIP_1.root");
+    TFile *_file_am_1 = TFile::Open("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_ACP85_AM_RUN_CHIP_1.root");
+
+    TH2D* h_0_ch_0 = (TH2D*)_file_ch_0->Get("h_6");
+    TH2D* h_0_am_0 = (TH2D*)_file_am_0->Get("h_6");
+    TH2D* h_0_ch_1 = (TH2D*)_file_ch_1->Get("h_6");
+    TH2D* h_0_am_1 = (TH2D*)_file_am_1->Get("h_6");
+
+    removenoizypixelsXY(h_0_ch_0,10);
+    removenoizypixelsXY(h_0_am_0,10);
+    removenoizypixelsXY(h_0_ch_1,10);
+    removenoizypixelsXY(h_0_am_1,10);
+
+    integral_0 = h_0_ch_0->IntegralAndError(1,h_0_ch_0->GetNbinsX(),1,h_0_ch_0->GetNbinsY(),integral_err_0);
+    scale2Dhisto(h_0_ch_0, integral_0, integral_err_0);
+    scale2Dhisto(h_0_ch_1, integral_0, integral_err_0);
+
+    integral_0 = h_0_am_0->IntegralAndError(1,h_0_am_0->GetNbinsX(),1,h_0_am_0->GetNbinsY(),integral_err_0);
+    scale2Dhisto(h_0_am_0, integral_0, integral_err_0);
+    scale2Dhisto(h_0_am_1, integral_0, integral_err_0);
+
+    TH2D* h_1_ch_0 = (TH2D*)h_0_ch_0->Clone();
+    TH2D* h_1_am_0 = (TH2D*)h_0_am_0->Clone();
+    TH2D* h_1_ch_1 = (TH2D*)h_0_ch_1->Clone();
+    TH2D* h_1_am_1 = (TH2D*)h_0_am_1->Clone();
+
+    Int_t offset_ch_y = -5;
+    Int_t offset_am_y = -4;
+
+    shifthisto2Dnew(h_1_ch_0,0,offset_ch_y);
+    shifthisto2Dnew(h_1_am_0,0,offset_am_y);
+    shifthisto2Dnew(h_1_ch_1,0,offset_ch_y);
+    shifthisto2Dnew(h_1_am_1,0,offset_am_y);
+
+    h_1_ch_0->Add(h_0_al_0,-1);
+    h_1_am_0->Add(h_0_al_0,-1);
+    h_1_ch_1->Add(h_0_al_1,-1);
+    h_1_am_1->Add(h_0_al_1,-1);
+
+    removeMaskedColumnRow(h_1_ch_0,0,0);
+    removeMaskedColumnRow(h_1_ch_0,0,1);
+    removeMaskedColumnRow(h_1_ch_0,0,-30);
+    removeMaskedColumnRow(h_1_ch_0,0,0+offset_ch_y);
+    removeMaskedColumnRow(h_1_ch_0,0,1+offset_ch_y);
+    removeMaskedColumnRow(h_1_ch_0,0,-30+offset_ch_y);
+    removeMaskedColumnRow(h_1_am_0,0,0);
+    removeMaskedColumnRow(h_1_am_0,0,1);
+    removeMaskedColumnRow(h_1_am_0,0,-30);
+    removeMaskedColumnRow(h_1_am_0,0,0+offset_am_y);
+    removeMaskedColumnRow(h_1_am_0,0,1+offset_am_y);
+    removeMaskedColumnRow(h_1_am_0,0,-30+offset_am_y);
+
+    removeMaskedColumnRow(h_1_ch_1,0,0);
+    removeMaskedColumnRow(h_1_ch_1,0,1);
+    removeMaskedColumnRow(h_1_ch_1,0,0+offset_ch_y);
+    removeMaskedColumnRow(h_1_ch_1,0,1+offset_ch_y);
+    removeMaskedColumnRow(h_1_am_1,0,0);
+    removeMaskedColumnRow(h_1_am_1,0,1);
+    removeMaskedColumnRow(h_1_am_1,0,0+offset_am_y);
+    removeMaskedColumnRow(h_1_am_1,0,1+offset_am_y);
+
+    TCanvas* c_ch_0 = new TCanvas("c_ch_0","c_ch_0",1000,1000);
+    c_ch_0->cd();
+    h_1_ch_0->SetTitle("");
+    h_1_ch_0->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_1_ch_0->GetXaxis()->CenterTitle();
+    h_1_ch_0->GetYaxis()->SetTitle("Vertical Axis [mm]");
+    h_1_ch_0->GetYaxis()->CenterTitle();
+    h_1_ch_0->Draw("colz");
+    h_1_ch_0->SetMaximum(1.4e-4);
+    c_ch_0->SetLogz();
+    c_ch_0->SaveAs("./canvas/c_ch_0.png");
+
+    TCanvas* c_am_0 = new TCanvas("c_am_0","c_am_0",1000,1000);
+    c_am_0->cd();
+    h_1_am_0->SetTitle("");
+    h_1_am_0->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_1_am_0->GetXaxis()->CenterTitle();
+    h_1_am_0->GetYaxis()->SetTitle("Vertical Axis [mm]");
+    h_1_am_0->GetYaxis()->CenterTitle();
+    h_1_am_0->Draw("colz");
+    h_1_am_0->SetMaximum(1.4e-4);
+    c_am_0->SetLogz();
+    c_am_0->SaveAs("./canvas/c_am_0.png");
+
+    TCanvas* c_ch_1 = new TCanvas("c_ch_1","c_ch_1",1000,1000);
+    c_ch_1->cd();
+    h_1_ch_1->SetTitle("");
+    h_1_ch_1->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_1_ch_1->GetXaxis()->CenterTitle();
+    h_1_ch_1->GetYaxis()->SetTitle("Vertical Axis [mm]");
+    h_1_ch_1->GetYaxis()->CenterTitle();
+    h_1_ch_1->Draw("colz");
+    h_1_ch_1->SetMaximum(1.4e-4);
+    c_ch_1->SetLogz();
+    c_ch_1->SaveAs("./canvas/c_ch_1.png");
+
+    TCanvas* c_am_1 = new TCanvas("c_am_1","c_am_1",1000,1000);
+    c_am_1->cd();
+    h_1_am_1->SetTitle("");
+    h_1_am_1->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_1_am_1->GetXaxis()->CenterTitle();
+    h_1_am_1->GetYaxis()->SetTitle("Vertical Axis [mm]");
+    h_1_am_1->GetYaxis()->CenterTitle();
+    h_1_am_1->Draw("colz");
+    h_1_am_1->SetMaximum(1.4e-4);
+    c_am_1->SetLogz();
+    c_am_1->SaveAs("./canvas/c_am_1.png");
+
+    TH1D* h_2_ch_0_x = h_1_ch_0->ProjectionX("h_2_ch_0_x");
+    TH1D* h_2_ch_0_y = h_1_ch_0->ProjectionY("h_2_ch_0_y");
+    TH1D* h_2_am_0_x = h_1_am_0->ProjectionX("h_2_am_0_x");
+    TH1D* h_2_am_0_y = h_1_am_0->ProjectionY("h_2_am_0_y");
+    TH1D* h_2_ch_1_x = h_1_ch_1->ProjectionX("h_2_ch_1_x");
+    TH1D* h_2_ch_1_y = h_1_ch_1->ProjectionY("h_2_ch_1_y");
+    TH1D* h_2_am_1_x = h_1_am_1->ProjectionX("h_2_am_1_x");
+    TH1D* h_2_am_1_y = h_1_am_1->ProjectionY("h_2_am_1_y");
+
+    integral_0 = h_2_ch_0_x->IntegralAndError(1,h_2_ch_0_x->GetNbinsX(),integral_err_0);
+    cout<<"Integral [ h_2_ch_0_x ] = "<<integral_0<<" +/- "<<integral_err_0<<endl;
+    integral_0 = h_2_ch_0_y->IntegralAndError(1,h_2_ch_0_y->GetNbinsX(),integral_err_0);
+    cout<<"Integral [ h_2_ch_0_y ] = "<<integral_0<<" +/- "<<integral_err_0<<endl;
+    integral_0 = h_2_am_0_x->IntegralAndError(1,h_2_am_0_x->GetNbinsX(),integral_err_0);
+    cout<<"Integral [ h_2_am_0_x ] = "<<integral_0<<" +/- "<<integral_err_0<<endl;
+    integral_0 = h_2_am_0_y->IntegralAndError(1,h_2_am_0_y->GetNbinsX(),integral_err_0);
+    cout<<"Integral [ h_2_am_0_y ] = "<<integral_0<<" +/- "<<integral_err_0<<endl;
+    integral_0 = h_2_ch_1_x->IntegralAndError(1,h_2_ch_1_x->GetNbinsX(),integral_err_0);
+    cout<<"Integral [ h_2_ch_1_x ] = "<<integral_0<<" +/- "<<integral_err_0<<endl;
+    integral_0 = h_2_ch_1_y->IntegralAndError(1,h_2_ch_1_y->GetNbinsX(),integral_err_0);
+    cout<<"Integral [ h_2_ch_1_y ] = "<<integral_0<<" +/- "<<integral_err_0<<endl;
+    integral_0 = h_2_am_1_x->IntegralAndError(1,h_2_am_1_x->GetNbinsX(),integral_err_0);
+    cout<<"Integral [ h_2_am_1_x ] = "<<integral_0<<" +/- "<<integral_err_0<<endl;
+    integral_0 = h_2_am_1_y->IntegralAndError(1,h_2_am_1_y->GetNbinsX(),integral_err_0);
+    cout<<"Integral [ h_2_am_1_y ] = "<<integral_0<<" +/- "<<integral_err_0<<endl;
+
+    h_2_ch_0_x->SetLineWidth(2);
+    h_2_ch_0_x->SetTitle("Projection on Horizontal Axis");
+    h_2_ch_0_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_2_ch_0_x->GetXaxis()->CenterTitle();
+    h_2_ch_0_x->GetYaxis()->SetTitle("Normalized Counts");
+    h_2_ch_0_x->GetYaxis()->CenterTitle();
+
+    TCanvas* c_2_ch_0_x = new TCanvas("c_2_ch_0_x","c_2_ch_0_x",1000,500);
+    c_2_ch_0_x->cd();
+    h_2_ch_0_x->Draw("hist");
+    h_2_ch_0_x->SetMaximum(1.4e-3);
+    h_2_ch_0_x->SetMinimum(-1.4e-3);
+    c_2_ch_0_x->SaveAs("./canvas/c_2_ch_0_x.png");
+
+    h_2_ch_0_y->SetLineWidth(2);
+    h_2_ch_0_y->SetTitle("Projection on Vertical Axis");
+    h_2_ch_0_y->GetXaxis()->SetTitle("Vertical Axis [mm]");
+    h_2_ch_0_y->GetXaxis()->CenterTitle();
+    h_2_ch_0_y->GetYaxis()->SetTitle("Normalized Counts");
+    h_2_ch_0_y->GetYaxis()->CenterTitle();
+
+    TCanvas* c_2_ch_0_y = new TCanvas("c_2_ch_0_y","c_2_ch_0_y",1000,500);
+    c_2_ch_0_y->cd();
+    h_2_ch_0_y->Draw("hist");
+    h_2_ch_0_y->SetMaximum(1.4e-3);
+    h_2_ch_0_y->SetMinimum(-1.4e-3);
+    c_2_ch_0_y->SaveAs("./canvas/c_2_ch_0_y.png");
+
+    h_2_am_0_x->SetLineWidth(2);
+    h_2_am_0_x->SetTitle("Projection on Horizontal Axis");
+    h_2_am_0_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_2_am_0_x->GetXaxis()->CenterTitle();
+    h_2_am_0_x->GetYaxis()->SetTitle("Normalized Counts");
+    h_2_am_0_x->GetYaxis()->CenterTitle();
+
+    TCanvas* c_2_am_0_x = new TCanvas("c_2_am_0_x","c_2_am_0_x",1000,500);
+    c_2_am_0_x->cd();
+    h_2_am_0_x->Draw("hist");
+    h_2_am_0_x->SetMaximum(1.4e-3);
+    h_2_am_0_x->SetMinimum(-1.4e-3);
+    c_2_am_0_x->SaveAs("./canvas/c_2_am_0_x.png");
+
+    h_2_am_0_y->SetLineWidth(2);
+    h_2_am_0_y->SetTitle("Projection on Vertical Axis");
+    h_2_am_0_y->GetXaxis()->SetTitle("Vertical Axis [mm]");
+    h_2_am_0_y->GetXaxis()->CenterTitle();
+    h_2_am_0_y->GetYaxis()->SetTitle("Normalized Counts");
+    h_2_am_0_y->GetYaxis()->CenterTitle();
+
+    TCanvas* c_2_am_0_y = new TCanvas("c_2_am_0_y","c_2_am_0_y",1000,500);
+    c_2_am_0_y->cd();
+    h_2_am_0_y->Draw("hist");
+    h_2_am_0_y->SetMaximum(1.4e-3);
+    h_2_am_0_y->SetMinimum(-1.4e-3);
+    c_2_am_0_y->SaveAs("./canvas/c_2_am_0_y.png");
+
+    h_2_ch_1_x->SetLineWidth(2);
+    h_2_ch_1_x->SetTitle("Projection on Horizontal Axis");
+    h_2_ch_1_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_2_ch_1_x->GetXaxis()->CenterTitle();
+    h_2_ch_1_x->GetYaxis()->SetTitle("Normalized Counts");
+    h_2_ch_1_x->GetYaxis()->CenterTitle();
+
+    TCanvas* c_2_ch_1_x = new TCanvas("c_2_ch_1_x","c_2_ch_1_x",1000,500);
+    c_2_ch_1_x->cd();
+    h_2_ch_1_x->Draw("hist");
+    h_2_ch_1_x->SetMaximum(1.4e-3);
+    h_2_ch_1_x->SetMinimum(-1.4e-3);
+    c_2_ch_1_x->SaveAs("./canvas/c_2_ch_1_x.png");
+
+    h_2_ch_1_y->SetLineWidth(2);
+    h_2_ch_1_y->SetTitle("Projection on Vertical Axis");
+    h_2_ch_1_y->GetXaxis()->SetTitle("Vertical Axis [mm]");
+    h_2_ch_1_y->GetXaxis()->CenterTitle();
+    h_2_ch_1_y->GetYaxis()->SetTitle("Normalized Counts");
+    h_2_ch_1_y->GetYaxis()->CenterTitle();
+
+    TCanvas* c_2_ch_1_y = new TCanvas("c_2_ch_1_y","c_2_ch_1_y",1000,500);
+    c_2_ch_1_y->cd();
+    h_2_ch_1_y->Draw("hist");
+    h_2_ch_1_y->SetMaximum(1.4e-3);
+    h_2_ch_1_y->SetMinimum(-1.4e-3);
+    c_2_ch_1_y->SaveAs("./canvas/c_2_ch_1_y.png");
+
+    h_2_am_1_x->SetLineWidth(2);
+    h_2_am_1_x->SetTitle("Projection on Horizontal Axis");
+    h_2_am_1_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_2_am_1_x->GetXaxis()->CenterTitle();
+    h_2_am_1_x->GetYaxis()->SetTitle("Normalized Counts");
+    h_2_am_1_x->GetYaxis()->CenterTitle();
+
+    TCanvas* c_2_am_1_x = new TCanvas("c_2_am_1_x","c_2_am_1_x",1000,500);
+    c_2_am_1_x->cd();
+    h_2_am_1_x->Draw("hist");
+    h_2_am_1_x->SetMaximum(1.4e-3);
+    h_2_am_1_x->SetMinimum(-1.4e-3);
+    c_2_am_1_x->SaveAs("./canvas/c_2_am_1_x.png");
+
+    h_2_am_1_y->SetLineWidth(2);
+    h_2_am_1_y->SetTitle("Projection on Vertical Axis");
+    h_2_am_1_y->GetXaxis()->SetTitle("Vertical Axis [mm]");
+    h_2_am_1_y->GetXaxis()->CenterTitle();
+    h_2_am_1_y->GetYaxis()->SetTitle("Normalized Counts");
+    h_2_am_1_y->GetYaxis()->CenterTitle();
+
+    TCanvas* c_2_am_1_y = new TCanvas("c_2_am_1_y","c_2_am_1_y",1000,500);
+    c_2_am_1_y->cd();
+    h_2_am_1_y->Draw("hist");
+    h_2_am_1_y->SetMaximum(1.4e-3);
+    h_2_am_1_y->SetMinimum(-1.4e-3);
+    c_2_am_1_y->SaveAs("./canvas/c_2_am_1_y.png");
+
+    TH1D* h_3_al_0_x = h_0_al_0->ProjectionX("h_3_al_0_x");
+    TH1D* h_3_ch_0_x = h_0_ch_0->ProjectionX("h_3_ch_0_x");
+    TH1D* h_3_am_0_x = h_0_am_0->ProjectionX("h_3_am_0_x");
+
+    TH1D* h_3_al_1_x = h_0_al_1->ProjectionX("h_3_al_1_x");
+    TH1D* h_3_ch_1_x = h_0_ch_1->ProjectionX("h_3_ch_1_x");
+    TH1D* h_3_am_1_x = h_0_am_1->ProjectionX("h_3_am_1_x");
+
+    h_3_al_0_x->SetLineWidth(2);
+    h_3_al_0_x->SetLineColor(kBlue);
+    h_3_al_1_x->SetLineWidth(2);
+    h_3_al_1_x->SetLineColor(kBlue);
+
+    h_3_ch_0_x->SetLineWidth(2);
+    h_3_ch_0_x->SetLineColor(kRed);
+    h_3_ch_1_x->SetLineWidth(2);
+    h_3_ch_1_x->SetLineColor(kRed);
+
+    h_3_am_0_x->SetLineWidth(2);
+    h_3_am_0_x->SetLineColor(kBlack);
+    h_3_am_1_x->SetLineWidth(2);
+    h_3_am_1_x->SetLineColor(kBlack);
+
+    h_3_al_0_x->SetTitle("Projection on Horizontal Axis");    h_3_al_0_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");    h_3_al_0_x->GetXaxis()->CenterTitle();    h_3_al_0_x->GetYaxis()->SetTitle("Normalized Counts");    h_3_al_0_x->GetYaxis()->CenterTitle();
+    h_3_al_1_x->SetTitle("Projection on Horizontal Axis");    h_3_al_1_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");    h_3_al_1_x->GetXaxis()->CenterTitle();    h_3_al_1_x->GetYaxis()->SetTitle("Normalized Counts");    h_3_al_1_x->GetYaxis()->CenterTitle();
+    h_3_ch_0_x->SetTitle("Projection on Horizontal Axis");    h_3_ch_0_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");    h_3_ch_0_x->GetXaxis()->CenterTitle();    h_3_ch_0_x->GetYaxis()->SetTitle("Normalized Counts");    h_3_ch_0_x->GetYaxis()->CenterTitle();
+    h_3_ch_1_x->SetTitle("Projection on Horizontal Axis");    h_3_ch_1_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");    h_3_ch_1_x->GetXaxis()->CenterTitle();    h_3_ch_1_x->GetYaxis()->SetTitle("Normalized Counts");    h_3_ch_1_x->GetYaxis()->CenterTitle();
+    h_3_am_0_x->SetTitle("Projection on Horizontal Axis");    h_3_am_0_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");    h_3_am_0_x->GetXaxis()->CenterTitle();    h_3_am_0_x->GetYaxis()->SetTitle("Normalized Counts");    h_3_am_0_x->GetYaxis()->CenterTitle();
+    h_3_am_1_x->SetTitle("Projection on Horizontal Axis");    h_3_am_1_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");    h_3_am_1_x->GetXaxis()->CenterTitle();    h_3_am_1_x->GetYaxis()->SetTitle("Normalized Counts");    h_3_am_1_x->GetYaxis()->CenterTitle();
+
+    TCanvas* c_3_ch_0_x = new TCanvas("c_3_ch_0_x","c_3_ch_0_x",1000,500);
+    c_3_ch_0_x->cd();
+    h_3_al_0_x->Draw("hist");
+    h_3_ch_0_x->Draw("same & hist");
+    h_3_al_0_x->SetMaximum(1.4e-2);
+    h_3_al_0_x->SetMinimum(0.0);
+    c_3_ch_0_x->SaveAs("./canvas/c_3_ch_0_x.png");
+
+    TCanvas* c_3_am_0_x = new TCanvas("c_3_am_0_x","c_3_am_0_x",1000,500);
+    c_3_am_0_x->cd();
+    h_3_al_0_x->Draw("hist");
+    h_3_am_0_x->Draw("same & hist");
+    h_3_al_0_x->SetMaximum(1.4e-2);
+    h_3_al_0_x->SetMinimum(0.0);
+    c_3_am_0_x->SaveAs("./canvas/c_3_am_0_x.png");
+
+    TCanvas* c_3_ch_1_x = new TCanvas("c_3_ch_1_x","c_3_ch_1_x",1000,500);
+    c_3_ch_1_x->cd();
+    h_3_al_1_x->Draw("hist");
+    h_3_ch_1_x->Draw("same & hist");
+    h_3_al_1_x->SetMaximum(1.4e-2);
+    h_3_al_1_x->SetMinimum(0.0);
+    c_3_ch_1_x->SaveAs("./canvas/c_3_ch_1_x.png");
+
+    TCanvas* c_3_am_1_x = new TCanvas("c_3_am_1_x","c_3_am_1_x",1000,500);
+    c_3_am_1_x->cd();
+    h_3_al_1_x->Draw("hist");
+    h_3_am_1_x->Draw("same & hist");
+    h_3_al_1_x->SetMaximum(1.4e-2);
+    h_3_al_1_x->SetMinimum(0.0);
+    c_3_am_1_x->SaveAs("./canvas/c_3_am_1_x.png");
+
+
+    return 0;
+}
+
+int histos_17()// to plot the difference between crystal runs and alignment run in 3D (STF123)
+{
+    Double_t integral_0, integral_err_0;
+
+    gStyle->SetOptStat(0);
+
+    TFile *_file_al_0 = TFile::Open("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_STF123_AL_RUN_CHIP_0.root");
+    TFile *_file_al_1 = TFile::Open("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_STF123_AL_RUN_CHIP_1.root");
+
+    TH2D* h_0_al_0 = (TH2D*)_file_al_0->Get("h_6");
+    TH2D* h_0_al_1 = (TH2D*)_file_al_1->Get("h_6");
+    removenoizypixelsXY(h_0_al_0,10);
+    removenoizypixelsXY(h_0_al_1,10);
+
+    integral_0 = h_0_al_0->IntegralAndError(1,h_0_al_0->GetNbinsX(),1,h_0_al_0->GetNbinsY(),integral_err_0);
+    scale2Dhisto(h_0_al_0, integral_0, integral_err_0);
+    scale2Dhisto(h_0_al_1, integral_0, integral_err_0);
+
+    TCanvas* c_al_0 = new TCanvas("c_al_0","c_al_0",1000,1000);
+    c_al_0->cd();
+    h_0_al_0->SetTitle("");
+    h_0_al_0->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_0_al_0->GetXaxis()->CenterTitle();
+    h_0_al_0->GetYaxis()->SetTitle("Vertical Axis [mm]");
+    h_0_al_0->GetYaxis()->CenterTitle();
+    h_0_al_0->Draw("colz");
+    c_al_0->SetLogz();
+    h_0_al_0->SetMaximum(1.4e-4);
+    c_al_0->SaveAs("./canvas/c_al_0.png");
+
+    TCanvas* c_al_1 = new TCanvas("c_al_1","c_al_1",1000,1000);
+    c_al_1->cd();
+    h_0_al_1->SetTitle("");
+    h_0_al_1->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_0_al_1->GetXaxis()->CenterTitle();
+    h_0_al_1->GetYaxis()->SetTitle("Vertical Axis [mm]");
+    h_0_al_1->GetYaxis()->CenterTitle();
+    h_0_al_1->Draw("colz");
+    c_al_1->SetLogz();
+    h_0_al_1->SetMaximum(1.4e-4);
+    c_al_1->SaveAs("./canvas/c_al_1.png");
+
+    TFile *_file_ch_0 = TFile::Open("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_STF123_CH_RUN_CHIP_0.root");
+    TFile *_file_ch_1 = TFile::Open("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_09_12_STF123_CH_RUN_CHIP_1.root");
+
+    TH2D* h_0_ch_0 = (TH2D*)_file_ch_0->Get("h_6");
+    TH2D* h_0_ch_1 = (TH2D*)_file_ch_1->Get("h_6");
+
+    removenoizypixelsXY(h_0_ch_0,10);
+    removenoizypixelsXY(h_0_ch_1,10);
+
+    integral_0 = h_0_ch_0->IntegralAndError(1,h_0_ch_0->GetNbinsX(),1,h_0_ch_0->GetNbinsY(),integral_err_0);
+    scale2Dhisto(h_0_ch_0, integral_0, integral_err_0);
+    scale2Dhisto(h_0_ch_1, integral_0, integral_err_0);
+
+    TH2D* h_1_ch_0 = (TH2D*)h_0_ch_0->Clone();
+    TH2D* h_1_ch_1 = (TH2D*)h_0_ch_1->Clone();
+
+    Int_t offset_ch_y = 0;
+
+    shifthisto2Dnew(h_1_ch_0,0,offset_ch_y);
+    shifthisto2Dnew(h_1_ch_1,0,offset_ch_y);
+
+    h_1_ch_0->Add(h_0_al_0,-1);
+    h_1_ch_1->Add(h_0_al_1,-1);
+
+    removeMaskedColumnRow(h_1_ch_0,0,0);
+    removeMaskedColumnRow(h_1_ch_0,0,1);
+    removeMaskedColumnRow(h_1_ch_0,0,-30);
+    removeMaskedColumnRow(h_1_ch_0,0,0+offset_ch_y);
+    removeMaskedColumnRow(h_1_ch_0,0,1+offset_ch_y);
+    removeMaskedColumnRow(h_1_ch_0,0,-30+offset_ch_y);
+
+    removeMaskedColumnRow(h_1_ch_1,0,0);
+    removeMaskedColumnRow(h_1_ch_1,0,1);
+    removeMaskedColumnRow(h_1_ch_1,0,0+offset_ch_y);
+    removeMaskedColumnRow(h_1_ch_1,0,1+offset_ch_y);
+
+    TCanvas* c_ch_0 = new TCanvas("c_ch_0","c_ch_0",1000,1000);
+    c_ch_0->cd();
+    h_1_ch_0->SetTitle("");
+    h_1_ch_0->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_1_ch_0->GetXaxis()->CenterTitle();
+    h_1_ch_0->GetYaxis()->SetTitle("Vertical Axis [mm]");
+    h_1_ch_0->GetYaxis()->CenterTitle();
+    h_1_ch_0->Draw("colz");
+    h_1_ch_0->SetMaximum(1.4e-4);
+    c_ch_0->SetLogz();
+    c_ch_0->SaveAs("./canvas/c_ch_0.png");
+
+    TCanvas* c_ch_1 = new TCanvas("c_ch_1","c_ch_1",1000,1000);
+    c_ch_1->cd();
+    h_1_ch_1->SetTitle("");
+    h_1_ch_1->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_1_ch_1->GetXaxis()->CenterTitle();
+    h_1_ch_1->GetYaxis()->SetTitle("Vertical Axis [mm]");
+    h_1_ch_1->GetYaxis()->CenterTitle();
+    h_1_ch_1->Draw("colz");
+    h_1_ch_1->SetMaximum(1.4e-4);
+    c_ch_1->SetLogz();
+    c_ch_1->SaveAs("./canvas/c_ch_1.png");
+
+    TH1D* h_2_ch_0_x = h_1_ch_0->ProjectionX("h_2_ch_0_x");
+    TH1D* h_2_ch_0_y = h_1_ch_0->ProjectionY("h_2_ch_0_y");
+    TH1D* h_2_ch_1_x = h_1_ch_1->ProjectionX("h_2_ch_1_x");
+    TH1D* h_2_ch_1_y = h_1_ch_1->ProjectionY("h_2_ch_1_y");
+
+    integral_0 = h_2_ch_0_x->IntegralAndError(1,h_2_ch_0_x->GetNbinsX(),integral_err_0);
+    cout<<"Integral [ h_2_ch_0_x ] = "<<integral_0<<" +/- "<<integral_err_0<<endl;
+    integral_0 = h_2_ch_0_y->IntegralAndError(1,h_2_ch_0_y->GetNbinsX(),integral_err_0);
+    cout<<"Integral [ h_2_ch_0_y ] = "<<integral_0<<" +/- "<<integral_err_0<<endl;
+    integral_0 = h_2_ch_1_x->IntegralAndError(1,h_2_ch_1_x->GetNbinsX(),integral_err_0);
+    cout<<"Integral [ h_2_ch_1_x ] = "<<integral_0<<" +/- "<<integral_err_0<<endl;
+    integral_0 = h_2_ch_1_y->IntegralAndError(1,h_2_ch_1_y->GetNbinsX(),integral_err_0);
+    cout<<"Integral [ h_2_ch_1_y ] = "<<integral_0<<" +/- "<<integral_err_0<<endl;
+
+    h_2_ch_0_x->SetLineWidth(2);
+    h_2_ch_0_x->SetTitle("Projection on Horizontal Axis");
+    h_2_ch_0_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_2_ch_0_x->GetXaxis()->CenterTitle();
+    h_2_ch_0_x->GetYaxis()->SetTitle("Normalized Counts");
+    h_2_ch_0_x->GetYaxis()->CenterTitle();
+
+    TCanvas* c_2_ch_0_x = new TCanvas("c_2_ch_0_x","c_2_ch_0_x",1000,500);
+    c_2_ch_0_x->cd();
+    h_2_ch_0_x->Draw("hist");
+    h_2_ch_0_x->SetMaximum(1.4e-3);
+    h_2_ch_0_x->SetMinimum(-1.4e-3);
+    c_2_ch_0_x->SaveAs("./canvas/c_2_ch_0_x.png");
+
+    h_2_ch_0_y->SetLineWidth(2);
+    h_2_ch_0_y->SetTitle("Projection on Vertical Axis");
+    h_2_ch_0_y->GetXaxis()->SetTitle("Vertical Axis [mm]");
+    h_2_ch_0_y->GetXaxis()->CenterTitle();
+    h_2_ch_0_y->GetYaxis()->SetTitle("Normalized Counts");
+    h_2_ch_0_y->GetYaxis()->CenterTitle();
+
+    TCanvas* c_2_ch_0_y = new TCanvas("c_2_ch_0_y","c_2_ch_0_y",1000,500);
+    c_2_ch_0_y->cd();
+    h_2_ch_0_y->Draw("hist");
+    h_2_ch_0_y->SetMaximum(1.4e-3);
+    h_2_ch_0_y->SetMinimum(-1.4e-3);
+    c_2_ch_0_y->SaveAs("./canvas/c_2_ch_0_y.png");
+
+    h_2_ch_1_x->SetLineWidth(2);
+    h_2_ch_1_x->SetTitle("Projection on Horizontal Axis");
+    h_2_ch_1_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+    h_2_ch_1_x->GetXaxis()->CenterTitle();
+    h_2_ch_1_x->GetYaxis()->SetTitle("Normalized Counts");
+    h_2_ch_1_x->GetYaxis()->CenterTitle();
+
+    TCanvas* c_2_ch_1_x = new TCanvas("c_2_ch_1_x","c_2_ch_1_x",1000,500);
+    c_2_ch_1_x->cd();
+    h_2_ch_1_x->Draw("hist");
+    h_2_ch_1_x->SetMaximum(1.4e-3);
+    h_2_ch_1_x->SetMinimum(-1.4e-3);
+    c_2_ch_1_x->SaveAs("./canvas/c_2_ch_1_x.png");
+
+    h_2_ch_1_y->SetLineWidth(2);
+    h_2_ch_1_y->SetTitle("Projection on Vertical Axis");
+    h_2_ch_1_y->GetXaxis()->SetTitle("Vertical Axis [mm]");
+    h_2_ch_1_y->GetXaxis()->CenterTitle();
+    h_2_ch_1_y->GetYaxis()->SetTitle("Normalized Counts");
+    h_2_ch_1_y->GetYaxis()->CenterTitle();
+
+    TCanvas* c_2_ch_1_y = new TCanvas("c_2_ch_1_y","c_2_ch_1_y",1000,500);
+    c_2_ch_1_y->cd();
+    h_2_ch_1_y->Draw("hist");
+    h_2_ch_1_y->SetMaximum(1.4e-3);
+    h_2_ch_1_y->SetMinimum(-1.4e-3);
+    c_2_ch_1_y->SaveAs("./canvas/c_2_ch_1_y.png");
+
+    TH1D* h_3_al_0_x = h_0_al_0->ProjectionX("h_3_al_0_x");
+    TH1D* h_3_ch_0_x = h_0_ch_0->ProjectionX("h_3_ch_0_x");
+
+    TH1D* h_3_al_1_x = h_0_al_1->ProjectionX("h_3_al_1_x");
+    TH1D* h_3_ch_1_x = h_0_ch_1->ProjectionX("h_3_ch_1_x");
+
+    h_3_al_0_x->SetLineWidth(2);
+    h_3_al_0_x->SetLineColor(kBlue);
+    h_3_al_1_x->SetLineWidth(2);
+    h_3_al_1_x->SetLineColor(kBlue);
+
+    h_3_ch_0_x->SetLineWidth(2);
+    h_3_ch_0_x->SetLineColor(kRed);
+    h_3_ch_1_x->SetLineWidth(2);
+    h_3_ch_1_x->SetLineColor(kRed);
+
+    h_3_al_0_x->SetTitle("Projection on Horizontal Axis");    h_3_al_0_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");    h_3_al_0_x->GetXaxis()->CenterTitle();    h_3_al_0_x->GetYaxis()->SetTitle("Normalized Counts");    h_3_al_0_x->GetYaxis()->CenterTitle();
+    h_3_al_1_x->SetTitle("Projection on Horizontal Axis");    h_3_al_1_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");    h_3_al_1_x->GetXaxis()->CenterTitle();    h_3_al_1_x->GetYaxis()->SetTitle("Normalized Counts");    h_3_al_1_x->GetYaxis()->CenterTitle();
+    h_3_ch_0_x->SetTitle("Projection on Horizontal Axis");    h_3_ch_0_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");    h_3_ch_0_x->GetXaxis()->CenterTitle();    h_3_ch_0_x->GetYaxis()->SetTitle("Normalized Counts");    h_3_ch_0_x->GetYaxis()->CenterTitle();
+    h_3_ch_1_x->SetTitle("Projection on Horizontal Axis");    h_3_ch_1_x->GetXaxis()->SetTitle("Horizontal Axis [mm]");    h_3_ch_1_x->GetXaxis()->CenterTitle();    h_3_ch_1_x->GetYaxis()->SetTitle("Normalized Counts");    h_3_ch_1_x->GetYaxis()->CenterTitle();
+
+    TCanvas* c_3_ch_0_x = new TCanvas("c_3_ch_0_x","c_3_ch_0_x",1000,500);
+    c_3_ch_0_x->cd();
+    h_3_al_0_x->Draw("hist");
+    h_3_ch_0_x->Draw("same & hist");
+    h_3_al_0_x->SetMaximum(1.4e-2);
+    h_3_al_0_x->SetMinimum(0.0);
+    c_3_ch_0_x->SaveAs("./canvas/c_3_ch_0_x.png");
+
+    TCanvas* c_3_ch_1_x = new TCanvas("c_3_ch_1_x","c_3_ch_1_x",1000,500);
+    c_3_ch_1_x->cd();
+    h_3_al_1_x->Draw("hist");
+    h_3_ch_1_x->Draw("same & hist");
+    h_3_al_1_x->SetMaximum(1.4e-2);
+    h_3_al_1_x->SetMinimum(0.0);
+    c_3_ch_1_x->SaveAs("./canvas/c_3_ch_1_x.png");
+
+    return 0;
+}
+
 bool checkpixel(TH1D *h, Int_t bin)// to check the neighbor pixels
 {
     Double_t val_ref = h->GetBinContent(bin);
@@ -2589,6 +3255,29 @@ void shifthisto2D(TH2D* h_in, TH2D* h_out, Double_t x_shift, Double_t y_shift)
     }
 }
 
+void shifthisto2Dnew(TH2D* histo, Int_t x_shift_bin, Int_t y_shift_bin)
+{
+    TH2D* histo_clone = (TH2D*)histo->Clone();
+
+    for(Int_t xi_bin = 1; xi_bin <= histo->GetNbinsX(); xi_bin++)
+    {
+        for(Int_t yi_bin = 1; yi_bin <= histo->GetNbinsY(); yi_bin++)
+        {
+            Int_t xi_new = xi_bin + x_shift_bin;
+            Int_t yi_new = yi_bin + y_shift_bin;
+
+            if(xi_new >= 1 && xi_new <= histo->GetNbinsX())
+            {
+                if(yi_new >= 1 && yi_new <= histo->GetNbinsY())
+                {
+                    histo->SetBinContent(xi_new,yi_new,histo_clone->GetBinContent(xi_bin,yi_bin));
+                    histo->SetBinError(xi_new,yi_new,histo_clone->GetBinError(xi_bin,yi_bin));
+                }
+            }
+        }
+    }
+}
+
 void scale2Dhisto(TH2D* histo, Double_t integral, Double_t interal_err)
 {
     for(Int_t i = 1; i <= histo->GetNbinsX(); i++)
@@ -2663,4 +3352,22 @@ void chi2calc2Dhisto(TH2D* h1, TH2D* h2, Int_t &bin_shift_x, Int_t &bin_shift_y)
     c3->cd();
     TGraph* gr_3 = new TGraph(num_skip_bins,shift,chi2_y);
     gr_3->Draw("APC");*/
+}
+
+void removeMaskedColumnRow(TH2D* histo, Int_t center_x, Int_t center_y)
+{
+    Int_t NbinX = histo->GetNbinsX();
+    Int_t NbinY = histo->GetNbinsY();
+
+    for(Int_t i = 1; i <= NbinX; i++)
+    {
+        for(Int_t j =1; j <= NbinY; j++)
+        {
+            if(i == NbinX/2 + center_x || j == NbinY/2 + center_y)
+            {
+                histo->SetBinContent(i,j,0);
+                histo->SetBinError(i,j,0);
+            }
+        }
+    }
 }
