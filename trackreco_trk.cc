@@ -2059,6 +2059,14 @@ void function_5(TString inFileName, TString outFileName)
     TH1D* h133 = new TH1D("h133","Plane1 Detection Efficiency vs R",40000,0,40000);
     TH1D* h134 = new TH1D("h134","Plane2 Detection Efficiency vs R",40000,0,40000);
     TH1D* h135 = new TH1D("h135","Plane3 Detection Efficiency vs R",40000,0,40000);
+    TH2D* h136 = new TH2D("h136","Plane0 YX inefficiency",800,-40,40,800,-40,40);
+    TH2D* h137 = new TH2D("h137","Plane1 YX inefficiency",800,-40,40,800,-40,40);
+    TH2D* h138 = new TH2D("h138","Plane2 YX inefficiency",800,-40,40,800,-40,40);
+    TH2D* h139 = new TH2D("h139","Plane3 YX inefficiency",800,-40,40,800,-40,40);
+    TH2D* h140 = new TH2D("h140","Plane0 YX inefficiency (cut)",800,-40,40,800,-40,40);
+    TH2D* h141 = new TH2D("h141","Plane1 YX inefficiency (cut)",800,-40,40,800,-40,40);
+    TH2D* h142 = new TH2D("h142","Plane2 YX inefficiency (cut)",800,-40,40,800,-40,40);
+    TH2D* h143 = new TH2D("h143","Plane3 YX inefficiency (cut)",800,-40,40,800,-40,40);
 
     //----------------//
     // Loop by frames //
@@ -2191,9 +2199,7 @@ void function_5(TString inFileName, TString outFileName)
                         grTrackPoint++;
                     }
 
-                    // To count the total number of 3 points tracks in order to calculate the efficiency
-                    nTracks[chipID]++;
-
+                    // Hit position from the 3-planes fit
                     fitTrack->SetParameter(0,0);
                     fitTrack->SetParameter(1,1e-3);
                     grTracksX->Fit(fitTrack,"R0Q+");
@@ -2203,6 +2209,45 @@ void function_5(TString inFileName, TString outFileName)
                     fitTrack->SetParameter(1,1e-3);
                     grTracksY->Fit(fitTrack,"R0Q+");
                     fitYpos = fitTrack->Eval(plane_position[chipID]);
+
+                    if(chip_ready[chipID] == 0)
+                    {
+                        switch (GetPlaneID(chipID))
+                        {
+                        case 0:
+                            h136->Fill(fitXpos,fitYpos);
+                            break;
+                        case 1:
+                            h137->Fill(fitXpos,fitYpos);
+                            break;
+                        case 2:
+                            h138->Fill(fitXpos,fitYpos);
+                            break;
+                        case 3:
+                            h139->Fill(fitXpos,fitYpos);
+                            break;
+                        }
+                    }
+
+                    // To count the total number of 3 points tracks in order to calculate the efficiency
+                    // Avoid hits outside the sensors edge
+                    if(GetPlaneID(chipID) == 0 || GetPlaneID(chipID) == 1)
+                    {
+                        Int_t nPixels = N_PIXELS/2;
+
+                        if(
+                                fitXpos + offset_x_ChipID[chipID]*PIXEL_SIZE < 0 ||
+                                fitXpos + offset_x_ChipID[chipID]*PIXEL_SIZE > nPixels*PIXEL_SIZE ||
+                                fitYpos + offset_y_ChipID[chipID]*PIXEL_SIZE < 0 ||
+                                fitYpos + offset_y_ChipID[chipID]*PIXEL_SIZE > nPixels*PIXEL_SIZE
+                                )
+                        {
+                            continue;
+                        }
+                    }
+
+                    nTracks[chipID]++;
+
 
                     for(Int_t R = 0; R < 40000; R++)
                     {
@@ -2230,6 +2275,24 @@ void function_5(TString inFileName, TString outFileName)
                             }
                         }
                     }
+                    if(chip_ready[chipID] == 0)
+                    {
+                        switch (GetPlaneID(chipID))
+                        {
+                        case 0:
+                            h140->Fill(fitXpos,fitYpos);
+                            break;
+                        case 1:
+                            h141->Fill(fitXpos,fitYpos);
+                            break;
+                        case 2:
+                            h142->Fill(fitXpos,fitYpos);
+                            break;
+                        case 3:
+                            h143->Fill(fitXpos,fitYpos);
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -2237,6 +2300,7 @@ void function_5(TString inFileName, TString outFileName)
     cout<<endl;
     for(Int_t chipID = 0;  chipID < N_MAX_CHIP; chipID++)
     {
+        cout<<"--> Plane "<<GetPlaneID(chipID)<<":"<<endl;
         switch (GetPlaneID(chipID))
         {
         case 0:
@@ -2266,6 +2330,14 @@ void function_5(TString inFileName, TString outFileName)
     h133->Write();
     h134->Write();
     h135->Write();
+    h136->Write();
+    h137->Write();
+    h138->Write();
+    h139->Write();
+    h140->Write();
+    h141->Write();
+    h142->Write();
+    h143->Write();
 
     outputfile->Close();
     cout<<"--> The output file '"<<outputfile->GetName()<<"' is closed."<<endl;

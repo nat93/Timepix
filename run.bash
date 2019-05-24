@@ -11,8 +11,8 @@
 #data_dir=/media/andrii/F492773C92770302/MedipixData/SPS_DATA/MD_2018_10_24;
 #data_dir=/media/andrii/F492773C92770302/MedipixData/SPS_DATA/MD_2018_11_07;
 
-#data_dir=/media/andrii/F492773C92770302/MedipixData/SPS_DATA/MD_2018_11_26;
-#data_dir=/media/andrii/F492773C92770302/MedipixData/H8_DATA/2018_11_27_ions;
+#data_dir=/media/andrii/NATOCHII_HDD/DELETE_2020_Medipix/H8_DATA/H8_2018_11_27_ions;
+#data_dir=/media/andrii/NATOCHII_HDD/DELETE_2020_Medipix/SPS_DATA/SPS_MD_2018_11_26;
 
 #data_dir=/media/andrii/NATOCHII_HDD/DELETE_2020_Medipix/H8_DATA/2018_04_11_pions;
 #data_dir=/media/andrii/NATOCHII_HDD/DELETE_2020_Medipix/SPS_DATA/MD_2018_06_18;
@@ -21,7 +21,7 @@
 
 #data_dir=/media/andrii/NATOCHII_HDD/DELETE_2020_Medipix/SPS_DATA/MD_2017_10_17/TIMEPIX;
 
-for runrunID in $(seq 3 1 3)
+for runrunID in $(seq 1 1 1)
 do
 
     #1
@@ -69,8 +69,8 @@ do
     #2
 
 #    make convert_common;
-#    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 120 160 /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/SPS_2018_11_26_L3_RUN_$runrunID.root
-#    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 1 $nFiles /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_RUN_$runrunID.root
+#    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 1 $nFiles /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_11_27_RUN_$runrunID.root
+#    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 1 $nFiles /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/SPS_2018_11_26_RUN_$runrunID.root
 
     #3
 
@@ -85,8 +85,8 @@ do
 
     #5
 
-    make clean; make trackreco_trk;
-    ./trackreco_trk H8_Test_Beam_2018_04_11_pions_CLUSTERINFO_RUN_$runrunID.root outputFile.root 5
+#    make clean; make trackreco_trk;
+#    ./trackreco_trk H8_Test_Beam_2018_04_11_pions_CLUSTERINFO_RUN_$runrunID.root outputFile.root 5
 #    ./trackreco_trk H8_Test_Beam_2018_04_11_pions_CLUSTERINFO_RUN_$runrunID.root H8_Test_Beam_2018_04_11_pions_TRACKINFO_RUN_MODE_2_RUN_$runrunID.root 4
 
 done
