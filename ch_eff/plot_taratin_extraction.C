@@ -48,33 +48,33 @@ int plot_taratin_extraction()
 	scale2Dhisto(hh_1, integral,integralErr);
 
 	TCanvas* c_0 = new TCanvas("c_0","c_0",1000,1000);
-        c_0->cd();
-        TPad *pad_0 = new TPad("pad_0","pad_0",0,0,1,1);
-        pad_0->SetLeftMargin(0.15);
-        pad_0->SetRightMargin(0.2);
-        pad_0->Draw();
-        pad_0->cd();
+    c_0->cd();
+    TPad *pad_0 = new TPad("pad_0","pad_0",0,0,1,1);
+    pad_0->SetLeftMargin(0.15);
+    pad_0->SetRightMargin(0.2);
+    pad_0->Draw();
+    pad_0->cd();
 	gStyle->SetOptStat(0);
-        gPad->SetGrid();
+    gPad->SetGrid();
 	hh_1->GetYaxis()->SetTitle("Vertical Axis [mm]");
 	hh_1->GetXaxis()->SetTitle("Horizontal Axis [mm]");
-        hh_1->GetZaxis()->SetTitle("Hits Density");
-        hh_1->GetXaxis()->CenterTitle();
-        hh_1->GetYaxis()->CenterTitle();
-        hh_1->GetZaxis()->CenterTitle();
-        hh_1->GetYaxis()->SetTitleOffset(1.2);
-        hh_1->GetZaxis()->SetTitleOffset(2.1);
-        hh_1->Draw("colz");
+    hh_1->GetZaxis()->SetTitle("Hits Density");
+    hh_1->GetXaxis()->CenterTitle();
+    hh_1->GetYaxis()->CenterTitle();
+    hh_1->GetZaxis()->CenterTitle();
+    hh_1->GetYaxis()->SetTitleOffset(1.2);
+    hh_1->GetZaxis()->SetTitleOffset(2.1);
+    hh_1->Draw("colz");
 
 	TH1D* projhh_1 = hh_1->ProjectionX("projhh_1");
 	
 	projhh_1->SetTitle("");
 
 	projhh_1->GetXaxis()->SetTitle("Horizontal Axis Projection [mm]");
-        projhh_1->GetYaxis()->SetTitle("Hits Density");
-        projhh_1->GetXaxis()->CenterTitle();
-        projhh_1->GetYaxis()->CenterTitle();
-        projhh_1->GetYaxis()->SetTitleOffset(1.8);
+    projhh_1->GetYaxis()->SetTitle("Hits Density");
+    projhh_1->GetXaxis()->CenterTitle();
+    projhh_1->GetYaxis()->CenterTitle();
+    projhh_1->GetYaxis()->SetTitleOffset(1.8);
 
 	projhh_1->SetLineColor(kBlack);
 
@@ -83,14 +83,14 @@ int plot_taratin_extraction()
 	Double_t par[2];
 
 	TCanvas* c_1 = new TCanvas("c_1","c_1",1000,1000);
-        c_1->cd();
-        TPad *pad_1 = new TPad("pad_1","pad_1",0,0,1,1);
-        pad_1->SetLeftMargin(0.15);
-        pad_1->Draw();
-        pad_1->cd();
+    c_1->cd();
+    TPad *pad_1 = new TPad("pad_1","pad_1",0,0,1,1);
+    pad_1->SetLeftMargin(0.15);
+    pad_1->Draw();
+    pad_1->cd();
 	gStyle->SetOptStat(0);
-        gPad->SetGrid();
-        projhh_1->Draw("HIST");
+    gPad->SetGrid();
+    projhh_1->Draw("HIST");
 
 	TF1* fit_1 = new TF1("fit_1","expo",8,14);
 	TF1* draw_1 = new TF1("draw_1","expo",0,14);
@@ -145,13 +145,13 @@ int plot_taratin_extraction()
 
 /*
 	TCanvas* c_126 = new TCanvas("c_126","c_126",1000,1000);
-        c_126->cd();
-        TPad *pad_126 = new TPad("pad_126","pad_6",0,0,1,1);
-        pad_126->SetLeftMargin(0.15);
-        pad_126->Draw();
-        pad_126->cd();
+    c_126->cd();
+    TPad *pad_126 = new TPad("pad_126","pad_6",0,0,1,1);
+    pad_126->SetLeftMargin(0.15);
+    pad_126->Draw();
+    pad_126->cd();
 	gStyle->SetOptStat(0);
-        gPad->SetGrid();
+    gPad->SetGrid();
 
 	projhh_1_clone->SetMinimum(0);
 	projhh_2_clone->SetMinimum(0);
@@ -195,9 +195,9 @@ int plot_taratin_extraction()
 	}
 
 	TCanvas* c_126_2 = new TCanvas("c_126_2","c_126_2",1900,1200);
-        c_126_2->cd();
+    c_126_2->cd();
 	gStyle->SetOptStat(0);
-        gPad->SetGrid();
+    gPad->SetGrid();
 
 
 	gr_12->SetLineColor(kBlue);
@@ -216,10 +216,10 @@ int plot_taratin_extraction()
 	gr_16->Draw("PCSAME");
 
 	gr_12->GetXaxis()->SetTitle("Horizontal Axis Projection [mm]");
-        gr_12->GetYaxis()->SetTitle("Hits Density");
-        gr_12->GetXaxis()->CenterTitle();
-        gr_12->GetYaxis()->CenterTitle();
-        gr_12->GetYaxis()->SetTitleOffset(1.2);
+    gr_12->GetYaxis()->SetTitle("Hits Density");
+    gr_12->GetXaxis()->CenterTitle();
+    gr_12->GetYaxis()->CenterTitle();
+    gr_12->GetYaxis()->SetTitleOffset(1.2);
 
 	TLegend* leg2 = new TLegend(0.45,0.15,0.85,0.35);
    	leg2->AddEntry(gr_12,"Crystal2 in AM - W/o Crystal2","ple");
@@ -227,24 +227,24 @@ int plot_taratin_extraction()
    	leg2->Draw();
 
 	TPaveText *textCH = new TPaveText(8,0.009,9,0.012);
-        textCH->SetTextSize(0.04);
-        textCH->AddText("CH");
-        textCH->Draw();
+    textCH->SetTextSize(0.04);
+    textCH->AddText("CH");
+    textCH->Draw();
 
 	TPaveText *textDCH = new TPaveText(6,0.002,7,0.005);
-        textDCH->SetTextSize(0.04);
-        textDCH->AddText("DCH");
-        textDCH->Draw();
+    textDCH->SetTextSize(0.04);
+    textDCH->AddText("DCH");
+    textDCH->Draw();
 
 	TPaveText *textINI = new TPaveText(1.5,0.015,5,0.018);
-        textINI->SetTextSize(0.04);
-        textINI->AddText("Nuclear Interaction");
-        textINI->Draw();
+    textINI->SetTextSize(0.04);
+    textINI->AddText("Nuclear Interaction");
+    textINI->Draw();
 	
 	TPaveText *textCS = new TPaveText(1.5,-0.018,5,-0.015);
-        textCS->SetTextSize(0.04);
-        textCS->AddText("Crystal Shadow");
-        textCS->Draw();
+    textCS->SetTextSize(0.04);
+    textCS->AddText("Crystal Shadow");
+    textCS->Draw();
 
 /**/
     return 0;

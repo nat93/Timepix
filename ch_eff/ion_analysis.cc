@@ -40,7 +40,7 @@ const Double_t PIXEL_SIZE           = 0.055;    // Pixel size [mm]
 const Double_t cluster_time_jitter  = 200.0;    // Time difference between fired pixels inside cluster [ns]
 
 void epochtime2date(time_t in_time, string &out_time);
-int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *cluster_size, Double_t *cluster_pos_x, Double_t *cluster_pos_x_err, Double_t *cluster_pos_y, Double_t *cluster_pos_y_err, Double_t *cluster_clocks, Int_t AcqType, Double_t Clock);
+int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *cluster_size, Double_t *cluster_pos_x, Double_t *cluster_pos_x_err, Double_t *cluster_pos_y, Double_t *cluster_pos_y_err, Double_t *cluster_clocks, Double_t *cluster_size_x, Double_t *cluster_size_y, Double_t *cluster_azimut, Int_t AcqType, Double_t Clock);
 void checkregionMPX(Long64_t _matrix[][N_PIXELS], Int_t **fired_matrix, Int_t xi, Int_t yi);
 void checkregionTOA(Long64_t _matrix[][N_PIXELS], Int_t **fired_matrix, Int_t xi, Int_t yi, Double_t Clock);
 bool checkcondition(Long64_t x, Long64_t ref_x, Double_t delta, Double_t Clock);
@@ -151,7 +151,7 @@ void function_1()
     //------------------------------------------------------------------------------//
     //------------------------ For output file with clusters infor -----------------//
     //------------------------------------------------------------------------------//
-    Double_t unix_time_clinfo, pos_x_clinfo, pos_x_err_clinfo, pos_y_clinfo, pos_y_err_clinfo, clocks_clinfo;
+    Double_t unix_time_clinfo, pos_x_clinfo, pos_x_err_clinfo, pos_y_clinfo, pos_y_err_clinfo, clocks_clinfo, size_x_clinfo, size_y_clinfo, azimut_clinfo;
     Int_t size_clinfo;
     Long64_t event_id_clinfo;
 
@@ -164,6 +164,9 @@ void function_1()
     tree->Branch("ClusterPosXerr",  &pos_x_err_clinfo,      "pos_x_err_clinfo/D");
     tree->Branch("ClusterPosY",     &pos_y_clinfo,          "pos_y_clinfo/D");
     tree->Branch("ClusterPosYerr",  &pos_y_err_clinfo,      "pos_y_err_clinfo/D");
+    tree->Branch("ClusterSizeX",    &size_x_clinfo,         "size_x_clinfo/D");
+    tree->Branch("ClusterSizeY",    &size_y_clinfo,         "size_y_clinfo/D");
+    tree->Branch("ClusterAzimut",   &azimut_clinfo,         "azimut_clinfo/D");
     tree->Branch("EventID",         &event_id_clinfo,       "event_id_clinfo/L");
     tree->Branch("Clock",           &_Clock,                "_Clock/D");
     tree->Branch("Gate",            &_Gate,                 "_Gate/D");
@@ -174,6 +177,9 @@ void function_1()
     Double_t* cl_pos_y      = new Double_t[N_MAX_CLUSTERS];
     Double_t* cl_pos_y_err  = new Double_t[N_MAX_CLUSTERS];
     Double_t* cl_clocks     = new Double_t[N_MAX_CLUSTERS];
+    Double_t* cl_size_x     = new Double_t[N_MAX_CLUSTERS];
+    Double_t* cl_size_y     = new Double_t[N_MAX_CLUSTERS];
+    Double_t* cl_azimut     = new Double_t[N_MAX_CLUSTERS];
     //------------------------------------------------------------------------------//
     //------------------------------- HISTOGRAMS -----------------------------------//
     //------------------------------------------------------------------------------//
@@ -341,13 +347,16 @@ void function_1()
                 cl_pos_y[jk]        = 0.0;
                 cl_pos_y_err[jk]    = 0.0;
                 cl_clocks[jk]       = 0.0;
+                cl_size_x[jk]       = 0.0;
+                cl_size_y[jk]       = 0.0;
+                cl_azimut[jk]       = 0.0;
             }
 
             Int_t cl_num = 0;
 
-            if(clusteranalysis(_COUNTS,cl_num,cl_size,cl_pos_x,cl_pos_x_err,cl_pos_y,cl_pos_y_err,cl_clocks,_AcquisType,_Clock) != 0)
+            if(clusteranalysis(_COUNTS,cl_num,cl_size,cl_pos_x,cl_pos_x_err,cl_pos_y,cl_pos_y_err,cl_clocks,cl_size_x,cl_size_y,cl_azimut,_AcquisType,_Clock) != 0)
             {
-                cout<<"--> ERROR: Cluster analysis did not check all pixels! ("<<clusteranalysis(_COUNTS,cl_num,cl_size,cl_pos_x,cl_pos_x_err,cl_pos_y,cl_pos_y_err,cl_clocks,_AcquisType,_Clock)<<")"<<endl;
+                cout<<"--> ERROR: Cluster analysis did not check all pixels! ("<<clusteranalysis(_COUNTS,cl_num,cl_size,cl_pos_x,cl_pos_x_err,cl_pos_y,cl_pos_y_err,cl_clocks,cl_size_x,cl_size_y,cl_azimut,_AcquisType,_Clock)<<")"<<endl;
                 assert(0);
             }
 
@@ -373,6 +382,9 @@ void function_1()
                 pos_x_err_clinfo    = cl_pos_x_err[yy];
                 pos_y_clinfo        = cl_pos_y[yy];
                 pos_y_err_clinfo    = cl_pos_y_err[yy];
+                size_x_clinfo       = cl_size_x[yy];
+                size_y_clinfo       = cl_size_y[yy];
+                azimut_clinfo       = cl_azimut[yy];
                 event_id_clinfo     = _event;
                 if(_event != i) {event_id_clinfo = i;}
 
@@ -396,6 +408,9 @@ void function_1()
     delete [] cl_pos_y;
     delete [] cl_pos_y_err;
     delete [] cl_clocks;
+    delete [] cl_size_x;
+    delete [] cl_size_y;
+    delete [] cl_azimut;
 
     cout<<endl;
 
@@ -529,14 +544,14 @@ void function_2()
     Int_t chipID            = 1;
 
     // Stable Operation
-//    Long64_t minUnixTime_run    = 1543248000;
+    Long64_t minUnixTime_run    = 1543248000;
 //    Long64_t maxUnixTime_run    = 1543269600;
-//    Long64_t entryINI           = 0;
+    Long64_t entryINI           = 0;
 
     // Not Stable Operation
-    Long64_t minUnixTime_run    = 1543271400;
+//    Long64_t minUnixTime_run    = 1543271400;
     Long64_t maxUnixTime_run    = 1543277700;
-    Long64_t entryINI           = 27700;
+//    Long64_t entryINI           = 27700;
 
     Bool_t entryINIstatus       = kFALSE;
 
@@ -594,7 +609,7 @@ void function_2()
     //------------------------------------------------------------------------------//
     //------------------------ For output file with clusters infor -----------------//
     //------------------------------------------------------------------------------//
-    Double_t unix_time_clinfo, pos_x_clinfo, pos_x_err_clinfo, pos_y_clinfo, pos_y_err_clinfo, clocks_clinfo;
+    Double_t unix_time_clinfo, pos_x_clinfo, pos_x_err_clinfo, pos_y_clinfo, pos_y_err_clinfo, clocks_clinfo, size_x_clinfo, size_y_clinfo, azimut_clinfo;
     Int_t size_clinfo;
     Long64_t event_id_clinfo;
 
@@ -607,6 +622,9 @@ void function_2()
     tree->Branch("ClusterPosXerr",  &pos_x_err_clinfo,      "pos_x_err_clinfo/D");
     tree->Branch("ClusterPosY",     &pos_y_clinfo,          "pos_y_clinfo/D");
     tree->Branch("ClusterPosYerr",  &pos_y_err_clinfo,      "pos_y_err_clinfo/D");
+    tree->Branch("ClusterSizeX",    &size_x_clinfo,         "size_x_clinfo/D");
+    tree->Branch("ClusterSizeY",    &size_y_clinfo,         "size_y_clinfo/D");
+    tree->Branch("ClusterAzimut",   &azimut_clinfo,         "azimut_clinfo/D");
     tree->Branch("EventID",         &event_id_clinfo,       "event_id_clinfo/L");
     tree->Branch("Clock",           &_Clock,                "_Clock/D");
     tree->Branch("Gate",            &_Gate,                 "_Gate/D");
@@ -617,6 +635,9 @@ void function_2()
     Double_t* cl_pos_y      = new Double_t[N_MAX_CLUSTERS];
     Double_t* cl_pos_y_err  = new Double_t[N_MAX_CLUSTERS];
     Double_t* cl_clocks     = new Double_t[N_MAX_CLUSTERS];
+    Double_t* cl_size_x     = new Double_t[N_MAX_CLUSTERS];
+    Double_t* cl_size_y     = new Double_t[N_MAX_CLUSTERS];
+    Double_t* cl_azimut     = new Double_t[N_MAX_CLUSTERS];
     //------------------------------------------------------------------------------//
     //------------------------------- HISTOGRAMS -----------------------------------//
     //------------------------------------------------------------------------------//
@@ -674,6 +695,10 @@ void function_2()
 
     for(Long64_t i = entryINI; i < nEntries; i++)
     {
+//        if(i != 30034) continue; // yy==458
+//        if(i != 11440) continue; // yy==266
+        if(i != 10070) continue; // yy==26
+
         if(i%10 == 0)
         {
             epochtime2date(round(last_time/1000),time_char);
@@ -723,9 +748,6 @@ void function_2()
         }
 
         h_29->Fill(event_time/1000.0,fired_pixels_num);
-
-//        if(fired_pixels_num > 1e4) continue;
-
         h_32->Fill(event_time/1000.0,fired_pixels_num);
 
         h_24->Fill(_event-_event_ini,_AcquisType);
@@ -779,13 +801,16 @@ void function_2()
                 cl_pos_y[jk]        = 0.0;
                 cl_pos_y_err[jk]    = 0.0;
                 cl_clocks[jk]       = 0.0;
+                cl_size_x[jk]       = 0.0;
+                cl_size_y[jk]       = 0.0;
+                cl_azimut[jk]       = 0.0;
             }
 
             Int_t cl_num = 0;
 
-            if(clusteranalysis(_COUNTS,cl_num,cl_size,cl_pos_x,cl_pos_x_err,cl_pos_y,cl_pos_y_err,cl_clocks,_AcquisType,_Clock) != 0)
+            if(clusteranalysis(_COUNTS,cl_num,cl_size,cl_pos_x,cl_pos_x_err,cl_pos_y,cl_pos_y_err,cl_clocks,cl_size_x,cl_size_y,cl_azimut,_AcquisType,_Clock) != 0)
             {
-                cout<<"--> ERROR: Cluster analysis did not check all pixels! ("<<clusteranalysis(_COUNTS,cl_num,cl_size,cl_pos_x,cl_pos_x_err,cl_pos_y,cl_pos_y_err,cl_clocks,_AcquisType,_Clock)<<")"<<endl;
+                cout<<"--> ERROR: Cluster analysis did not check all pixels! ("<<clusteranalysis(_COUNTS,cl_num,cl_size,cl_pos_x,cl_pos_x_err,cl_pos_y,cl_pos_y_err,cl_clocks,cl_size_x,cl_size_y,cl_azimut,_AcquisType,_Clock)<<")"<<endl;
                 assert(0);
             }
 
@@ -811,14 +836,24 @@ void function_2()
                 pos_x_err_clinfo    = cl_pos_x_err[yy];
                 pos_y_clinfo        = cl_pos_y[yy];
                 pos_y_err_clinfo    = cl_pos_y_err[yy];
-                event_id_clinfo     = _event;
-                if(_event != i) {event_id_clinfo = i;}
+                size_x_clinfo       = cl_size_x[yy];
+                size_y_clinfo       = cl_size_y[yy];
+                azimut_clinfo       = cl_azimut[yy];
+                event_id_clinfo     = i;
 
-                tree->Fill();
+//                tree->Fill();
 
                 h_16->Fill(cl_size[yy]);
                 h_28->Fill(cl_size[yy],cl_size[yy]*cl_clocks[yy]);
                 h_31->Fill(cl_size[yy]*cl_clocks[yy]);
+
+                if(yy==26)
+                {
+                    tree->Fill();
+                    cout<<endl<<"event_id_clinfo="<<event_id_clinfo<<" clID="<<yy<<endl;
+                    cout<<"size_clinfo="<<size_clinfo<<" pos_x_clinfo="<<pos_x_clinfo<<" pos_y_clinfo="<<pos_y_clinfo<<endl;
+                    cout<<"size_x_clinfo="<<size_x_clinfo<<" size_y_clinfo="<<size_y_clinfo<<" azimut_clinfo="<<azimut_clinfo*180.0/TMath::Pi()<<endl;
+                }
 
             }
             h_13->Fill(cl_num);
@@ -834,6 +869,9 @@ void function_2()
     delete [] cl_pos_y;
     delete [] cl_pos_y_err;
     delete [] cl_clocks;
+    delete [] cl_size_x;
+    delete [] cl_size_y;
+    delete [] cl_azimut;
 
     cout<<endl;
 
@@ -981,7 +1019,7 @@ void epochtime2date(time_t in_time, string &out_time)
     out_time = res;
 }
 
-int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *cluster_size, Double_t *cluster_pos_x, Double_t *cluster_pos_x_err, Double_t *cluster_pos_y, Double_t *cluster_pos_y_err, Double_t *cluster_clocks, Int_t AcqType, Double_t Clock)
+int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *cluster_size, Double_t *cluster_pos_x, Double_t *cluster_pos_x_err, Double_t *cluster_pos_y, Double_t *cluster_pos_y_err, Double_t *cluster_clocks, Double_t *cluster_size_x, Double_t *cluster_size_y, Double_t *cluster_azimut, Int_t AcqType, Double_t Clock)
 {
     Int_t** fired_matrix = new Int_t*[N_PIXELS];// matrix of the fired pixels for each cluster
     Int_t** fired_matrix_full = new Int_t*[N_PIXELS];// matrix of the fired pixels for frame
@@ -1020,6 +1058,7 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
                 }
 
                 // Projections of the cluster
+                TH2D* h_xy = new TH2D("h_xy","h_xy",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
                 TH1D* h_x = new TH1D("h_x","h_x",N_PIXELS,0,N_PIXELS);
                 TH1D* h_y = new TH1D("h_y","h_y",N_PIXELS,0,N_PIXELS);
 
@@ -1057,6 +1096,7 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
                     {
                         if(fired_matrix[xj][yj] > 0)
                         {
+                            h_xy->Fill(xj,yj,_matrix[xj][yj]);
                             h_x->Fill(xj,_matrix[xj][yj]);
                             h_y->Fill(yj,_matrix[xj][yj]);
 
@@ -1077,7 +1117,33 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
                     }
                 }
 
-                if(cluster_clocks[cluster_num] > 100e3 && oneCluster)
+                cluster_clocks[cluster_num]     = (Double_t)cluster_clocks[cluster_num]/cluster_size[cluster_num];
+                cluster_pos_x[cluster_num]      = h_x->GetMean();
+                cluster_pos_x_err[cluster_num]  = h_x->GetMeanError();
+                cluster_pos_y[cluster_num]      = h_y->GetMean();
+                cluster_pos_y_err[cluster_num]  = h_y->GetMeanError();
+                cluster_size_x[cluster_num]     = h_x->FindLastBinAbove(0) - h_x->FindFirstBinAbove(0) + 1;
+                cluster_size_y[cluster_num]     = h_y->FindLastBinAbove(0) - h_y->FindFirstBinAbove(0) + 1;
+
+                if(
+                        h_xy->Integral(1,h_xy->GetXaxis()->FindBin(cluster_pos_x[cluster_num]),1,h_xy->GetYaxis()->FindBin(cluster_pos_y[cluster_num]))+                    // Q1
+                        h_xy->Integral(h_xy->GetXaxis()->FindBin(cluster_pos_x[cluster_num]),N_PIXELS,h_xy->GetYaxis()->FindBin(cluster_pos_y[cluster_num]),N_PIXELS) >     // Q3
+                        h_xy->Integral(1,h_xy->GetXaxis()->FindBin(cluster_pos_x[cluster_num]),h_xy->GetYaxis()->FindBin(cluster_pos_y[cluster_num]),N_PIXELS)+             // Q2
+                        h_xy->Integral(h_xy->GetXaxis()->FindBin(cluster_pos_x[cluster_num]),N_PIXELS,1,h_xy->GetYaxis()->FindBin(cluster_pos_y[cluster_num]))              // Q4
+                        )
+                {
+                    cluster_azimut[cluster_num] = TMath::ATan(cluster_size_y[cluster_num]/cluster_size_x[cluster_num]);
+                }
+                else
+                {
+                    cluster_azimut[cluster_num] = TMath::Pi() - TMath::ATan(cluster_size_y[cluster_num]/cluster_size_x[cluster_num]);
+                }
+
+                h_xy->Delete();
+                h_x->Delete();
+                h_y->Delete();
+
+                if(cluster_num == 26)
                 {
                     for(Int_t yj = 0; yj < N_PIXELS; yj++)
                     {
@@ -1100,15 +1166,6 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
                         fired_matrix[xj][yj] = 0;
                     }
                 }
-
-                cluster_clocks[cluster_num]     = (Double_t)cluster_clocks[cluster_num]/cluster_size[cluster_num];
-                cluster_pos_x[cluster_num]      = h_x->GetMean();
-                cluster_pos_x_err[cluster_num]  = h_x->GetMeanError();
-                cluster_pos_y[cluster_num]      = h_y->GetMean();
-                cluster_pos_y_err[cluster_num]  = h_y->GetMeanError();
-
-                h_x->Delete();
-                h_y->Delete();
 
                 cluster_num++;
             }

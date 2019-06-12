@@ -144,9 +144,9 @@ void function_1()
 
     // CRYSTAL3 in CH, Double-channeling perfect orientation
     // 2018_09_18
-    //    Long64_t minUnixTime_run    = 1537233727;
-    //    Long64_t maxUnixTime_run    = 1537233912;
-    //    Long64_t entryINI           = 27000;
+        Long64_t minUnixTime_run    = 1537233727;
+        Long64_t maxUnixTime_run    = 1537233912;
+        Long64_t entryINI           = 27000;
 
     // CRYSTAL3 in CH, Double-channeling for CpFM and LHC COLL comparison
     // 2018_09_18
@@ -162,9 +162,9 @@ void function_1()
 
     // CRYSTAL3 in CH, LHC COLL SCAN
     // 2018_09_18
-    Long64_t minUnixTime_run    = 1537240613;
-    Long64_t maxUnixTime_run    = 1537241139;
-    Long64_t entryINI           = 33700;
+//    Long64_t minUnixTime_run    = 1537240613;
+//    Long64_t maxUnixTime_run    = 1537241139;
+//    Long64_t entryINI           = 33700;
 
     //========= RomanPot 1 =========//
     Double_t filterFactor       = 2.0;
@@ -172,9 +172,9 @@ void function_1()
     Int_t chipID = 0;
 
     //========= RomanPot 0 =========//
-    //    Double_t filterFactor       = 2.0;
-    //    TString outputFileName      = "output_function_1_RP0.root";
-    //    Int_t chipID = 3;
+//        Double_t filterFactor       = 2.0;
+//        TString outputFileName      = "output_function_1_RP0.root";
+//        Int_t chipID = 3;
 
     //********************************************************//
     //********************************************************//
@@ -356,8 +356,8 @@ void function_2()
 {
     cout<<endl<<">>> function_2() <<<"<<endl;
 
-    TString Inputfilename   = "blm1_crystal3_ch_collimator_linear_scan_2018_09_17.dat";
-    TString Outputfilename   = "blm1_crystal3_ch_collimator_linear_scan_2018_09_17.root";
+    TString Inputfilename   = "collimator_position_18092017.dat";
+    TString Outputfilename   = "collimator_position_18092017.root";
 
     TFile *file = new TFile(Outputfilename.Data(),"recreate");
     TTree *tree = new TTree("Tree","A Root Tree");
@@ -391,8 +391,8 @@ void function_2()
 {
      cout<<endl<<">>> function_3() <<<"<<endl;
 
-     TString Inputfilename   = "bctdc_crystal3_ch_collimator_linear_scan_2018_09_17.dat";
-     TString Outputfilename   = "bctdc_crystal3_ch_collimator_linear_scan_2018_09_17.root";
+     TString Inputfilename   = "bctdc_value_18092017.dat";
+     TString Outputfilename   = "bctdc_value_18092017.root";
 
      TFile *file = new TFile(Outputfilename.Data(),"recreate");
      TTree *tree = new TTree("Tree","A Root Tree");
@@ -906,8 +906,7 @@ void function_2()
 {
     cout<<endl<<">>> function_7() <<<"<<endl;
 
-     //=============================================================//
-    // CRYSTAL3 Linear Scan
+    //=============================================================//
     // 2018_09_17
     TString output_file_name    = "output_function_7_RP1.root";
     TString input_file_tpx      = "output_function_1_RP1.root";
