@@ -44,6 +44,7 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
 void checkregionMPX(Long64_t _matrix[][N_PIXELS], Int_t **fired_matrix, Int_t xi, Int_t yi);
 void checkregionTOA(Long64_t _matrix[][N_PIXELS], Int_t **fired_matrix, Int_t xi, Int_t yi, Double_t Clock);
 bool checkcondition(Long64_t x, Long64_t ref_x, Double_t delta, Double_t Clock);
+void getNewRadiusTheta(Double_t x0, Double_t y0, Double_t x, Double_t y, Double_t &rnew, Double_t &thetanew);
 
 TH1D* h_com_1;
 TH2D* h_com_2;
@@ -697,7 +698,9 @@ void function_2()
     {
 //        if(i != 30034) continue; // yy==458
 //        if(i != 11440) continue; // yy==266
-        if(i != 10070) continue; // yy==26
+//        if(i != 10070) continue; // yy==26
+//        if(i != 15970) continue; // yy==57
+//        if(i != 20443) continue; // yy==111
 
         if(i%10 == 0)
         {
@@ -841,19 +844,19 @@ void function_2()
                 azimut_clinfo       = cl_azimut[yy];
                 event_id_clinfo     = i;
 
-//                tree->Fill();
+                tree->Fill();
 
                 h_16->Fill(cl_size[yy]);
                 h_28->Fill(cl_size[yy],cl_size[yy]*cl_clocks[yy]);
                 h_31->Fill(cl_size[yy]*cl_clocks[yy]);
 
-                if(yy==26)
-                {
-                    tree->Fill();
-                    cout<<endl<<"event_id_clinfo="<<event_id_clinfo<<" clID="<<yy<<endl;
-                    cout<<"size_clinfo="<<size_clinfo<<" pos_x_clinfo="<<pos_x_clinfo<<" pos_y_clinfo="<<pos_y_clinfo<<endl;
-                    cout<<"size_x_clinfo="<<size_x_clinfo<<" size_y_clinfo="<<size_y_clinfo<<" azimut_clinfo="<<azimut_clinfo*180.0/TMath::Pi()<<endl;
-                }
+//                if(yy==111)
+//                {
+//                    tree->Fill();
+//                    cout<<endl<<"event_id_clinfo="<<event_id_clinfo<<" clID="<<yy<<endl;
+//                    cout<<"size_clinfo="<<size_clinfo<<" pos_x_clinfo="<<pos_x_clinfo<<" pos_y_clinfo="<<pos_y_clinfo<<endl;
+//                    cout<<"size_x_clinfo="<<size_x_clinfo<<" size_y_clinfo="<<size_y_clinfo<<" azimut_clinfo="<<azimut_clinfo*180.0/TMath::Pi()<<endl;
+//                }
 
             }
             h_13->Fill(cl_num);
@@ -1034,6 +1037,9 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
         }
     }
 
+    Double_t x, y, w;
+    Double_t x0, y0, r, theta;
+    Int_t locmax, locmay, locmaz;
     cluster_num = 0;
     for(Int_t yi = 0; yi < N_PIXELS; yi++)
     {
@@ -1062,23 +1068,6 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
                 TH1D* h_x = new TH1D("h_x","h_x",N_PIXELS,0,N_PIXELS);
                 TH1D* h_y = new TH1D("h_y","h_y",N_PIXELS,0,N_PIXELS);
 
-                Long64_t ref_clock = -999;
-                Int_t xj_ref_clock = -1, yj_ref_clock = -1;
-                for(Int_t yj = 0; yj < N_PIXELS; yj++)
-                {
-                    for(Int_t xj = 0; xj < N_PIXELS; xj++)
-                    {
-                        if(fired_matrix[xj][yj] > 0)
-                        {
-                            ref_clock = _matrix[xj][yj];
-                            xj_ref_clock = xj;
-                            yj_ref_clock = yj;
-                        }
-                        if(ref_clock != -999) {break;}
-                    }
-                    if(ref_clock != -999) {break;}
-                }
-
                 for(Int_t yj = 0; yj < N_PIXELS; yj++)
                 {
                     for(Int_t xj = 0; xj < N_PIXELS; xj++)
@@ -1086,23 +1075,41 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
                         if(fired_matrix[xj][yj] > 0)
                         {
                             cluster_size[cluster_num]++;
-                        }
-                    }
-                }
 
-                for(Int_t yj = 0; yj < N_PIXELS; yj++)
-                {
-                    for(Int_t xj = 0; xj < N_PIXELS; xj++)
-                    {
-                        if(fired_matrix[xj][yj] > 0)
-                        {
                             h_xy->Fill(xj,yj,_matrix[xj][yj]);
                             h_x->Fill(xj,_matrix[xj][yj]);
                             h_y->Fill(yj,_matrix[xj][yj]);
 
                             fired_matrix_full[xj][yj] = 1;
                             cluster_clocks[cluster_num] += _matrix[xj][yj];
-                            if(AcqType == 3)
+                        }
+                    }
+                }
+
+                if(AcqType == 3)
+                {
+                    Long64_t ref_clock = -999;
+                    Int_t xj_ref_clock = -1, yj_ref_clock = -1;
+                    for(Int_t yj = 0; yj < N_PIXELS; yj++)
+                    {
+                        for(Int_t xj = 0; xj < N_PIXELS; xj++)
+                        {
+                            if(fired_matrix[xj][yj] > 0)
+                            {
+                                ref_clock = _matrix[xj][yj];
+                                xj_ref_clock = xj;
+                                yj_ref_clock = yj;
+                            }
+                            if(ref_clock != -999) {break;}
+                        }
+                        if(ref_clock != -999) {break;}
+                    }
+
+                    for(Int_t yj = 0; yj < N_PIXELS; yj++)
+                    {
+                        for(Int_t xj = 0; xj < N_PIXELS; xj++)
+                        {
+                            if(fired_matrix[xj][yj] > 0)
                             {
                                 if(xj == xj_ref_clock && yj == yj_ref_clock)
                                 {;}
@@ -1125,47 +1132,76 @@ int clusteranalysis(Long64_t _matrix[][N_PIXELS], Int_t &cluster_num, Int_t *clu
                 cluster_size_x[cluster_num]     = h_x->FindLastBinAbove(0) - h_x->FindFirstBinAbove(0) + 1;
                 cluster_size_y[cluster_num]     = h_y->FindLastBinAbove(0) - h_y->FindFirstBinAbove(0) + 1;
 
-                if(
-                        h_xy->Integral(1,h_xy->GetXaxis()->FindBin(cluster_pos_x[cluster_num]),1,h_xy->GetYaxis()->FindBin(cluster_pos_y[cluster_num]))+                    // Q1
-                        h_xy->Integral(h_xy->GetXaxis()->FindBin(cluster_pos_x[cluster_num]),N_PIXELS,h_xy->GetYaxis()->FindBin(cluster_pos_y[cluster_num]),N_PIXELS) >     // Q3
-                        h_xy->Integral(1,h_xy->GetXaxis()->FindBin(cluster_pos_x[cluster_num]),h_xy->GetYaxis()->FindBin(cluster_pos_y[cluster_num]),N_PIXELS)+             // Q2
-                        h_xy->Integral(h_xy->GetXaxis()->FindBin(cluster_pos_x[cluster_num]),N_PIXELS,1,h_xy->GetYaxis()->FindBin(cluster_pos_y[cluster_num]))              // Q4
-                        )
+//                // To plot a single cluster
+//                if(cluster_num == 111)
+//                {
+//                    for(Int_t yj = 0; yj < N_PIXELS; yj++)
+//                    {
+//                        for(Int_t xj = 0; xj < N_PIXELS; xj++)
+//                        {
+//                            if(fired_matrix[xj][yj] > 0)
+//                            {
+//                                h_com_4->Fill(xj,yj,_matrix[xj][yj]);
+//                            }
+//                        }
+//                    }
+
+//                    oneCluster = kFALSE;
+//                }
+
+                //_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-//
+                //_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-//
+
+                // New method to determine the azimuthal angle
+                TH1D* h_theta = new TH1D("h_theta","theta",160,-8,8);
+                h_xy->GetMaximumBin(locmax,locmay,locmaz);
+                x0 = h_xy->GetXaxis()->GetBinCenter(locmax) + h_xy->GetXaxis()->GetBinWidth(locmax)/2;
+                y0 = h_xy->GetYaxis()->GetBinCenter(locmay) + h_xy->GetYaxis()->GetBinWidth(locmay)/2;
+
+                for(Int_t binxi = 1; binxi <= h_xy->GetNbinsX(); binxi++)
                 {
-                    cluster_azimut[cluster_num] = TMath::ATan(cluster_size_y[cluster_num]/cluster_size_x[cluster_num]);
+                    for(Int_t binyi = 1; binyi <= h_xy->GetNbinsY(); binyi++)
+                    {
+                        if(fired_matrix[binxi-1][binyi-1] > 0)
+                        {
+                            x = h_xy->GetXaxis()->GetBinCenter(binxi);
+                            y = h_xy->GetYaxis()->GetBinCenter(binyi);
+                            w = h_xy->GetBinContent(binxi,binyi);
+
+                            getNewRadiusTheta(x0,y0,x,y,r,theta);
+
+                            h_theta->Fill(theta,w);
+
+                            fired_matrix[binxi-1][binyi-1] = 0;
+                        }
+                    }
                 }
-                else
-                {
-                    cluster_azimut[cluster_num] = TMath::Pi() - TMath::ATan(cluster_size_y[cluster_num]/cluster_size_x[cluster_num]);
-                }
+                cluster_azimut[cluster_num] = h_theta->GetBinCenter(h_theta->GetMaximumBin());
+                h_theta->Delete();
+
+                //_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-//
+
+                // Old method to determine the azimuthal angle
+//                if(
+//                        h_xy->Integral(1,h_xy->GetXaxis()->FindBin(cluster_pos_x[cluster_num]),1,h_xy->GetYaxis()->FindBin(cluster_pos_y[cluster_num]))+                    // Q1
+//                        h_xy->Integral(h_xy->GetXaxis()->FindBin(cluster_pos_x[cluster_num]),N_PIXELS,h_xy->GetYaxis()->FindBin(cluster_pos_y[cluster_num]),N_PIXELS) >     // Q3
+//                        h_xy->Integral(1,h_xy->GetXaxis()->FindBin(cluster_pos_x[cluster_num]),h_xy->GetYaxis()->FindBin(cluster_pos_y[cluster_num]),N_PIXELS)+             // Q2
+//                        h_xy->Integral(h_xy->GetXaxis()->FindBin(cluster_pos_x[cluster_num]),N_PIXELS,1,h_xy->GetYaxis()->FindBin(cluster_pos_y[cluster_num]))              // Q4
+//                        )
+//                {
+//                    cluster_azimut[cluster_num] = TMath::ATan(cluster_size_y[cluster_num]/cluster_size_x[cluster_num]);
+//                }
+//                else
+//                {
+//                    cluster_azimut[cluster_num] = TMath::Pi() - TMath::ATan(cluster_size_y[cluster_num]/cluster_size_x[cluster_num]);
+//                }
+
+                //_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-//
+                //_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-//
 
                 h_xy->Delete();
                 h_x->Delete();
-                h_y->Delete();
-
-                if(cluster_num == 26)
-                {
-                    for(Int_t yj = 0; yj < N_PIXELS; yj++)
-                    {
-                        for(Int_t xj = 0; xj < N_PIXELS; xj++)
-                        {
-                            if(fired_matrix[xj][yj] > 0)
-                            {
-                                h_com_4->Fill(xj,yj,_matrix[xj][yj]);
-                            }
-                        }
-                    }
-
-                    oneCluster = kFALSE;
-                }
-
-                for(Int_t yj = 0; yj < N_PIXELS; yj++)
-                {
-                    for(Int_t xj = 0; xj < N_PIXELS; xj++)
-                    {
-                        fired_matrix[xj][yj] = 0;
-                    }
-                }
+                h_y->Delete();                
 
                 cluster_num++;
             }
@@ -1247,4 +1283,21 @@ bool checkcondition(Long64_t x, Long64_t ref_x, Double_t delta, Double_t Clock)
     if(TMath::Abs(x_time - x_ref_time) < delta && x > 0) return true;
 //    if(x > 0) return true;
     return false;
+}
+
+void getNewRadiusTheta(Double_t x0, Double_t y0, Double_t x, Double_t y, Double_t &rnew, Double_t &thetanew)
+{
+    Double_t r0 = TMath::Sqrt(x0*x0 + y0*y0);
+    Double_t sinTheta0 = y0/r0;
+    Double_t cosTheta0 = x0/r0;
+    Double_t r = TMath::Sqrt(x*x + y*y);
+    Double_t sinTheta = y/r;
+    Double_t cosTheta = x/r;
+    Double_t cosThetaTheta0 = sinTheta*sinTheta0 + cosTheta*cosTheta0;
+    rnew = TMath::Sqrt(r*r + r0*r0 - 2.0*r*r0*cosThetaTheta0);
+
+    if(x < x0)
+        thetanew = TMath::Pi() - TMath::ASin((r*sinTheta - r0*sinTheta0)/rnew);
+    else
+        thetanew = TMath::ASin((r*sinTheta - r0*sinTheta0)/rnew);
 }

@@ -138,10 +138,15 @@ void function_1()
 
     // CRYSTAL3 in CH
     // 2018_11_07
-    Long64_t minUnixTime_run    = 1541598760;
-    Long64_t maxUnixTime_run    = 1541598940;
-    Long64_t entryINI           = 43300;
+//    Long64_t minUnixTime_run    = 1541598760;
+//    Long64_t maxUnixTime_run    = 1541598940;
+//    Long64_t entryINI           = 43300;
 
+    // CRYSTAL3 is out
+    // 2018_11_07
+    Long64_t minUnixTime_run    = 1541588212;
+    Long64_t maxUnixTime_run    = 1541588457;
+    Long64_t entryINI           = 22400;
 
 
     //========= RomanPot 1 =========//
@@ -164,7 +169,7 @@ void function_1()
     Double_t _Timems;
     Long64_t _COUNTS[N_PIXELS*2][N_PIXELS*2];
 
-    TString _fileName   = "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_11_07_RUN_1.root";
+    TString _fileName   = "/Volumes/NATOCHII_HDD/BACKUP/HARDDISK_version_22.08.2019/MedipixData/ROOT_FILES/MD_2018_11_07_RUN_1.root";
 
     TString tree_name;
     tree_name = "Tree_";
@@ -883,8 +888,8 @@ void function_7()
     // 2018_09_17
     TString output_file_name    = "output_function_7_RP1.root";
     TString input_file_tpx      = "output_function_1_RP1.root";
-    Long64_t minUnixTime_run    = 1537233727;
-    Long64_t maxUnixTime_run    = 1537233912;
+    Long64_t minUnixTime_run    = 1541588212;
+    Long64_t maxUnixTime_run    = 1541588457;
 
     //=============================================================//
 

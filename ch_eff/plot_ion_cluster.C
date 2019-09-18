@@ -34,6 +34,8 @@ int plot_ion_cluster()
     TFile *_file0 = TFile::Open("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/SPS_2018_11_26_RUN_1_outputfile_function_2_TEST.root");
 //    TFile *_file0 = TFile::Open("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/SPS_2018_11_26_RUN_1_outputfile_function_2_TEST2.root");
 //    TFile *_file0 = TFile::Open("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/SPS_2018_11_26_RUN_1_outputfile_function_2_TEST3.root");
+//    TFile *_file0 = TFile::Open("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/SPS_2018_11_26_RUN_1_outputfile_function_2_TEST4.root");
+//    TFile *_file0 = TFile::Open("/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/SPS_2018_11_26_RUN_1_outputfile_function_2_TEST5.root");
 
     TChain* fChain = new TChain("Tree");
     fChain->Add(_file0->GetName());
@@ -99,7 +101,7 @@ int plot_ion_cluster()
     Double_t x0, y0, r, theta;
     Int_t locmax, locmay, locmaz;
     h_com_4->GetMaximumBin(locmax,locmay,locmaz);
-    x0 = h_com_4->GetXaxis()->GetBinCenter(locmax);
+    x0 = h_com_4->GetXaxis()->GetBinCenter(locmax) + h_com_4->GetXaxis()->GetBinWidth(locmax)/2;
     y0 = h_com_4->GetYaxis()->GetBinCenter(locmay) + h_com_4->GetYaxis()->GetBinWidth(locmay)/2;
 
     for(Int_t binxi = 1; binxi <= h_com_4->GetNbinsX(); binxi++)

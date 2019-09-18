@@ -20,19 +20,20 @@
 #data_dir=/media/andrii/NATOCHII_HDD/DELETE_2020_Medipix/SPS_DATA/MD_2018_09_17;
 
 #data_dir=/media/andrii/NATOCHII_HDD/DELETE_2020_Medipix/SPS_DATA/MD_2017_10_17/TIMEPIX;
+data_dir=/Volumes/NATOCHII_HDD/DELETE_2020_Medipix/SPS_DATA/MD_2018_09_17;
 
-for runrunID in $(seq 1 1 1)
+for runrunID in $(seq 1 1 8)
 do
 
     #1
 
     ## ASCII FORMAT ##
 
-#    nFiles=$(ls -1q $data_dir/RUN_$runrunID/*.dat | wc -l);
+    nFiles=$(ls -1q $data_dir/RUN_$runrunID/*.dat | wc -l);
 
-#    echo "";
-#    echo "Number of files in the directory: "$nFiles;
-#    echo "";
+    echo "";
+    echo "Number of files in the directory: "$nFiles;
+    echo "";
 
 
 #    make clean; make ascii2root_common;
@@ -68,8 +69,8 @@ do
 
     #2
 
-#    make convert_common;
-#    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 1 $nFiles /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/H8_2018_11_27_RUN_$runrunID.root
+    make convert_common;
+    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 1 $nFiles /Users/andrii/Documents/Medipix/DATA_ANALYSIS/ROOT_FILES/MD_2018_09_17_RUN_$runrunID.root
 #    ./convert_common $data_dir/RUN_$runrunID/Medipix_ 1 $nFiles /media/andrii/F492773C92770302/MedipixData/ROOT_FILES/SPS_2018_11_26_RUN_$runrunID.root
 
     #3

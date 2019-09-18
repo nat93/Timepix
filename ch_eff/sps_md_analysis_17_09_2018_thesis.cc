@@ -24,6 +24,7 @@
 #include "TPaletteAxis.h"
 #include "TProfile.h"
 #include "TVirtualFitter.h"
+#include "TPaveText.h"
 //C++
 #include <iostream>
 #include <fstream>
@@ -52,6 +53,7 @@ void function_8();
 
 int median_filter(TH2D* h_in, TH2D* h_out, Double_t factor_bad_pixels);
 double findMedian(double a[], int n);
+void epochtime2date(time_t in_time, string &out_time);
 
 
 int main(int argc, char *argv[])
@@ -138,15 +140,15 @@ void function_1()
 
     // CRYSTAL3 Angular Scan
     // 2018_09_18
-    //    Long64_t minUnixTime_run    = 1537238369;
-    //    Long64_t maxUnixTime_run    = 1537238894;
-    //    Long64_t entryINI           = 31700;
+//        Long64_t minUnixTime_run    = 1537238369;
+//        Long64_t maxUnixTime_run    = 1537238894;
+//        Long64_t entryINI           = 31700;
 
     // CRYSTAL3 in CH, Double-channeling perfect orientation
     // 2018_09_18
-        Long64_t minUnixTime_run    = 1537233727;
-        Long64_t maxUnixTime_run    = 1537233912;
-        Long64_t entryINI           = 27000;
+//        Long64_t minUnixTime_run    = 1537233727;
+//        Long64_t maxUnixTime_run    = 1537233912;
+//        Long64_t entryINI           = 27000;
 
     // CRYSTAL3 in CH, Double-channeling for CpFM and LHC COLL comparison
     // 2018_09_18
@@ -166,10 +168,91 @@ void function_1()
 //    Long64_t maxUnixTime_run    = 1537241139;
 //    Long64_t entryINI           = 33700;
 
+    // CRYSTAL3 in CH, Double-channeling good orientation for 69.5 position
+    // 2018_09_18
+//    Long64_t minUnixTime_run    = 1537230127;
+//    Long64_t maxUnixTime_run    = 1537230312;
+//    Long64_t entryINI           = 24200;
+
+    // CRYSTAL3 in CH, Double-channeling good orientation for 67.5 position
+    // 2018_09_18
+//    Long64_t minUnixTime_run    = 1537232221;
+//    Long64_t maxUnixTime_run    = 1537232406;
+//    Long64_t entryINI           = 25800;
+
+    // CRYSTAL3 is out
+    // 2018_09_18
+//    Long64_t minUnixTime_run    = 1537231017;
+//    Long64_t maxUnixTime_run    = 1537231060;
+//    Long64_t entryINI           = 24700;
+
+    // with/wihtout RP0
+    // 2018_09_18
+//    Long64_t minUnixTime_run    = 1537222860;
+//    Long64_t maxUnixTime_run    = 1537223100;
+//    Long64_t entryINI           = 17400;
+
+    // for 19% of eff
+    // 2018_09_18
+//    Long64_t minUnixTime_run    = 1537233727;
+//    Long64_t maxUnixTime_run    = 1537233912;
+//    Long64_t entryINI           = 0;
+
+    // 2018_09_17/18 RP0 68.5 mm
+//    Long64_t minUnixTime_run    = 1537208720;
+//    Long64_t maxUnixTime_run    = 1537208880;
+//    Long64_t entryINI           = 2500;
+
+    // 2018_09_17/18 RP0 62.0 mm
+//    Long64_t minUnixTime_run    = 1537223040;
+//    Long64_t maxUnixTime_run    = 1537223160;
+//    Long64_t entryINI           = 17600;
+
+    // 2018_09_17/18 RP0 64.7 mm
+//    Long64_t minUnixTime_run    = 1537231010;
+//    Long64_t maxUnixTime_run    = 1537231066;
+//    Long64_t entryINI           = 24700;
+
+    // 2018_09_17/18 RP0 00.0 mm
+//    Long64_t minUnixTime_run    = 1537222910;
+//    Long64_t maxUnixTime_run    = 1537222970;
+//    Long64_t entryINI           = 17500;
+
+    // RP0 linear scan
+    // 2018_09_18
+//    Long64_t minUnixTime_run    = 1537230660;
+//    Long64_t maxUnixTime_run    = 1537230900;
+//    Long64_t entryINI           = 24400;
+
+    // RP0 angular scan
+    // 2018_09_17
+//    Long64_t minUnixTime_run    = 1537206100;
+//    Long64_t maxUnixTime_run    = 1537206540;
+//    Long64_t entryINI           = 0;
+
+    // Extraction Eff. for Taratin S1 dataset
+    // 2018_09_17
+//    Long64_t minUnixTime_run    = 1537186198;
+//    Long64_t maxUnixTime_run    = 1537186443;
+//    Long64_t entryINI           = 6700;
+
+    // ALL DATA
+    // 2018_09_17/18
+//    Long64_t minUnixTime_run    = 1537164000;
+//    Long64_t maxUnixTime_run    = 1537250400;
+//    Long64_t entryINI           = 0;
+
+    // RP0 linear movement
+    // 2018_09_17
+    Long64_t minUnixTime_run    = 1537207200;
+    Long64_t maxUnixTime_run    = 1537211400;
+    Long64_t entryINI           = 1067;
+
+
     //========= RomanPot 1 =========//
     Double_t filterFactor       = 2.0;
     TString outputFileName      = "output_function_1_RP1.root";
-    Int_t chipID = 0;
+    Int_t chipID = 1;
 
     //========= RomanPot 0 =========//
 //        Double_t filterFactor       = 2.0;
@@ -192,7 +275,7 @@ void function_1()
     Double_t _Timems;
     Long64_t _COUNTS[N_PIXELS*2][N_PIXELS*2];
 
-    TString _fileName   = "/media/andrii/F492773C92770302/MedipixData/ROOT_FILES/MD_2018_09_17_RUN_8.root";
+    TString _fileName   = "../ROOT_FILES/MD_2018_09_17_RUN_8.root";
 
     TString tree_name;
     tree_name = "Tree_";
@@ -200,6 +283,15 @@ void function_1()
     cout<<"--> Tree: "<<tree_name<<endl;
     fChain = new TChain(tree_name.Data());
     fChain->Add(_fileName.Data());
+
+//    fChain->Add("../ROOT_FILES/MD_2018_09_17_RUN_1.root");
+//    fChain->Add("../ROOT_FILES/MD_2018_09_17_RUN_2.root");
+//    fChain->Add("../ROOT_FILES/MD_2018_09_17_RUN_3.root");
+//    fChain->Add("../ROOT_FILES/MD_2018_09_17_RUN_4.root");
+//    fChain->Add("../ROOT_FILES/MD_2018_09_17_RUN_5.root");
+//    fChain->Add("../ROOT_FILES/MD_2018_09_17_RUN_6.root");
+//    fChain->Add("../ROOT_FILES/MD_2018_09_17_RUN_7.root");
+//    fChain->Add("../ROOT_FILES/MD_2018_09_17_RUN_8.root");
 
     fChain->SetBranchAddress("UnixTime",    &_UnixTime);
     fChain->SetBranchAddress("TrigType",    &_TrigType);
@@ -228,20 +320,31 @@ void function_1()
     cout<<"--> Gate = "<<_Gate<<" [sec]"<<endl;
 
     TH2D* h_1   = new TH2D("h_1","RP Internal",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
-    TH2D* h_2   = new TH2D("h_2","RP Internal Y vs Time",maxUnixTime_run-minUnixTime_run,minUnixTime_run,maxUnixTime_run,N_PIXELS,0,N_PIXELS);
-    TH2D* h_3   = new TH2D("h_3","RP Internal X vs Time",maxUnixTime_run-minUnixTime_run,minUnixTime_run,maxUnixTime_run,N_PIXELS,0,N_PIXELS);
+    TH2D* h_2   = new TH2D("h_2","RP Internal Y vs Time",(maxUnixTime_run-minUnixTime_run)*10,minUnixTime_run,maxUnixTime_run,N_PIXELS,0,N_PIXELS);
+    TH2D* h_3   = new TH2D("h_3","RP Internal X vs Time",(maxUnixTime_run-minUnixTime_run)*10,minUnixTime_run,maxUnixTime_run,N_PIXELS,0,N_PIXELS);
     TH2D* h_5   = new TH2D("h_5","RP Internal YX [mm]",N_PIXELS,0,N_PIXELS*PIXEL_SIZE,N_PIXELS,0,N_PIXELS*PIXEL_SIZE);
-    TH1D* h_22  = new TH1D("h_22","RP Internal Time (Frames)",maxUnixTime_run-minUnixTime_run,minUnixTime_run,maxUnixTime_run);
+    TH1D* h_22  = new TH1D("h_22","RP Internal Time (Frames)",(maxUnixTime_run-minUnixTime_run)*10,minUnixTime_run,maxUnixTime_run);
     TH1D* h_23  = new TH1D("h_23","Number of the filtered pixels per frame",10000,0,10000);
 
     TCanvas* c_3 = new TCanvas("c_3","c_3",1800,900);
     c_3->Divide(2,1);
+
+    //_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-//
+//    TString name_tmp;
+//    Double_t integral_tmp;
+//    TFile *_fileHist = TFile::Open("histo.root");
+//    TH2D* hh_2_pos = (TH2D*)_fileHist->Get("hh_2_pos");
+//    TCanvas* c_tmp = new TCanvas("c_tmp","c_tmp",1600,600);
+//    c_tmp->Divide(2,1);
+    //_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-//
+
+
     //------------------------------------------------------------------------------//
     // MAIN LOOP
     //------------------------------------------------------------------------------//
 
     Int_t nFrames = 0;
-    Double_t frameTime = 0;
+    Double_t frameTime = 0;    
 
     for(Long64_t iEntry = entryINI; iEntry < nEntries; iEntry++)
     {
@@ -267,6 +370,7 @@ void function_1()
 
         TH2D* h_1_temp = new TH2D("h_1_temp","Y vs X vs C (in pixels)",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
         TH2D* h_2_temp = new TH2D("h_2_temp","Y vs X vs C (in pixels)",N_PIXELS,0,N_PIXELS,N_PIXELS,0,N_PIXELS);
+        TH2D* h_22_temp = new TH2D("h_22_temp","Y vs X vs C (in mm)",N_PIXELS,0,N_PIXELS*PIXEL_SIZE,N_PIXELS,0,N_PIXELS*PIXEL_SIZE);
 
         for(Int_t xi = 1; xi < N_PIXELS - 1; xi++)
         {
@@ -315,11 +419,164 @@ void function_1()
         }
 
         h_22->Fill(frameTime,1);
-
         nFrames++;
+
+        //_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-//
+//        for(Int_t binx = 1; binx <= N_PIXELS; binx++)
+//        {
+//            for(Int_t biny = 1; biny <= N_PIXELS; biny++)
+//            {
+//                h_22_temp->SetBinContent(N_PIXELS-biny+1,binx,h_2_temp->GetBinContent(binx,biny));
+//            }
+//        }
+
+//        c_tmp->cd(1);
+//        gStyle->SetOptStat(0);
+//        TPad *pad_4 = new TPad("pad_4","pad_4",0,0,1,1);
+//        pad_4->SetRightMargin(0.1);
+//        pad_4->SetLeftMargin(0.2);
+//        pad_4->Draw();
+//        pad_4->cd();
+//        gPad->SetGrid();
+//        hh_2_pos->SetTitle("");
+//        hh_2_pos->GetYaxis()->SetTitleOffset(1.1);
+//        hh_2_pos->GetZaxis()->SetTitleOffset(1.2);
+//        hh_2_pos->Draw("colz");
+//        TF1* cry3Kick = new TF1("cry3Kick","pol1",0,100);
+//        cry3Kick->SetParameters(0.00034283,2.22699e-05);
+//        Double_t alignmentRelPos = 1.79604;
+//        Double_t alignmentAbsPos = 36.8;
+//        Double_t timepixOffset = 3.0;
+
+//        TGaxis *axisCry3 = new TGaxis(1345,0,1345,0.055*256,(-1)*( cry3Kick->Eval( (-1)*(alignmentRelPos + timepixOffset + (alignmentAbsPos-28.6)) )*1e6 ),
+//                                      (-1)*( cry3Kick->Eval( (-1)*(alignmentRelPos + timepixOffset + (alignmentAbsPos-28.6+0.055*256)) )*1e6 ),50510,"-");
+//        axisCry3->SetName("axisCry3");
+//        axisCry3->SetLabelOffset(0.01);
+//        axisCry3->SetLineColor(kRed);
+//        axisCry3->SetLabelColor(kRed);
+//        axisCry3->SetLabelSize(0.03);
+//        axisCry3->SetLabelFont(42);
+//        axisCry3->SetNdivisions(0*10000 + 5*100 + 20*1);
+//        axisCry3->SetTitle("Crystal2 Kick [#murad]");
+//        axisCry3->CenterTitle();
+//        axisCry3->SetTitleOffset(1.5);
+//        axisCry3->SetTitleSize(0.03);
+//        axisCry3->SetTitleFont(42);
+//        axisCry3->SetTitleColor(kRed);
+//        axisCry3->Draw();
+
+//        TLine* lineAM1 = new TLine(1440,2.4,1610,2.4);
+//        lineAM1->SetLineStyle(9);
+//        lineAM1->SetLineColor(kBlack);
+//        lineAM1->SetLineWidth(2);
+//        lineAM1->Draw();
+
+//        TLine* lineAM2 = new TLine(1850,2.4,1940,2.4);
+//        lineAM2->SetLineStyle(9);
+//        lineAM2->SetLineColor(kBlack);
+//        lineAM2->SetLineWidth(2);
+//        lineAM2->Draw();
+
+//        TLine* lineVR = new TLine(1610,1.3,1810,1.3);
+//        lineVR->SetLineStyle(9);
+//        lineVR->SetLineColor(kBlack);
+//        lineVR->SetLineWidth(2);
+//        lineVR->Draw();
+
+//        TLine* lineVC = new TLine(1660,4.0,1760,8.8);
+//        lineVC->SetLineStyle(9);
+//        lineVC->SetLineColor(kBlack);
+//        lineVC->SetLineWidth(2);
+//        lineVC->Draw();
+
+//        TLine* lineDCH = new TLine(1830,4.0,1830,8.8);
+//        lineDCH->SetLineStyle(9);
+//        lineDCH->SetLineColor(kBlack);
+//        lineDCH->SetLineWidth(2);
+//        lineDCH->Draw();
+
+//        TLine* lineCH = new TLine(1760,11,1860,11);
+//        lineCH->SetLineStyle(9);
+//        lineCH->SetLineColor(kBlack);
+//        lineCH->SetLineWidth(2);
+//        lineCH->Draw();
+
+//        TPaveText *textAM1 = new TPaveText(1500,2.0,1530,2.8);
+//        textAM1->SetTextSize(0.03);
+//        textAM1->AddText("AM");
+//        textAM1->Draw();
+
+//        TPaveText *textAM2 = new TPaveText(1900,2.0,1930,2.8);
+//        textAM2->SetTextSize(0.03);
+//        textAM2->AddText("AM");
+//        textAM2->Draw();
+
+//        TPaveText *textVR = new TPaveText(1685,0.9,1715,1.7);
+//        textVR->SetTextSize(0.03);
+//        textVR->AddText("VR");
+//        textVR->Draw();
+
+//        TPaveText *textVC = new TPaveText(1685,5.6,1715,6.4);
+//        textVC->SetTextSize(0.03);
+//        textVC->AddText("VC");
+//        textVC->Draw();
+
+//        TPaveText *textDCH = new TPaveText(1810,5.6,1850,6.4);
+//        textDCH->SetTextSize(0.03);
+//        textDCH->AddText("DCH");
+//        textDCH->Draw();
+
+//        TPaveText *textCH = new TPaveText(1860,10.6,1890,11.4);
+//        textCH->SetTextSize(0.03);
+//        textCH->AddText("CH");
+//        textCH->Draw();
+
+//        Double_t p0 = -1.42369e+03;
+//        Double_t p1 = -1.00125e+00;
+
+//        Double_t angle = TMath::Abs(p0 + p1*(frameTime-minUnixTime_run));
+
+//        TLine* lineScan = new TLine(angle,0,angle,256*0.055);
+//        lineScan->SetLineStyle(1);
+//        lineScan->SetLineColor(kRed);
+//        lineScan->SetLineWidth(8);
+//        lineScan->Draw();
+
+//        c_tmp->cd(2);
+//        gStyle->SetOptStat(0);
+//        TPad *pad_1 = new TPad("pad_1","pad_1",0,0,1,1);
+//        pad_1->SetRightMargin(0.2);
+//        pad_1->SetLeftMargin(0.2);
+//        pad_1->Draw();
+//        pad_1->cd();
+//        gPad->SetGrid();
+//        h_22_temp->SetName("Timepix Frame");
+//        string time_char;
+//        epochtime2date(round(frameTime),time_char);
+//        h_22_temp->SetTitle(time_char.data());
+//        integral_tmp = h_22_temp->Integral();
+//        h_22_temp->Scale(1.0/(integral_tmp*4e-4));
+//        gPad->SetGrid();
+//        h_22_temp->GetXaxis()->SetRange(1,256);
+//        h_22_temp->GetYaxis()->SetRange(1,256);
+//        h_22_temp->SetMaximum(1);
+//        h_22_temp->GetXaxis()->SetTitle("Horizontal Axis [mm]");
+//        h_22_temp->GetYaxis()->SetTitle("Vertical Axis [mm]");
+//        h_22_temp->GetZaxis()->SetTitle("Hits Density");
+//        h_22_temp->GetXaxis()->CenterTitle();
+//        h_22_temp->GetYaxis()->CenterTitle();
+//        h_22_temp->GetZaxis()->CenterTitle();
+//        h_22_temp->GetZaxis()->SetNdivisions(0*10000 + 0*100 + 5*1);
+//        h_22_temp->Draw("colz");
+//        name_tmp = "/media/andrii/F492773C92770302/MedipixData/frames/frame_";
+//        name_tmp += frameTime;
+//        name_tmp += ".png";
+//        c_tmp->SaveAs(name_tmp.Data());
+        //_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-//
 
         h_1_temp->Delete();
         h_2_temp->Delete();
+        h_22_temp->Delete();
     }
     for(Int_t binx = 1; binx <= N_PIXELS; binx++)
     {
@@ -907,12 +1164,11 @@ void function_2()
     cout<<endl<<">>> function_7() <<<"<<endl;
 
     //=============================================================//
-    // 2018_09_17
-    TString output_file_name    = "output_function_7_RP1.root";
-    TString input_file_tpx      = "output_function_1_RP1.root";
-    Long64_t minUnixTime_run    = 1537233727;
-    Long64_t maxUnixTime_run    = 1537233912;
+    TString output_file_name    = "output_function_7_RP0.root";
+    TString input_file_tpx      = "output_function_1_RP0.root";
 
+    Long64_t minUnixTime_run    = 1537207200;
+    Long64_t maxUnixTime_run    = 1537211400;
     //=============================================================//
 
     // Timepix
@@ -928,8 +1184,8 @@ void function_2()
     //-------------------------------- HISTOS ----------------------------------//
     //--------------------------------------------------------------------------//
 
-    TH2D* hh_1   = new TH2D("hh_1","RP1 Internal YX [mm]",N_PIXELS,0,N_PIXELS*PIXEL_SIZE,N_PIXELS,0,N_PIXELS*PIXEL_SIZE);
-    TH2D* hh_2   = new TH2D("hh_2","RP1 Internal Y vs Time",maxUnixTime_run-minUnixTime_run,0,maxUnixTime_run-minUnixTime_run,N_PIXELS,0,N_PIXELS*PIXEL_SIZE);
+    TH2D* hh_1   = new TH2D("hh_1","RP Internal YX [mm]",N_PIXELS,0,N_PIXELS*PIXEL_SIZE,N_PIXELS,0,N_PIXELS*PIXEL_SIZE);
+    TH2D* hh_2   = new TH2D("hh_2","RP Internal Y vs Time",(maxUnixTime_run-minUnixTime_run)*10,0,maxUnixTime_run-minUnixTime_run,N_PIXELS,0,N_PIXELS*PIXEL_SIZE);
 
     //--------------------------------------------------------------------------//
 
@@ -1269,4 +1525,26 @@ double findMedian(double a[], int n)// Function for calculating median
 {
     sort(a, a+n);
     return a[n/2];
+}
+
+void epochtime2date(time_t in_time, string &out_time)
+{
+    const char default_format[] = "%a %b %d %Y %H:%M:%S";
+    time_t t = in_time;
+    const char *format = default_format;
+
+    struct tm lt;
+    char res[32];
+
+    (void) localtime_r(&t, &lt);
+
+    if (strftime(res, sizeof(res), format, &lt) == 0)
+    {
+        (void) fprintf(stderr,  "strftime(3): cannot format supplied "
+                                "date/time into buffer of size %lu "
+                                "using: '%s'\n",
+                       sizeof(res), format);
+    }
+
+    out_time = res;
 }
